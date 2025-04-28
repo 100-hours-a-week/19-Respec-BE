@@ -38,11 +38,11 @@ public class Chatroom extends BaseTimeEntity {
         this.partner = partner;
     }
 
-    public void setCreatorDeleteAt(LocalDateTime creatorDeleteAt) {
-        this.creatorDeleteAt = creatorDeleteAt;
+    public void deleteCreator() {
+        this.creatorDeleteAt = LocalDateTime.now();
     }
 
-    public void setPartnerDeleteAt(LocalDateTime partnerDeleteAt) {
-        this.partnerDeleteAt = partnerDeleteAt;
+    public void deletePartner() {
+        this.partnerDeleteAt = LocalDateTime.now();
     }
 }
