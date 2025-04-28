@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
 
+import kakaotech.bootcamp.respec.specranking.domain.common.type.EducationInstitute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.EducationStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,16 +21,18 @@ public class Education {
     @JoinColumn(name = "spec_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private Spec spec;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "institute", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ENROLLED'")
-    private String institute;
+    private EducationInstitute institute;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'MIDDLE_SCHOOL'")
-    private String status;
+    private EducationStatus status;
 
     @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
     private Double analysisScore;
 
-    public Education(Spec spec, String institute, String status, Double analysisScore) {
+    public Education(Spec spec, EducationInstitute institute, EducationStatus status, Double analysisScore) {
         this.spec = spec;
         this.institute = institute;
         this.status = status;

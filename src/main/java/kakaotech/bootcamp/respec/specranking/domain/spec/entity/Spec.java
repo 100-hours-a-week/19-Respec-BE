@@ -1,6 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
 
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -37,12 +38,16 @@ public class Spec extends BaseTimeEntity {
     @Column(name = "comment_count", nullable = false, columnDefinition = "BIGINT UNSIGNED DEFAULT 0")
     private Long commentCount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ACTIVE'")
-    private String status;
+    private SpecStatus status;
 
     public Spec(User user, String workPosition, Double analysisScore) {
         this.user = user;
         this.workPosition = workPosition;
         this.analysisScore = analysisScore;
+        this.bookmarkCount = 0L;
+        this.commentCount = 0L;
+        this.status = SpecStatus.ACTIVE;
     }
 }

@@ -1,6 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.entity;
 
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.UserRole;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,11 +36,13 @@ public class User extends BaseTimeEntity {
     @Column(name = "is_open_spec", nullable = false, columnDefinition = "TINYINT(1)")
     private boolean isOpenSpec;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ROLE_USER'")
-    private String role;
+    private UserRole role;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ACTIVE'")
-    private String status;
+    private UserStatus status;
 
     public User(String userId, String password, String userProfileUrl, String nickname, boolean isOpenSpec) {
         this.userId = userId;
@@ -46,5 +50,7 @@ public class User extends BaseTimeEntity {
         this.userProfileUrl = userProfileUrl;
         this.nickname = nickname;
         this.isOpenSpec = isOpenSpec;
+        this.role = UserRole.ROLE_USER;
+        this.status = UserStatus.ACTIVE;
     }
 }
