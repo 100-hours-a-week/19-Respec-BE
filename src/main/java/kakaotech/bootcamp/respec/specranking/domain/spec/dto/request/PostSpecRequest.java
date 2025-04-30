@@ -1,0 +1,80 @@
+package kakaotech.bootcamp.respec.specranking.domain.spec.dto.request;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+public class PostSpecRequest {
+    private FinalEducation finalEducation;
+    private List<Education> educations;
+    private List<WorkExperience> workExperience;
+    private List<Certification> certifications;
+    private List<LanguageSkill> languageSkills;
+    private List<Activity> activities;
+    private String jobField;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class FinalEducation {
+        private String level;
+        private String status;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class Education {
+        private String schoolName;
+        private String degree;
+        private String major;
+        private Double gpa;
+        private Double maxGpa;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class WorkExperience {
+        private String company;
+        private String position;
+        private Integer period;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class Certification {
+        private String name;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class LanguageSkill {
+        private String name;
+        private String score;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class Activity {
+        private String name;
+        private String role;
+        private String award;
+    }
+}
