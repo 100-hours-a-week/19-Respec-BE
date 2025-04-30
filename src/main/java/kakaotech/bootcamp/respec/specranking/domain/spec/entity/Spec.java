@@ -29,8 +29,26 @@ public class Spec extends BaseTimeEntity {
     @Column(name = "work_position", nullable = false, columnDefinition = "VARCHAR(50)")
     private String workPosition;
 
-    @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double analysisScore;
+    @Column(name = "education_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double educationScore;
+
+    @Column(name = "work_experience_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double workExperienceScore;
+
+    @Column(name = "portfolio_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double portfolioScore;
+
+    @Column(name = "activity_networking_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double activityNetworkingScore;
+
+    @Column(name = "certification_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double certificationScore;
+
+    @Column(name = "english_skill_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double englishSkillScore;
+
+    @Column(name = "total_analysis_score", nullable = false, columnDefinition = "DOUBLE")
+    private Double totalAnalysisScore;
 
     @Column(name = "bookmark_count", nullable = false, columnDefinition = "BIGINT UNSIGNED DEFAULT 0")
     private Long bookmarkCount;
@@ -42,10 +60,22 @@ public class Spec extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ACTIVE'")
     private SpecStatus status;
 
-    public Spec(User user, String workPosition, Double analysisScore) {
+    public Spec(User user, String workPosition
+            , Double educationScore
+            , Double workExperienceScore
+            , Double portfolioScore
+            , Double activityNetworkingScore
+            , Double certificationScore
+            , Double englishSkillScore, Double totalAnalysisScore) {
         this.user = user;
         this.workPosition = workPosition;
-        this.analysisScore = analysisScore;
+        this.educationScore = educationScore;
+        this.workExperienceScore = workExperienceScore;
+        this.portfolioScore = portfolioScore;
+        this.activityNetworkingScore = activityNetworkingScore;
+        this.certificationScore = certificationScore;
+        this.englishSkillScore = englishSkillScore;
+        this.totalAnalysisScore = totalAnalysisScore;
         this.bookmarkCount = 0L;
         this.commentCount = 0L;
         this.status = SpecStatus.ACTIVE;

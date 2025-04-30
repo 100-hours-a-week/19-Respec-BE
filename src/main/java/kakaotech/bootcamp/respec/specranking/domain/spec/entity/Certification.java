@@ -22,12 +22,8 @@ public class Certification {
     @Column(name = "certification_name", nullable = false, columnDefinition = "VARCHAR(255)")
     private String certificationName;
 
-    @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double analysisScore;
-
-    public Certification(Spec spec, String certificationName, Double analysisScore) {
+    public Certification(Spec spec, String certificationName) {
         this.spec = spec;
         this.certificationName = certificationName;
-        this.analysisScore = analysisScore;
     }
 }

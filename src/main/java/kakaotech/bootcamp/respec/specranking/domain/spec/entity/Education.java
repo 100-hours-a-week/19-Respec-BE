@@ -29,13 +29,9 @@ public class Education {
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'MIDDLE_SCHOOL'")
     private EducationStatus status;
 
-    @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double analysisScore;
-
-    public Education(Spec spec, EducationInstitute institute, EducationStatus status, Double analysisScore) {
+    public Education(Spec spec, EducationInstitute institute, EducationStatus status) {
         this.spec = spec;
         this.institute = institute;
         this.status = status;
-        this.analysisScore = analysisScore;
     }
 }

@@ -30,14 +30,10 @@ public class WorkExperience {
     @Column(name = "work_month", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer workMonth;
 
-    @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double analysisScore;
-
-    public WorkExperience(Spec spec, String companyName, WorkPosition position, Integer workMonth, Double analysisScore) {
+    public WorkExperience(Spec spec, String companyName, WorkPosition position, Integer workMonth) {
         this.spec = spec;
         this.companyName = companyName;
         this.position = position;
         this.workMonth = workMonth;
-        this.analysisScore = analysisScore;
     }
 }

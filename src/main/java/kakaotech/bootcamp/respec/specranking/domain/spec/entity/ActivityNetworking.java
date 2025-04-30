@@ -28,14 +28,10 @@ public class ActivityNetworking {
     @Column(columnDefinition = "VARCHAR(50)")
     private String award;
 
-    @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double analysisScore;
-
-    public ActivityNetworking(Spec spec, String activityName, String position, String award, Double analysisScore) {
+    public ActivityNetworking(Spec spec, String activityName, String position, String award) {
         this.spec = spec;
         this.activityName = activityName;
         this.position = position;
         this.award = award;
-        this.analysisScore = analysisScore;
     }
 }

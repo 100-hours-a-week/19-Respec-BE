@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.University;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.service.aiserver.AiServerService;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,10 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class AiService {
 
+    private final AiServerService aiServerService;
+
     public AiPostSpecResponse analyzeSpec(AiPostSpecRequest request) {
-        // 호출
-        // 반환
-        return new AiPostSpecResponse();
+        return aiServerService.call(request);
     }
 
     public AiPostSpecRequest convertToAiRequest(PostSpecRequest request) {

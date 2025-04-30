@@ -28,14 +28,10 @@ public class EnglishSkill {
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private String score;
 
-    @Column(name = "analysis_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double analysisScore;
-
-    public EnglishSkill(Spec spec, String examName, String language, String score, Double analysisScore) {
+    public EnglishSkill(Spec spec, String examName, String language, String score) {
         this.spec = spec;
         this.examName = examName;
         this.language = language;
         this.score = score;
-        this.analysisScore = analysisScore;
     }
 }

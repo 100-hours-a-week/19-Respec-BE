@@ -59,24 +59,31 @@ public class SpecService {
         Spec spec = new Spec(
                 user,
                 request.getJobField(),
+                aiPostSpecResponse.getAcademicScore(),
+                aiPostSpecResponse.getWorkExperienceScore(),
+                0.0, // 후에 변경 예정 포트폴리오
+                aiPostSpecResponse.getExtracurricularScore(),
+                aiPostSpecResponse.getCertificationScore(),
+                aiPostSpecResponse.getLanguageProficiencyScore(),
                 aiPostSpecResponse.getTotalScore()
         );
 
         Spec savedSpec = specRepository.save(spec);
 
-        saveEducation(savedSpec, request, aiPostSpecResponse.getAcademicScore());
-        saveWorkExperience(savedSpec, request, aiPostSpecResponse.getWorkExperienceScore());
-        saveCertifications(savedSpec, request, aiPostSpecResponse.getCertificationScore());
-        saveLanguageSkills(savedSpec, request, aiPostSpecResponse.getLanguageProficiencyScore());
-        saveActivities(savedSpec, request, aiPostSpecResponse.getExtracurricularScore());
+        saveEducation(savedSpec, request);
+        saveWorkExperience(savedSpec, request);
+        saveCertifications(savedSpec, request);
+        saveLanguageSkills(savedSpec, request);
+        saveActivities(savedSpec, request);
     }
 
-    private void saveEducation(Spec spec, PostSpecRequest request, double academicScore) {
+    private void saveEducation(Spec spec, PostSpecRequest request) {
         if (request.getFinalEducation() != null) {
             EducationInstitute institute = convertToEducationInstitute(request.getFinalEducation().getStatus());
             EducationStatus status = convertToEducationStatus(request.getFinalEducation().getLevel());
 
-            Education education = new Education(spec, institute, status, academicScore);
+            // 점수 매개변수 제거 - Spec 엔티티에 이미 점수가 저장됨
+            Education education = new Education(spec, institute, status);
             Education savedEducation = educationRepository.save(education);
 
             if (request.getEducations() != null && !request.getEducations().isEmpty()) {
@@ -98,20 +105,17 @@ public class SpecService {
         }
     }
 
-    private void saveWorkExperience(Spec spec, PostSpecRequest request, double workScore) {
+    private void saveWorkExperience(Spec spec, PostSpecRequest request) {
         if (request.getWorkExperience() != null && !request.getWorkExperience().isEmpty()) {
-
-            double individualScore = workScore / request.getWorkExperience().size();
-
             for (PostSpecRequest.WorkExperience workExp : request.getWorkExperience()) {
                 WorkPosition position = convertToWorkPosition(workExp.getPosition());
 
+                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 WorkExperience workExperience = new WorkExperience(
                         spec,
                         workExp.getCompany(),
                         position,
-                        workExp.getPeriod(),
-                        individualScore
+                        workExp.getPeriod()
                 );
 
                 workExperienceRepository.save(workExperience);
@@ -119,15 +123,13 @@ public class SpecService {
         }
     }
 
-    private void saveCertifications(Spec spec, PostSpecRequest request, double certScore) {
+    private void saveCertifications(Spec spec, PostSpecRequest request) {
         if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
-            double individualScore = certScore / request.getCertifications().size();
-
             for (PostSpecRequest.Certification certificationDto : request.getCertifications()) {
+                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 Certification certification = new Certification(
                         spec,
-                        certificationDto.getName(),
-                        individualScore
+                        certificationDto.getName()
                 );
 
                 certificationRepository.save(certification);
@@ -135,18 +137,15 @@ public class SpecService {
         }
     }
 
-    private void saveLanguageSkills(Spec spec, PostSpecRequest request, double langScore) {
+    private void saveLanguageSkills(Spec spec, PostSpecRequest request) {
         if (request.getLanguageSkills() != null && !request.getLanguageSkills().isEmpty()) {
-            // 전체 언어 능력 항목 수로 점수 분배
-            double individualScore = langScore / request.getLanguageSkills().size();
-
             for (PostSpecRequest.LanguageSkill languageSkillDto : request.getLanguageSkills()) {
+                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 EnglishSkill englishSkill = new EnglishSkill(
                         spec,
                         languageSkillDto.getName(),
                         "English", // 기본값 설정
-                        languageSkillDto.getScore(),
-                        individualScore
+                        languageSkillDto.getScore()
                 );
 
                 englishSkillRepository.save(englishSkill);
@@ -154,34 +153,19 @@ public class SpecService {
         }
     }
 
-    private void saveActivities(Spec spec, PostSpecRequest request, double activityScore) {
+    private void saveActivities(Spec spec, PostSpecRequest request) {
         if (request.getActivities() != null && !request.getActivities().isEmpty()) {
-            // 전체 활동 항목 수로 점수 분배
-            double individualScore = activityScore / request.getActivities().size();
-
             for (PostSpecRequest.Activity activityDto : request.getActivities()) {
+                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 ActivityNetworking activity = new ActivityNetworking(
                         spec,
                         activityDto.getName(),
                         activityDto.getRole(),
-                        activityDto.getAward(),
-                        individualScore
+                        activityDto.getAward()
                 );
 
                 activityNetworkingRepository.save(activity);
             }
-        }
-    }
-
-    private void savePortfolio(Spec spec, String fileUrl, String originName) {
-        if (fileUrl != null && !fileUrl.isEmpty()) {
-            Portfolio portfolio = new Portfolio(
-                    spec,
-                    fileUrl,
-                    originName
-            );
-
-            portfolioRepository.save(portfolio);
         }
     }
 
