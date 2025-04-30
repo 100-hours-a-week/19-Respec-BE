@@ -22,7 +22,7 @@ public class SpecController {
             @RequestPart("spec") PostSpecRequest request,
             @RequestPart(value = "portfolioFile", required = false) MultipartFile portfolioFile) {
 
-        specService.createSpec(request);
+        specService.createSpec(request, portfolioFile);
         return new PostSpecResponse(true, "스펙 입력 성공!");
     }
 

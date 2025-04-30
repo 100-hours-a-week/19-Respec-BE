@@ -13,7 +13,6 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Certification;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.EnglishSkill;
-import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Portfolio;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.WorkExperience;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.ActivityNetworkingRepository;
@@ -30,6 +29,7 @@ import kakaotech.bootcamp.respec.specranking.global.util.MockGetCurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -47,7 +47,7 @@ public class SpecService {
     private final ActivityNetworkingRepository activityNetworkingRepository;
     private final PortfolioRepository portfolioRepository;
 
-    public void createSpec(PostSpecRequest request) {
+    public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
         Long userId = MockGetCurrentUser.getUserId();
 
         User user = userRepository.findById(userId)
