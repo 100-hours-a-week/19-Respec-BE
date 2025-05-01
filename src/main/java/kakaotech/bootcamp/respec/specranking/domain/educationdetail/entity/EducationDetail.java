@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
+package kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
