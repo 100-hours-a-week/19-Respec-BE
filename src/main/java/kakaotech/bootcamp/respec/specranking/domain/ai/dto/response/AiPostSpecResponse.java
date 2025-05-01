@@ -1,13 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 public class AiPostSpecResponse {
 
     private String nickname;

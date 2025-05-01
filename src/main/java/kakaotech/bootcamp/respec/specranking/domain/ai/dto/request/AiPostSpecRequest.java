@@ -7,15 +7,9 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@ToString
+@Data
 public class AiPostSpecRequest {
 
     private String nickname;
@@ -42,9 +36,7 @@ public class AiPostSpecRequest {
     @JsonIgnore
     private String filelink;
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
+    @Data
     public static class University {
         @JsonProperty("school_name")
         private String schoolName;
@@ -59,17 +51,13 @@ public class AiPostSpecRequest {
         private Double gpaMax;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
+    @Data
     public static class Career {
         private String company;
         private CareerRole role;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
+    @Data
     public static class Language {
         private String test;
 
@@ -77,9 +65,7 @@ public class AiPostSpecRequest {
         private String scoreOrGrade;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
+    @Data
     public static class Activity {
         private String name;
         private String role;

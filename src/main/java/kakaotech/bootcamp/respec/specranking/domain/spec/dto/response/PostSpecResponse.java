@@ -1,10 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.dto.response;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@Getter
-@NoArgsConstructor
+@Data
 public class PostSpecResponse {
     private boolean isSuccess;
     private String message;
