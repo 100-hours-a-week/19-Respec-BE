@@ -7,10 +7,12 @@ import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserReposito
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
 @Profile("dev")
+@Order(1)
 @RequiredArgsConstructor
 public class InitializeUser implements CommandLineRunner {
 
@@ -29,6 +31,8 @@ public class InitializeUser implements CommandLineRunner {
         }
 
         userRepository.saveAll(users);
+
+        System.out.println("150명의 사용자 데이터가 성공적으로 생성되었습니다.");
     }
 
     private User createUser(String loginId, String nickname, String profileUrl) {
