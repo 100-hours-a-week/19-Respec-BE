@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.service;
 
+import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.domain.ai.service.AiService;
@@ -50,6 +51,11 @@ public class SpecService {
 
     public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
         Long userId = getCurrentUserService.getUserId();
+
+        Optional<Spec> existingSpec = specRepository.findByUserId(userId);
+        if (existingSpec.isPresent()) {
+            throw new IllegalStateException("이미 등록된 스펙이 있습니다. 스펙을 수정하려면 수정 API를 사용해주세요.");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
