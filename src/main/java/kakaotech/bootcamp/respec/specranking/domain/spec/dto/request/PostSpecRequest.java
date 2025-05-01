@@ -1,10 +1,12 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.dto.request;
 
+import java.util.List;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 import lombok.ToString;
 
 @Getter
@@ -25,8 +27,8 @@ public class PostSpecRequest {
     @NoArgsConstructor
     @ToString
     public static class FinalEducation {
-        private String level;
-        private String status;
+        private kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation level;
+        private FinalStatus status;
     }
 
     @Getter
@@ -35,7 +37,7 @@ public class PostSpecRequest {
     @ToString
     public static class Education {
         private String schoolName;
-        private String degree;
+        private Degree degree;
         private String major;
         private Double gpa;
         private Double maxGpa;
@@ -47,7 +49,7 @@ public class PostSpecRequest {
     @ToString
     public static class WorkExperience {
         private String company;
-        private String position;
+        private CareerRole position;
         private Integer period;
     }
 

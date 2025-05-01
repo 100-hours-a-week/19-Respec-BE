@@ -3,6 +3,10 @@ package kakaotech.bootcamp.respec.specranking.domain.ai.dto.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,10 +21,10 @@ public class AiPostSpecRequest {
     private String nickname;
 
     @JsonProperty("final_edu")
-    private String finalEdu;
+    private FinalEducation finalEdu;
 
     @JsonProperty("final_status")
-    private String finalStatus;
+    private FinalStatus finalStatus;
 
     @JsonProperty("desired_job")
     private String desiredJob;
@@ -46,7 +50,7 @@ public class AiPostSpecRequest {
         @JsonProperty("school_name")
         private String schoolName;
 
-        private String degree;
+        private Degree degree;
 
         private String major;
 
@@ -62,7 +66,7 @@ public class AiPostSpecRequest {
     @ToString
     public static class Career {
         private String company;
-        private String role;
+        private CareerRole role;
     }
 
     @Getter

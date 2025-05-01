@@ -1,7 +1,16 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
 
-import kakaotech.bootcamp.respec.specranking.domain.common.type.DegreeType;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +33,8 @@ public class EducationDetail {
     private String schoolName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'CERTIFICATE'")
-    private DegreeType degree;
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'COMPLETION'")
+    private Degree degree;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private String major;
@@ -36,7 +45,7 @@ public class EducationDetail {
     @Column(name = "max_gpa", nullable = false, columnDefinition = "DOUBLE DEFAULT 4.0")
     private Double maxGpa;
 
-    public EducationDetail(Education education, String schoolName, DegreeType degree, 
+    public EducationDetail(Education education, String schoolName, Degree degree,
                            String major, Double gpa, Double maxGpa) {
         this.education = education;
         this.schoolName = schoolName;

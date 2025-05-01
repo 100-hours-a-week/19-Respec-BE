@@ -1,8 +1,17 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
 
-import kakaotech.bootcamp.respec.specranking.domain.common.type.EducationInstitute;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.EducationStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,13 +32,13 @@ public class Education {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "institute", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ENROLLED'")
-    private EducationInstitute institute;
+    private FinalStatus institute;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'MIDDLE_SCHOOL'")
-    private EducationStatus status;
+    private FinalEducation status;
 
-    public Education(Spec spec, EducationInstitute institute, EducationStatus status) {
+    public Education(Spec spec, FinalStatus institute, FinalEducation status) {
         this.spec = spec;
         this.institute = institute;
         this.status = status;

@@ -1,7 +1,16 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
 
-import kakaotech.bootcamp.respec.specranking.domain.common.type.WorkPosition;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,12 +34,12 @@ public class WorkExperience {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'INTERN'")
-    private WorkPosition position;
+    private CareerRole position;
 
     @Column(name = "work_month", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer workMonth;
 
-    public WorkExperience(Spec spec, String companyName, WorkPosition position, Integer workMonth) {
+    public WorkExperience(Spec spec, String companyName, CareerRole position, Integer workMonth) {
         this.spec = spec;
         this.companyName = companyName;
         this.position = position;
