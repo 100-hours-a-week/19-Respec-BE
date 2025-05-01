@@ -1,6 +1,10 @@
 package kakaotech.bootcamp.respec.specranking.domain.common.type;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
+
+import java.util.Arrays;
 
 @Getter
 public enum Degree {
@@ -14,5 +18,18 @@ public enum Degree {
 
     Degree(String value) {
         this.value = value;
+    }
+    
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static Degree fromValue(String value) {
+        return Arrays.stream(Degree.values())
+                .filter(degree -> degree.value.equals(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Degree value: " + value));
     }
 }

@@ -3,6 +3,7 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.dto.request;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
