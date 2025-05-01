@@ -36,7 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class SpecService {
+public class SpecPostPutService {
 
     private final AiService aiService;
     private final UserRepository userRepository;

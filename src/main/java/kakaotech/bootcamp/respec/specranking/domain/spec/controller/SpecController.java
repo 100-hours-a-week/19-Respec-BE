@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.controller;
 
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.PostSpecResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecPostPutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class SpecController {
 
-    private final SpecService specService;
+    private final SpecPostPutService specService;
 
     @PostMapping
     public PostSpecResponse createSpec(
