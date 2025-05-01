@@ -1,9 +1,7 @@
-package kakaotech.bootcamp.respec.specranking.domain.store;
+package kakaotech.bootcamp.respec.specranking.domain.store.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.global.dev.sql;
+package kakaotech.bootcamp.respec.specranking.domain.user.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +36,9 @@ public class InitializeUser implements CommandLineRunner {
         System.out.println("10명의 사용자 데이터가 성공적으로 생성되었습니다.");
     }
 
-    private User createUser(String userId, String nickname, String profileUrl) {
+    private User createUser(String loginId, String nickname, String profileUrl) {
         return new User(
-                userId,
+                loginId,
                 "1111",
                 profileUrl,
                 nickname,

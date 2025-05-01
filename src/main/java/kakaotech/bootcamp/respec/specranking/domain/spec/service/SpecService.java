@@ -1,6 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.service;
 
 import java.util.Optional;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.mapping.AiDtoMapping;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.domain.ai.service.AiService;
@@ -23,10 +24,10 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.repository.EducationRep
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.EnglishSkillRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.WorkExperienceRepository;
-import kakaotech.bootcamp.respec.specranking.domain.store.FileStore;
+import kakaotech.bootcamp.respec.specranking.domain.store.service.FileStore;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
-import kakaotech.bootcamp.respec.specranking.global.util.GetCurrentUserService;
+import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,11 +47,10 @@ public class SpecService {
     private final CertificationRepository certificationRepository;
     private final EnglishSkillRepository englishSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
-    private final GetCurrentUserService getCurrentUserService;
     private final FileStore fileStore;
 
     public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
-        Long userId = getCurrentUserService.getUserId();
+        Long userId = UserUtils.getCurrentUserId();
 
         Optional<Spec> existingSpec = specRepository.findByUserId(userId);
         if (existingSpec.isPresent()) {
@@ -62,7 +62,7 @@ public class SpecService {
 
         String portfolioUrl = fileStore.upload(portfolioFile);
 
-        AiPostSpecRequest aiPostSpecRequest = aiService.convertToAiRequest(request, portfolioUrl);
+        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
         Spec spec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
@@ -163,7 +163,7 @@ public class SpecService {
     }
 
     public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
-        Long userId = getCurrentUserService.getUserId();
+        Long userId = UserUtils.getCurrentUserId();
 
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스펙입니다. ID: " + specId));
@@ -176,7 +176,7 @@ public class SpecService {
 
         String portfolioUrl = portfolioFile != null ? fileStore.upload(portfolioFile) : null;
 
-        AiPostSpecRequest aiPostSpecRequest = aiService.convertToAiRequest(request, portfolioUrl);
+        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
         User user = spec.getUser();

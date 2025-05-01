@@ -1,19 +1,19 @@
-package kakaotech.bootcamp.respec.specranking.domain.store;
+package kakaotech.bootcamp.respec.specranking.domain.store.service;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import java.io.IOException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import java.io.IOException;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 @Profile("!dev")
-public class FileS3Store implements FileStore{
+public class FileS3Store implements FileStore {
 
     private final AmazonS3Client amazonS3Client;
 

@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.ai.service.aiserver;
+package kakaotech.bootcamp.respec.specranking.domain.ai.aiserver;
 
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 @Profile("!dev")
 @RequiredArgsConstructor
-public class SpecAnalyzeAiServerService implements AiServerService {
+public class SpecAnalyzeAiServer implements AiServer {
 
     private final WebClient aiServerWebClient;
 
@@ -19,7 +19,7 @@ public class SpecAnalyzeAiServerService implements AiServerService {
     private String urlPath;
 
     @Override
-    public AiPostSpecResponse call(AiPostSpecRequest request) {
+    public AiPostSpecResponse analyzeSpec(AiPostSpecRequest request) {
         return aiServerWebClient.post()
                 .uri(urlPath)
                 .bodyValue(request)

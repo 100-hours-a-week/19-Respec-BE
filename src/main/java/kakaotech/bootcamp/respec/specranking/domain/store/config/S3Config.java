@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.store.cloud;
+package kakaotech.bootcamp.respec.specranking.domain.store.config;
 
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;

@@ -1,27 +1,25 @@
-package kakaotech.bootcamp.respec.specranking.domain.ai.service.aiserver;
+package kakaotech.bootcamp.respec.specranking.domain.ai.aiserver;
 
+import java.util.Random;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
-
 @Service
 @Profile("dev")
-public class MockAiServerService implements AiServerService {
+public class MockAiServer implements AiServer {
 
     private final Random random = new Random();
 
-    private static final double MIN_SCORE = 25.0;
-    private static final double MAX_SCORE = 95.0;
+    private static final double MIN_SCORE = 20.0;
+    private static final double MAX_SCORE = 100.0;
 
     @Override
-    public AiPostSpecResponse call(AiPostSpecRequest aiPostSpecRequest) {
+    public AiPostSpecResponse analyzeSpec(AiPostSpecRequest aiPostSpecRequest) {
         AiPostSpecResponse response = new AiPostSpecResponse();
 
         response.setNickname(aiPostSpecRequest.getNickname());
-
         response.setAcademicScore(generateRandomScore());
         response.setWorkExperienceScore(generateRandomScore());
         response.setCertificationScore(generateRandomScore());
@@ -37,8 +35,7 @@ public class MockAiServerService implements AiServerService {
 
 
     private double generateRandomScore() {
-        double rawScore = MIN_SCORE + (MAX_SCORE - MIN_SCORE) * random.nextDouble();
-        return Math.round(rawScore * 10.0) / 10.0;
+        return MIN_SCORE + (MAX_SCORE - MIN_SCORE) * random.nextDouble();
     }
 
 
@@ -52,10 +49,14 @@ public class MockAiServerService implements AiServerService {
 
 
     private double adjustTotalScore(double avgScore) {
-        double adjustment = (random.nextDouble() * 10.0) - 5.0; // -5.0 ~ +5.0 사이의 랜덤 값
+        double adjustment = (random.nextDouble() * 10.0) - 5.0;
         double adjusted = avgScore + adjustment;
 
-        adjusted = Math.min(Math.max(adjusted, MIN_SCORE), MAX_SCORE);
-        return Math.round(adjusted * 10.0) / 10.0;
+        adjusted = guaranteeBetweenLowestAndHighest(adjusted);
+        return adjusted;
+    }
+
+    private static double guaranteeBetweenLowestAndHighest(double adjusted) {
+        return Math.min(Math.max(adjusted, MIN_SCORE), MAX_SCORE);
     }
 }

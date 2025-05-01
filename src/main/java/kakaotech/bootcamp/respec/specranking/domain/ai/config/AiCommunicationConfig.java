@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.ai.service.aiserver.config;
+package kakaotech.bootcamp.respec.specranking.domain.ai.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

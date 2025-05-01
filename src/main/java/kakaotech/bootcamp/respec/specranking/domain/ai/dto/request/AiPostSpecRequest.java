@@ -45,7 +45,6 @@ public class AiPostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class University {
         @JsonProperty("school_name")
         private String schoolName;
@@ -63,7 +62,6 @@ public class AiPostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class Career {
         private String company;
         private CareerRole role;
@@ -72,7 +70,6 @@ public class AiPostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class Language {
         private String test;
 
@@ -83,7 +80,6 @@ public class AiPostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class Activity {
         private String name;
         private String role;

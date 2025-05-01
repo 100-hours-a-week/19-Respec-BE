@@ -3,17 +3,14 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.dto.request;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
 public class PostSpecRequest {
     private FinalEducation finalEducation;
     private List<Education> educations;
@@ -26,7 +23,6 @@ public class PostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class FinalEducation {
         private kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation level;
         private FinalStatus status;
@@ -35,7 +31,6 @@ public class PostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class Education {
         private String schoolName;
         private Degree degree;
@@ -47,7 +42,6 @@ public class PostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class WorkExperience {
         private String company;
         private CareerRole position;
@@ -57,7 +51,6 @@ public class PostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class Certification {
         private String name;
     }
@@ -65,7 +58,6 @@ public class PostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class LanguageSkill {
         private String name;
         private String score;
@@ -74,7 +66,6 @@ public class PostSpecRequest {
     @Getter
     @Setter
     @NoArgsConstructor
-    @ToString
     public static class Activity {
         private String name;
         private String role;
