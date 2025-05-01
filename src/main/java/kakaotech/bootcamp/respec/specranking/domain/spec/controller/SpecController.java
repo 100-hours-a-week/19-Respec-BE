@@ -4,7 +4,9 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecReq
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.PostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,5 +26,15 @@ public class SpecController {
 
         specService.createSpec(request, portfolioFile);
         return new PostSpecResponse(true, "스펙 입력 성공!");
+    }
+
+    @PutMapping("/{specId}")
+    public PostSpecResponse updateSpec(
+            @PathVariable Long specId,
+            @RequestPart("spec") PostSpecRequest request,
+            @RequestPart(value = "portfolioFile", required = false) MultipartFile portfolioFile) {
+
+        specService.updateSpec(specId, request, portfolioFile);
+        return new PostSpecResponse(true, "스펙 수정 성공!");
     }
 }

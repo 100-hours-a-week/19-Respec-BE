@@ -24,8 +24,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(indexes = {
-        @Index(name = "idx_work_position_analysis_score", columnList = "work_position, analysis_score"),
-        @Index(name = "idx_analysis_score", columnList = "analysis_score")
+        @Index(name = "idx_work_position_total_analysis_score", columnList = "work_position, total_analysis_score"),
+        @Index(name = "idx_total_analysis_score", columnList = "total_analysis_score")
 })
 public class Spec extends BaseTimeEntity {
 
@@ -99,5 +99,30 @@ public class Spec extends BaseTimeEntity {
                 aiResponse.getLanguageProficiencyScore(),
                 aiResponse.getTotalScore()
         );
+    }
+
+    public void updateInfo(String workPosition, Double educationScore, Double workExperienceScore,
+                           Double activityNetworkingScore, Double certificationScore,
+                           Double englishSkillScore, Double totalAnalysisScore) {
+        this.workPosition = workPosition;
+        this.educationScore = educationScore;
+        this.workExperienceScore = workExperienceScore;
+        this.activityNetworkingScore = activityNetworkingScore;
+        this.certificationScore = certificationScore;
+        this.englishSkillScore = englishSkillScore;
+        this.totalAnalysisScore = totalAnalysisScore;
+    }
+
+    // Spec 클래스에 추가할 메서드
+    public void sleep() {
+        this.status = SpecStatus.SLEEP;
+    }
+
+    public void activate() {
+        this.status = SpecStatus.ACTIVE;
+    }
+
+    public void withdraw() {
+        this.status = SpecStatus.WITHDRAWN;
     }
 }
