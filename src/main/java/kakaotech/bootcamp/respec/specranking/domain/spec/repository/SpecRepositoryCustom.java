@@ -13,4 +13,6 @@ public interface SpecRepositoryCustom {
     Map<String, Integer> countByJobFields();
     
     int findRankByJobField(Long specId, String jobField);
+    
+    List<Spec> searchByNickname(String nickname, Long cursorId, int limit);
 }
