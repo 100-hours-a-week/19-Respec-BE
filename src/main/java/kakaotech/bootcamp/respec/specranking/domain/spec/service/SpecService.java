@@ -20,12 +20,12 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.repository.Certificatio
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.EducationDetailRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.EnglishSkillRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.repository.PortfolioRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.WorkExperienceRepository;
+import kakaotech.bootcamp.respec.specranking.domain.store.FileStore;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
-import kakaotech.bootcamp.respec.specranking.global.util.MockGetCurrentUser;
+import kakaotech.bootcamp.respec.specranking.global.util.GetCurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,29 +45,21 @@ public class SpecService {
     private final CertificationRepository certificationRepository;
     private final EnglishSkillRepository englishSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
-    private final PortfolioRepository portfolioRepository;
+    private final GetCurrentUserService getCurrentUserService;
+    private final FileStore fileStore;
 
     public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
-        Long userId = MockGetCurrentUser.getUserId();
+        Long userId = getCurrentUserService.getUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
 
-        AiPostSpecRequest aiPostSpecRequest = aiService.convertToAiRequest(request);
+        String portfolioUrl = fileStore.upload(portfolioFile);
+
+        AiPostSpecRequest aiPostSpecRequest = aiService.convertToAiRequest(request, portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
-        Spec spec = new Spec(
-                user,
-                request.getJobField(),
-                aiPostSpecResponse.getAcademicScore(),
-                aiPostSpecResponse.getWorkExperienceScore(),
-                0.0, // 후에 변경 예정 포트폴리오
-                aiPostSpecResponse.getExtracurricularScore(),
-                aiPostSpecResponse.getCertificationScore(),
-                aiPostSpecResponse.getLanguageProficiencyScore(),
-                aiPostSpecResponse.getTotalScore()
-        );
-
+        Spec spec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
         Spec savedSpec = specRepository.save(spec);
 
         saveEducation(savedSpec, request);
@@ -82,7 +74,6 @@ public class SpecService {
             EducationInstitute institute = convertToEducationInstitute(request.getFinalEducation().getStatus());
             EducationStatus status = convertToEducationStatus(request.getFinalEducation().getLevel());
 
-            // 점수 매개변수 제거 - Spec 엔티티에 이미 점수가 저장됨
             Education education = new Education(spec, institute, status);
             Education savedEducation = educationRepository.save(education);
 
@@ -110,7 +101,6 @@ public class SpecService {
             for (PostSpecRequest.WorkExperience workExp : request.getWorkExperience()) {
                 WorkPosition position = convertToWorkPosition(workExp.getPosition());
 
-                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 WorkExperience workExperience = new WorkExperience(
                         spec,
                         workExp.getCompany(),
@@ -126,7 +116,6 @@ public class SpecService {
     private void saveCertifications(Spec spec, PostSpecRequest request) {
         if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
             for (PostSpecRequest.Certification certificationDto : request.getCertifications()) {
-                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 Certification certification = new Certification(
                         spec,
                         certificationDto.getName()
@@ -140,11 +129,10 @@ public class SpecService {
     private void saveLanguageSkills(Spec spec, PostSpecRequest request) {
         if (request.getLanguageSkills() != null && !request.getLanguageSkills().isEmpty()) {
             for (PostSpecRequest.LanguageSkill languageSkillDto : request.getLanguageSkills()) {
-                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 EnglishSkill englishSkill = new EnglishSkill(
                         spec,
                         languageSkillDto.getName(),
-                        "English", // 기본값 설정
+                        "English",
                         languageSkillDto.getScore()
                 );
 
@@ -156,7 +144,6 @@ public class SpecService {
     private void saveActivities(Spec spec, PostSpecRequest request) {
         if (request.getActivities() != null && !request.getActivities().isEmpty()) {
             for (PostSpecRequest.Activity activityDto : request.getActivities()) {
-                // 개별 점수 계산 제거 - Spec 엔티티에 이미 점수가 저장됨
                 ActivityNetworking activity = new ActivityNetworking(
                         spec,
                         activityDto.getName(),
@@ -170,7 +157,9 @@ public class SpecService {
     }
 
     private EducationInstitute convertToEducationInstitute(String status) {
-        if (status == null) return EducationInstitute.ENROLLED;
+        if (status == null) {
+            return EducationInstitute.ENROLLED;
+        }
 
         switch (status.toUpperCase()) {
             case "졸업":
@@ -187,7 +176,9 @@ public class SpecService {
     }
 
     private EducationStatus convertToEducationStatus(String level) {
-        if (level == null) return EducationStatus.HIGH_SCHOOL;
+        if (level == null) {
+            return EducationStatus.HIGH_SCHOOL;
+        }
 
         switch (level.toUpperCase()) {
             case "중학교":
@@ -206,7 +197,9 @@ public class SpecService {
     }
 
     private DegreeType convertToDegreeType(String degree) {
-        if (degree == null) return DegreeType.BACHELOR;
+        if (degree == null) {
+            return DegreeType.BACHELOR;
+        }
 
         switch (degree.toUpperCase()) {
             case "박사":
@@ -223,7 +216,9 @@ public class SpecService {
     }
 
     private WorkPosition convertToWorkPosition(String position) {
-        if (position == null) return WorkPosition.INTERN;
+        if (position == null) {
+            return WorkPosition.INTERN;
+        }
 
         switch (position.toUpperCase()) {
             case "CEO":

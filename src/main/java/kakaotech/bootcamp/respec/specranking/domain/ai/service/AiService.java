@@ -22,10 +22,11 @@ public class AiService {
         return aiServerService.call(request);
     }
 
-    public AiPostSpecRequest convertToAiRequest(PostSpecRequest request) {
+    public AiPostSpecRequest convertToAiRequest(PostSpecRequest request, String portfolioUrl) {
         AiPostSpecRequest aiRequest = new AiPostSpecRequest();
 
         aiRequest.setDesiredJob(request.getJobField());
+        aiRequest.setFilelink(portfolioUrl);
 
         if (request.getFinalEducation() != null) {
             aiRequest.setFinalEdu(request.getFinalEducation().getLevel());

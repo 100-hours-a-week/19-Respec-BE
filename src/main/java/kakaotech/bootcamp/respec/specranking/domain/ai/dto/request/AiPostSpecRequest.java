@@ -1,12 +1,12 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -34,6 +34,9 @@ public class AiPostSpecRequest {
     private List<Language> languages;
 
     private List<Activity> activities;
+
+    @JsonIgnore
+    private String filelink;
 
     @Getter
     @Setter

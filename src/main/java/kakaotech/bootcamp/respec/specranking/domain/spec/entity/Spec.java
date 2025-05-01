@@ -1,9 +1,21 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,9 +47,6 @@ public class Spec extends BaseTimeEntity {
     @Column(name = "work_experience_score", nullable = false, columnDefinition = "DOUBLE")
     private Double workExperienceScore;
 
-    @Column(name = "portfolio_score", nullable = false, columnDefinition = "DOUBLE")
-    private Double portfolioScore;
-
     @Column(name = "activity_networking_score", nullable = false, columnDefinition = "DOUBLE")
     private Double activityNetworkingScore;
 
@@ -63,7 +72,6 @@ public class Spec extends BaseTimeEntity {
     public Spec(User user, String workPosition
             , Double educationScore
             , Double workExperienceScore
-            , Double portfolioScore
             , Double activityNetworkingScore
             , Double certificationScore
             , Double englishSkillScore, Double totalAnalysisScore) {
@@ -71,7 +79,6 @@ public class Spec extends BaseTimeEntity {
         this.workPosition = workPosition;
         this.educationScore = educationScore;
         this.workExperienceScore = workExperienceScore;
-        this.portfolioScore = portfolioScore;
         this.activityNetworkingScore = activityNetworkingScore;
         this.certificationScore = certificationScore;
         this.englishSkillScore = englishSkillScore;
@@ -79,5 +86,18 @@ public class Spec extends BaseTimeEntity {
         this.bookmarkCount = 0L;
         this.commentCount = 0L;
         this.status = SpecStatus.ACTIVE;
+    }
+
+    public static Spec createFromAiResponse(User user, String jobField, AiPostSpecResponse aiResponse) {
+        return new Spec(
+                user,
+                jobField,
+                aiResponse.getAcademicScore(),
+                aiResponse.getWorkExperienceScore(),
+                aiResponse.getExtracurricularScore(),
+                aiResponse.getCertificationScore(),
+                aiResponse.getLanguageProficiencyScore(),
+                aiResponse.getTotalScore()
+        );
     }
 }
