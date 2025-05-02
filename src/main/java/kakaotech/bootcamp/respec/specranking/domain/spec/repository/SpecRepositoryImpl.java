@@ -27,14 +27,32 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
 
     @Override
     public List<Spec> findByJobFieldWithPagination(String jobField, Long cursorId, int limit) {
+        if (cursorId == null || cursorId == Long.MAX_VALUE) {
+            return getQueryFactory()
+                    .selectFrom(spec)
+                    .where(
+                            isActive(),
+                            jobFieldEquals(jobField)
+                    )
+                    .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
+                    .limit(limit)
+                    .fetch();
+        }
+        Double cursorScore = getQueryFactory()
+                .select(spec.totalAnalysisScore)
+                .from(spec)
+                .where(spec.id.eq(cursorId))
+                .fetchOne();
+
         return getQueryFactory()
                 .selectFrom(spec)
                 .where(
                         isActive(),
                         jobFieldEquals(jobField),
-                        cursorLessThan(cursorId)
+                        spec.totalAnalysisScore.eq(cursorScore),
+                        spec.id.lt(cursorId)
                 )
-                .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
+                .orderBy(spec.id.desc())
                 .limit(limit)
                 .fetch();
     }
@@ -165,4 +183,5 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     private BooleanExpression nicknameContains(String nickname) {
         return nickname != null && !nickname.isEmpty() ? user.nickname.contains(nickname) : null;
     }
+
 }
