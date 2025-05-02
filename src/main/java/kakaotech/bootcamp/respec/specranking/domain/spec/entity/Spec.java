@@ -101,28 +101,7 @@ public class Spec extends BaseTimeEntity {
         );
     }
 
-    public void updateInfo(String workPosition, Double educationScore, Double workExperienceScore,
-                           Double activityNetworkingScore, Double certificationScore,
-                           Double englishSkillScore, Double totalAnalysisScore) {
-        this.workPosition = workPosition;
-        this.educationScore = educationScore;
-        this.workExperienceScore = workExperienceScore;
-        this.activityNetworkingScore = activityNetworkingScore;
-        this.certificationScore = certificationScore;
-        this.englishSkillScore = englishSkillScore;
-        this.totalAnalysisScore = totalAnalysisScore;
-    }
-
-    // Spec 클래스에 추가할 메서드
     public void sleep() {
         this.status = SpecStatus.SLEEP;
-    }
-
-    public void activate() {
-        this.status = SpecStatus.ACTIVE;
-    }
-
-    public void withdraw() {
-        this.status = SpecStatus.WITHDRAWN;
     }
 }
