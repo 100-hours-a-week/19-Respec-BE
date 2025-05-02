@@ -78,6 +78,34 @@ public class SpecService {
         saveActivities(savedSpec, request);
     }
 
+    public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
+        Long userId = UserUtils.getCurrentUserId();
+
+        Spec spec = specRepository.findById(specId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스펙입니다. ID: " + specId));
+
+        if (!spec.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
+        }
+
+        spec.sleep();
+
+        String portfolioUrl = portfolioFile != null ? fileStore.upload(portfolioFile) : null;
+
+        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
+        AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
+
+        User user = spec.getUser();
+        Spec newSpec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
+        Spec savedNewSpec = specRepository.save(newSpec);
+
+        saveEducation(savedNewSpec, request);
+        saveWorkExperience(savedNewSpec, request);
+        saveCertifications(savedNewSpec, request);
+        saveLanguageSkills(savedNewSpec, request);
+        saveActivities(savedNewSpec, request);
+    }
+
     private void saveEducation(Spec spec, PostSpecRequest request) {
         if (request.getFinalEducation() != null) {
             FinalStatus institute = request.getFinalEducation().getStatus();
@@ -164,34 +192,5 @@ public class SpecService {
             }
         }
     }
-
-    public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
-        Long userId = UserUtils.getCurrentUserId();
-
-        Spec spec = specRepository.findById(specId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스펙입니다. ID: " + specId));
-
-        if (!spec.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
-        }
-
-        spec.sleep();
-
-        String portfolioUrl = portfolioFile != null ? fileStore.upload(portfolioFile) : null;
-
-        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
-        AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
-
-        User user = spec.getUser();
-        Spec newSpec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
-        Spec savedNewSpec = specRepository.save(newSpec);
-
-        saveEducation(savedNewSpec, request);
-        saveWorkExperience(savedNewSpec, request);
-        saveCertifications(savedNewSpec, request);
-        saveLanguageSkills(savedNewSpec, request);
-        saveActivities(savedNewSpec, request);
-    }
-
 
 }

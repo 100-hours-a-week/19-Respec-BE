@@ -34,7 +34,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                         jobFieldEquals(jobField),
                         cursorLessThan(cursorId)
                 )
-                .orderBy(spec.totalAnalysisScore.desc())
+                .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
                 .limit(limit)
                 .fetch();
     }
@@ -113,6 +113,41 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .orderBy(spec.totalAnalysisScore.desc())
                 .limit(limit)
                 .fetch();
+    }
+
+    @Override
+    public int findAbsoluteRank(String jobField, Long specId) {
+        Double targetScore = getQueryFactory()
+                .select(spec.totalAnalysisScore)
+                .from(spec)
+                .where(spec.id.eq(specId))
+                .fetchOne();
+
+        if (targetScore == null) {
+            return 0;
+        }
+
+        Long higherCount = getQueryFactory()
+                .select(spec.count())
+                .from(spec)
+                .where(
+                        isActive(),
+                        jobFieldEquals(jobField),
+                        spec.totalAnalysisScore.gt(targetScore)
+                )
+                .fetchOne();
+
+        Long sameCount = getQueryFactory()
+                .select(spec.count())
+                .from(spec)
+                .where(
+                        isActive(),
+                        jobFieldEquals(jobField),
+                        spec.totalAnalysisScore.eq(targetScore)
+                )
+                .fetchOne();
+
+        return (higherCount != null ? higherCount.intValue() : 0) + 1;
     }
 
     private BooleanExpression isActive() {

@@ -50,10 +50,9 @@ public class SpecQueryService {
 
         List<RankingResponse.RankingItem> rankingItems = new ArrayList<>();
 
-        int overallRank = 1;
-
         for (Spec spec : specs) {
             User user = spec.getUser();
+            int currentRank = specRepository.findAbsoluteRank(jobField, spec.getId());
             String specJobField = spec.getWorkPosition();
 
             int jobFieldRank = specRepository.findRankByJobField(spec.getId(), specJobField);
@@ -72,7 +71,7 @@ public class SpecQueryService {
             item.setTotalAnalyzeScore(totalAnalysisScore);
             item.setRankByJobField(jobFieldRank);
             item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField, 0));
-            item.setRank(overallRank++);
+            item.setRank(currentRank);
             item.setBookmarked(bookmarkedSpecIds.contains(spec.getId()));
             item.setCommentsCount(commentsCount);
             item.setBookmarksCount(bookmarksCount);
