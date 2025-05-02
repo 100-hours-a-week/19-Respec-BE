@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Profile("dev")
+@Profile("spec-initialize")
 @Order(2)
 @RequiredArgsConstructor
 public class InitializeSpec implements CommandLineRunner {

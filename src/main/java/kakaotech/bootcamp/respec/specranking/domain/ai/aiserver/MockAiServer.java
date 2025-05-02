@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
-@Profile("dev")
+@Profile("!ai")
 public class MockAiServer implements AiServer {
 
     private final Random random = new Random();

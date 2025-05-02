@@ -11,7 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("dev")
+@Profile("user-initialize")
 @Order(1)
 @RequiredArgsConstructor
 public class InitializeUser implements CommandLineRunner {
