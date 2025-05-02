@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.controller;
 
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecPostPutService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecService;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class SpecController {
 
-    private final SpecPostPutService specService;
+    private final SpecService specService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

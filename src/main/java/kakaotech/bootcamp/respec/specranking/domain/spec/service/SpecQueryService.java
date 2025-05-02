@@ -56,7 +56,7 @@ public class SpecQueryService {
 
                 int jobFieldRank = specRepository.findRankByJobField(spec.getId(), specJobField);
 
-                double averageScore = calculateAverageScore(spec);
+                double totalAnalysisScore = spec.getTotalAnalysisScore();
 
                 int commentsCount = commentRepository.countBySpecId(spec.getId());
 
@@ -68,7 +68,7 @@ public class SpecQueryService {
                 item.setProfileImageUrl(user.getUserProfileUrl());
                 item.setSpecId(spec.getId());
                 item.setJobField(specJobField);
-                item.setAverageScore(averageScore);
+                item.setTotalAnalyzeScore(totalAnalysisScore);
                 item.setRankByJobField(jobFieldRank);
                 item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField, 0));
                 item.setRank(overallRank++);
@@ -118,7 +118,7 @@ public class SpecQueryService {
 
                 int jobFieldRank = specRepository.findRankByJobField(spec.getId(), specJobField);
 
-                double averageScore = calculateAverageScore(spec);
+                double averageScore = spec.getTotalAnalysisScore();
 
                 int commentsCount = commentRepository.countBySpecId(spec.getId());
 
@@ -130,7 +130,7 @@ public class SpecQueryService {
                 item.setProfileImageUrl(user.getUserProfileUrl());
                 item.setSpecId(spec.getId());
                 item.setJobField(specJobField);
-                item.setAverageScore(averageScore);
+                item.setTotalAnalyzeScore(averageScore);
                 item.setRankByJobField(jobFieldRank);
                 item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField, 0));
                 item.setRank(overallRank++);
@@ -146,15 +146,6 @@ public class SpecQueryService {
             e.printStackTrace();
             return SearchResponse.fail("검색 중 오류가 발생했습니다.");
         }
-    }
-
-
-    private double calculateAverageScore(Spec spec) {
-        return (spec.getEducationScore()
-                + spec.getWorkExperienceScore()
-                + spec.getActivityNetworkingScore()
-                + spec.getCertificationScore()
-                + spec.getEnglishSkillScore()) / 5.0;
     }
 
     private Long decodeCursor(String cursor) {
