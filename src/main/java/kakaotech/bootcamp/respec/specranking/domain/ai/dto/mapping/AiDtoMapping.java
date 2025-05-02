@@ -8,11 +8,13 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecReq
 
 public class AiDtoMapping {
 
-    public static AiPostSpecRequest convertToAiRequest(PostSpecRequest request, String portfolioUrl) {
+    public static AiPostSpecRequest convertToAiRequest(PostSpecRequest request, String userNickname,
+                                                       String portfolioUrl) {
         AiPostSpecRequest aiRequest = new AiPostSpecRequest();
 
         aiRequest.setDesiredJob(request.getJobField());
         aiRequest.setFilelink(portfolioUrl);
+        aiRequest.setNickname(userNickname);
 
         if (request.getFinalEducation() != null) {
             aiRequest.setFinalEdu(request.getFinalEducation().getLevel());

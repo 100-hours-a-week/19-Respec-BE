@@ -65,7 +65,8 @@ public class SpecService {
             portfolioUrl = fileStore.upload(portfolioFile);
         }
 
-        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
+        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, user.getNickname(),
+                portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
         Spec spec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
@@ -92,7 +93,8 @@ public class SpecService {
 
         String portfolioUrl = portfolioFile != null ? fileStore.upload(portfolioFile) : null;
 
-        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
+        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, spec.getUser().getNickname(),
+                portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
         User user = spec.getUser();
