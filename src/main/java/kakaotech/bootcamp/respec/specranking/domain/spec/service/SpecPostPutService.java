@@ -60,7 +60,10 @@ public class SpecPostPutService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
 
-        String portfolioUrl = fileStore.upload(portfolioFile);
+        String portfolioUrl = "";
+        if (portfolioFile != null) {
+            portfolioUrl = fileStore.upload(portfolioFile);
+        }
 
         AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
