@@ -169,16 +169,6 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 )
                 .fetchOne();
 
-        Long sameCount = getQueryFactory()
-                .select(spec.count())
-                .from(spec)
-                .where(
-                        isActive(),
-                        jobFieldEquals(jobField),
-                        spec.totalAnalysisScore.eq(targetScore)
-                )
-                .fetchOne();
-
         return (higherCount != null ? higherCount.intValue() : 0) + 1;
     }
 
@@ -196,10 +186,6 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
             // 존재하지 않는 JobField 값이 넘어온 경우
         }
         return null;
-    }
-
-    private BooleanExpression cursorLessThan(Long cursorId) {
-        return cursorId != null ? spec.id.lt(cursorId) : null;
     }
 
     private BooleanExpression nicknameContains(String nickname) {
