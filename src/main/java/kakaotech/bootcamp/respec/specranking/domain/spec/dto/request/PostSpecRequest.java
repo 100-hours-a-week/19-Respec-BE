@@ -13,6 +13,8 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
 import lombok.Data;
 
 @Data
@@ -31,7 +33,7 @@ public class PostSpecRequest {
     @Valid
     private List<Activity> activities = new ArrayList<>();
     @NotBlank(message = "희망 직무 분야는 필수입니다")
-    private String jobField;
+    private JobField jobField;
 
     @Data
     public static class FinalEducation {
@@ -81,8 +83,8 @@ public class PostSpecRequest {
 
     @Data
     public static class LanguageSkill {
-        @NotBlank(message = "어학 시험 이름은 필수입니다")
-        private String name;
+        @NotNull(message = "어학 시험 이름은 필수입니다")
+        private LanguageTest languageTest;
 
         @NotBlank(message = "점수는 필수입니다")
         private String score;

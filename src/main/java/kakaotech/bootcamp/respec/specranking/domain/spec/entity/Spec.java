@@ -101,7 +101,9 @@ public class Spec extends BaseTimeEntity {
         );
     }
 
-    public void sleep() {
-        this.status = SpecStatus.SLEEP;
+    @Override
+    public void delete() {
+        super.delete();
+        this.status = SpecStatus.WITHDRAWN;
     }
 }

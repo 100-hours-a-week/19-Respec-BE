@@ -17,7 +17,7 @@ public class AiDtoMapping {
         aiRequest.setNickname(userNickname);
 
         if (request.getFinalEducation() != null) {
-            aiRequest.setFinalEdu(request.getFinalEducation().getLevel());
+            aiRequest.setInstitute(request.getFinalEducation().getInstitute());
             aiRequest.setFinalStatus(request.getFinalEducation().getStatus());
         }
 
@@ -59,7 +59,7 @@ public class AiDtoMapping {
             List<AiPostSpecRequest.Language> languages = request.getLanguageSkills().stream()
                     .map(lang -> {
                         AiPostSpecRequest.Language language = new AiPostSpecRequest.Language();
-                        language.setTest(lang.getName());
+                        language.setTest(lang.getLanguageTest().getValue());
                         language.setScoreOrGrade(lang.getScore());
                         return language;
                     })

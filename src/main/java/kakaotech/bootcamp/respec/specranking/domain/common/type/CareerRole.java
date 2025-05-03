@@ -2,13 +2,12 @@ package kakaotech.bootcamp.respec.specranking.domain.common.type;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.Getter;
-
 import java.util.Arrays;
+import lombok.Getter;
 
 @Getter
 public enum CareerRole {
-    CEO("CEO"),
+    CEO("대표"),
     FULL_TIME_EMPLOYEE("정규직"),
     INTERN("인턴");
 
@@ -17,7 +16,7 @@ public enum CareerRole {
     CareerRole(String value) {
         this.value = value;
     }
-    
+
     @JsonValue
     public String getValue() {
         return value;

@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.controller;
 
+import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecService;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
@@ -24,7 +25,7 @@ public class SpecController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SimpleResponseDto createSpec(
-            @RequestPart("spec") PostSpecRequest request,
+            @RequestPart("spec") @Valid PostSpecRequest request,
             @RequestPart(value = "portfolioFile", required = false) MultipartFile portfolioFile) {
 
         specService.createSpec(request, portfolioFile);
@@ -34,7 +35,7 @@ public class SpecController {
     @PutMapping("/{specId}")
     public SimpleResponseDto updateSpec(
             @PathVariable Long specId,
-            @RequestPart("spec") PostSpecRequest request,
+            @RequestPart("spec") @Valid PostSpecRequest request,
             @RequestPart(value = "portfolioFile", required = false) MultipartFile portfolioFile) {
 
         specService.updateSpec(specId, request, portfolioFile);
