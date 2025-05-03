@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import lombok.Data;
 
 @Data
@@ -15,7 +15,7 @@ public class AiPostSpecRequest {
     private String nickname;
 
     @JsonProperty("final_edu")
-    private FinalEducation finalEdu;
+    private Institute institute;
 
     @JsonProperty("final_status")
     private FinalStatus finalStatus;

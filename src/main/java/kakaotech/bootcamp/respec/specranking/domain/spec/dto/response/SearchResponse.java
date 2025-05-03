@@ -24,7 +24,7 @@ public class SearchResponse {
         private String profileImageUrl;
         private Long specId;
         private String jobField;
-        private double averageScore;
+        private double totalAnalyzeScore;
         private int rankByJobField;
         private int totalUsersCountByJobField;
         private int rank;
@@ -32,28 +32,29 @@ public class SearchResponse {
         private int commentsCount;
         private int bookmarksCount;
     }
-    
+
     public SearchResponse(boolean isSuccess, String message) {
         this.isSuccess = isSuccess;
         this.message = message;
     }
-    
+
     public SearchResponse(boolean isSuccess, String message, SearchData data) {
         this.isSuccess = isSuccess;
         this.message = message;
         this.data = data;
     }
-    
-    public static SearchResponse success(String keyword, List<SearchResult> results, boolean hasNext, String nextCursor) {
+
+    public static SearchResponse success(String keyword, List<SearchResult> results, boolean hasNext,
+                                         String nextCursor) {
         SearchData data = new SearchData();
         data.setKeyword(keyword);
         data.setResults(results);
         data.setHasNext(hasNext);
         data.setNextCursor(nextCursor);
-        
+
         return new SearchResponse(true, "검색 목록 조회 성공", data);
     }
-    
+
     public static SearchResponse fail(String message) {
         return new SearchResponse(false, message);
     }
