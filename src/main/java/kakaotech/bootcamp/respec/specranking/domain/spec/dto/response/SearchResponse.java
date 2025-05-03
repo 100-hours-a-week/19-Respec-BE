@@ -33,11 +33,6 @@ public class SearchResponse {
         private int bookmarksCount;
     }
 
-    public SearchResponse(boolean isSuccess, String message) {
-        this.isSuccess = isSuccess;
-        this.message = message;
-    }
-
     public SearchResponse(boolean isSuccess, String message, SearchData data) {
         this.isSuccess = isSuccess;
         this.message = message;
@@ -53,9 +48,5 @@ public class SearchResponse {
         data.setNextCursor(nextCursor);
 
         return new SearchResponse(true, "검색 목록 조회 성공", data);
-    }
-
-    public static SearchResponse fail(String message) {
-        return new SearchResponse(false, message);
     }
 }

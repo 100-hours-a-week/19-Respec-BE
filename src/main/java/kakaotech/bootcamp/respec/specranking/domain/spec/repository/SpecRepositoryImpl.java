@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.QSpec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
@@ -80,14 +81,14 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .groupBy(spec.workPosition)
                 .fetch()
                 .stream()
-                .map(tuple -> new Object[]{tuple.get(0, String.class), tuple.get(1, Long.class)})
+                .map(tuple -> new Object[]{tuple.get(0, JobField.class), tuple.get(1, Long.class)})
                 .toList();
 
         Map<String, Integer> countMap = new HashMap<>();
         for (Object[] result : results) {
-            String jobField = (String) result[0];
+            JobField jobField = (JobField) result[0];
             Long count = (Long) result[1];
-            countMap.put(jobField, count.intValue());
+            countMap.put(jobField.getValue(), count.intValue());
         }
 
         return countMap;
@@ -120,15 +121,28 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
 
     @Override
     public List<Spec> searchByNickname(String nickname, Long cursorId, int limit) {
+        if (cursorId == null || cursorId == Long.MAX_VALUE) {
+            return getQueryFactory()
+                    .selectFrom(spec)
+                    .join(spec.user, user)
+                    .where(
+                            isActive(),
+                            nicknameContains(nickname)
+                    )
+                    .orderBy(spec.id.desc())
+                    .limit(limit)
+                    .fetch();
+        }
+
         return getQueryFactory()
                 .selectFrom(spec)
                 .join(spec.user, user)
                 .where(
                         isActive(),
                         nicknameContains(nickname),
-                        cursorLessThan(cursorId)
+                        spec.id.lt(cursorId)
                 )
-                .orderBy(spec.totalAnalysisScore.desc())
+                .orderBy(spec.id.desc())
                 .limit(limit)
                 .fetch();
     }
@@ -172,8 +186,16 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
         return spec.status.eq(SpecStatus.ACTIVE);
     }
 
-    private BooleanExpression jobFieldEquals(String jobField) {
-        return jobField != null && !jobField.isEmpty() ? spec.workPosition.eq(jobField) : null;
+    private BooleanExpression jobFieldEquals(String jobFieldStr) {
+        try {
+            if (jobFieldStr != null && !jobFieldStr.isEmpty()) {
+                JobField jobField = JobField.valueOf(jobFieldStr);
+                return spec.workPosition.eq(jobField);
+            }
+        } catch (IllegalArgumentException e) {
+            // 존재하지 않는 JobField 값이 넘어온 경우
+        }
+        return null;
     }
 
     private BooleanExpression cursorLessThan(Long cursorId) {

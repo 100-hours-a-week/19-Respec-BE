@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRepository;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
@@ -53,9 +54,9 @@ public class SpecQueryService {
         for (Spec spec : specs) {
             User user = spec.getUser();
             int currentRank = specRepository.findAbsoluteRank(jobField, spec.getId());
-            String specJobField = spec.getWorkPosition();
+            JobField specJobField = spec.getWorkPosition();
 
-            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), specJobField);
+            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), specJobField.getValue());
 
             double totalAnalysisScore = spec.getTotalAnalysisScore();
 
@@ -67,10 +68,10 @@ public class SpecQueryService {
             item.setNickname(user.getNickname());
             item.setProfileImageUrl(user.getUserProfileUrl());
             item.setSpecId(spec.getId());
-            item.setJobField(specJobField);
+            item.setJobField(specJobField.getValue());
             item.setTotalAnalyzeScore(totalAnalysisScore);
             item.setRankByJobField(jobFieldRank);
-            item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField, 0));
+            item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField.getValue(), 0));
             item.setRank(currentRank);
             item.setBookmarked(bookmarkedSpecIds.contains(spec.getId()));
             item.setCommentsCount(commentsCount);
@@ -84,7 +85,6 @@ public class SpecQueryService {
 
     public SearchResponse searchByNickname(String keyword, String cursor, int limit) {
         Long currentUserId = UserUtils.getCurrentUserId();
-
         Long cursorId = decodeCursor(cursor);
 
         List<Spec> specs = specRepository.searchByNickname(keyword, cursorId, limit + 1);
@@ -94,20 +94,23 @@ public class SpecQueryService {
             specs = specs.subList(0, limit);
         }
 
-        String nextCursor = hasNext && !specs.isEmpty() ? encodeCursor(specs.get(specs.size() - 1).getId()) : null;
+        String nextCursor = null;
+        if (hasNext) {
+            nextCursor = encodeCursor(specs.getLast().getId());
+        }
 
         Set<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
 
         Map<String, Integer> jobFieldUserCountMap = specRepository.countByJobFields();
 
         List<SearchResponse.SearchResult> searchResults = new ArrayList<>();
-        int overallRank = 1;
 
         for (Spec spec : specs) {
             User user = spec.getUser();
-            String specJobField = spec.getWorkPosition();
+            JobField jobField = spec.getWorkPosition();
+            int currentRank = specRepository.findAbsoluteRank(jobField.getValue(), spec.getId());
 
-            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), specJobField);
+            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobField.getValue());
 
             double averageScore = spec.getTotalAnalysisScore();
 
@@ -120,11 +123,11 @@ public class SpecQueryService {
             item.setNickname(user.getNickname());
             item.setProfileImageUrl(user.getUserProfileUrl());
             item.setSpecId(spec.getId());
-            item.setJobField(specJobField);
+            item.setJobField(jobField.getValue());
             item.setTotalAnalyzeScore(averageScore);
             item.setRankByJobField(jobFieldRank);
-            item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField, 0));
-            item.setRank(overallRank++);
+            item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(jobField.getValue(), 0));
+            item.setRank(currentRank);
             item.setBookmarked(bookmarkedSpecIds.contains(spec.getId()));
             item.setCommentsCount(commentsCount);
             item.setBookmarksCount(bookmarksCount);
