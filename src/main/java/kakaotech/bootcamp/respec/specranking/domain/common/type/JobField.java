@@ -7,6 +7,7 @@ import lombok.Getter;
 
 @Getter
 public enum JobField {
+    TOTAL("전체"),
     MANAGEMENT_BUSINESS("경영_사무"),
     MARKETING_ADVERTISING_PR("마케팅_광고_홍보"),
     TRADE_LOGISTICS("무역_유통"),

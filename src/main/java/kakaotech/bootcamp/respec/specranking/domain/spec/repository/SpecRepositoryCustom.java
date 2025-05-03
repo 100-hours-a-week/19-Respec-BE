@@ -1,12 +1,14 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.repository;
 
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+
 import java.util.List;
 import java.util.Map;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 
 public interface SpecRepositoryCustom {
 
-    List<Spec> findByJobFieldWithPagination(String jobField, Long cursorId, int limit);
+    List<Spec> findByJobFieldWithPagination(JobField jobField, Long cursorId, int limit);
 
     int countByJobField(String jobField);
 

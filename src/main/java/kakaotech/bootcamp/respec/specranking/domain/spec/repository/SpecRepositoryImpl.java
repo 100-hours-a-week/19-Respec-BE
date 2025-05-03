@@ -27,7 +27,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     @Override
-    public List<Spec> findByJobFieldWithPagination(String jobField, Long cursorId, int limit) {
+    public List<Spec> findByJobFieldWithPagination(JobField jobField, Long cursorId, int limit) {
         if (cursorId == null || cursorId == Long.MAX_VALUE) {
             return getQueryFactory()
                     .selectFrom(spec)
@@ -174,6 +174,10 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
 
     private BooleanExpression isActive() {
         return spec.status.eq(SpecStatus.ACTIVE);
+    }
+
+    private BooleanExpression jobFieldEquals(JobField jobField) {
+        return jobField != null ? spec.workPosition.eq(jobField) : null;
     }
 
     private BooleanExpression jobFieldEquals(String jobFieldStr) {

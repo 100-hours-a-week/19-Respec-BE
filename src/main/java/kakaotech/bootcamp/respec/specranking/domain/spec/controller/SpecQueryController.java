@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.controller;
 
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecQueryService;
@@ -18,7 +19,7 @@ public class SpecQueryController {
 
     @GetMapping(params = "type=ranking")
     public RankingResponse getRankings(
-            @RequestParam(value = "jobField", required = false) String jobField,
+            @RequestParam(value = "jobField") JobField jobField,
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
