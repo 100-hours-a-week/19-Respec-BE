@@ -3,8 +3,9 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.util;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail;
@@ -35,7 +36,7 @@ public class InitializeSpec implements CommandLineRunner {
     private final WorkExperienceRepository workExperienceRepository;
 
     private final String[] jobFields = {
-            "인터넷.IT", "금융", "제조", "서비스", "의료", "교육", "물류", "건설", "미디어", "법률"
+            "인터넷_IT", "금융", "생산_제조", "영업_고객상담", "전문직_특수직", "연구개발_설계", "무역_유통", "건설", "미디어", "경영_사무"
     };
 
     private final String[] schoolNames = {
@@ -85,7 +86,14 @@ public class InitializeSpec implements CommandLineRunner {
     }
 
     private void createSpecForUser(User user, int index) {
-        String jobField = jobFields[index % jobFields.length];
+        String jobFieldStr = jobFields[index % jobFields.length];
+        JobField jobField;
+        try {
+            jobField = JobField.fromValue(jobFieldStr);
+        } catch (IllegalArgumentException e) {
+            // 기본값 설정
+            jobField = JobField.INTERNET_IT;
+        }
         double score = scores[index % scores.length];
         double educationScore = Math.min(100, score + 2);
         double workExperienceScore = Math.min(100, score + 1);
@@ -109,12 +117,12 @@ public class InitializeSpec implements CommandLineRunner {
         Spec savedSpec = specRepository.save(spec);
 
         FinalStatus finalStatus = FinalStatus.GRADUATED;
-        FinalEducation finalEducation = FinalEducation.UNIVERSITY;
+        Institute institute = Institute.UNIVERSITY;
 
         Education education = new Education(
                 savedSpec,
                 finalStatus,
-                finalEducation
+                institute
         );
 
         Education savedEducation = educationRepository.save(education);

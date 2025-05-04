@@ -25,17 +25,12 @@ public class SearchResponse {
         private Long specId;
         private String jobField;
         private double totalAnalyzeScore;
-        private int rankByJobField;
+        private Long rankByJobField;
         private int totalUsersCountByJobField;
-        private int rank;
+        private Long rank;
         private boolean isBookmarked;
         private int commentsCount;
         private int bookmarksCount;
-    }
-
-    public SearchResponse(boolean isSuccess, String message) {
-        this.isSuccess = isSuccess;
-        this.message = message;
     }
 
     public SearchResponse(boolean isSuccess, String message, SearchData data) {
@@ -53,9 +48,5 @@ public class SearchResponse {
         data.setNextCursor(nextCursor);
 
         return new SearchResponse(true, "검색 목록 조회 성공", data);
-    }
-
-    public static SearchResponse fail(String message) {
-        return new SearchResponse(false, message);
     }
 }

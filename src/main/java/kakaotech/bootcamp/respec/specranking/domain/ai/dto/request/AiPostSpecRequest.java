@@ -7,6 +7,7 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import lombok.Data;
 
 @Data
@@ -21,7 +22,7 @@ public class AiPostSpecRequest {
     private FinalStatus finalStatus;
 
     @JsonProperty("desired_job")
-    private String desiredJob;
+    private JobField desiredJob;
 
     private List<University> universities;
 

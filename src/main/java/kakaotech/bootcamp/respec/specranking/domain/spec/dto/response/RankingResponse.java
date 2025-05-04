@@ -24,17 +24,12 @@ public class RankingResponse {
         private Long specId;
         private String jobField;
         private double totalAnalyzeScore;
-        private int rankByJobField;
+        private Long rankByJobField;
         private int totalUsersCountByJobField;
-        private int rank;
+        private long rank;
         private boolean isBookmarked;
         private int commentsCount;
         private int bookmarksCount;
-    }
-
-    public RankingResponse(boolean isSuccess, String message) {
-        this.isSuccess = isSuccess;
-        this.message = message;
     }
 
     public RankingResponse(boolean isSuccess, String message, RankingData data) {
@@ -50,9 +45,5 @@ public class RankingResponse {
         data.setNextCursor(nextCursor);
 
         return new RankingResponse(true, "랭킹 목록 조회 성공", data);
-    }
-
-    public static RankingResponse fail(String message) {
-        return new RankingResponse(false, message);
     }
 }

@@ -11,14 +11,14 @@ import kakaotech.bootcamp.respec.specranking.domain.certification.entity.Certifi
 import kakaotech.bootcamp.respec.specranking.domain.certification.repository.CertificationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.repository.EducationDetailRepository;
-import kakaotech.bootcamp.respec.specranking.domain.englishskill.entity.EnglishSkill;
-import kakaotech.bootcamp.respec.specranking.domain.englishskill.repository.EnglishSkillRepository;
+import kakaotech.bootcamp.respec.specranking.domain.languageskill.entity.LanguageSkill;
+import kakaotech.bootcamp.respec.specranking.domain.languageskill.repository.LanguageSkillRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
@@ -45,17 +45,13 @@ public class SpecService {
     private final EducationDetailRepository educationDetailRepository;
     private final WorkExperienceRepository workExperienceRepository;
     private final CertificationRepository certificationRepository;
-    private final EnglishSkillRepository englishSkillRepository;
+    private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
     private final FileStore fileStore;
 
     public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
         Long userId = UserUtils.getCurrentUserId();
-
-        Optional<Spec> existingSpec = specRepository.findByUserId(userId);
-        if (existingSpec.isPresent()) {
-            throw new IllegalStateException("이미 등록된 스펙이 있습니다. 스펙을 수정하려면 수정 API를 사용해주세요.");
-        }
+        validateMultipleSpec(userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
@@ -69,14 +65,7 @@ public class SpecService {
                 portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
-        Spec spec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
-        Spec savedSpec = specRepository.save(spec);
-
-        saveEducation(savedSpec, request);
-        saveWorkExperience(savedSpec, request);
-        saveCertifications(savedSpec, request);
-        saveLanguageSkills(savedSpec, request);
-        saveActivities(savedSpec, request);
+        saveSpecWithChaining(request, aiPostSpecResponse, user);
     }
 
     public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
@@ -89,15 +78,28 @@ public class SpecService {
             throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
         }
 
-        spec.sleep();
-
-        String portfolioUrl = portfolioFile != null ? fileStore.upload(portfolioFile) : null;
+        String portfolioUrl = "";
+        if (portfolioFile != null) {
+            portfolioUrl = fileStore.upload(portfolioFile);
+        }
 
         AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, spec.getUser().getNickname(),
                 portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
         User user = spec.getUser();
+        spec.delete();
+        saveSpecWithChaining(request, aiPostSpecResponse, user);
+    }
+
+    private void validateMultipleSpec(Long userId) {
+        Optional<Spec> existingSpec = specRepository.findByUserId(userId);
+        if (existingSpec.isPresent()) {
+            throw new IllegalStateException("이미 등록된 스펙이 있습니다. 스펙을 수정하려면 수정 API를 사용해주세요.");
+        }
+    }
+
+    private void saveSpecWithChaining(PostSpecRequest request, AiPostSpecResponse aiPostSpecResponse, User user) {
         Spec newSpec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
         Spec savedNewSpec = specRepository.save(newSpec);
 
@@ -111,7 +113,7 @@ public class SpecService {
     private void saveEducation(Spec spec, PostSpecRequest request) {
         if (request.getFinalEducation() != null) {
             FinalStatus institute = request.getFinalEducation().getStatus();
-            FinalEducation status = request.getFinalEducation().getLevel();
+            Institute status = request.getFinalEducation().getInstitute();
 
             Education education = new Education(spec, institute, status);
             Education savedEducation = educationRepository.save(education);
@@ -168,14 +170,13 @@ public class SpecService {
     private void saveLanguageSkills(Spec spec, PostSpecRequest request) {
         if (request.getLanguageSkills() != null && !request.getLanguageSkills().isEmpty()) {
             for (PostSpecRequest.LanguageSkill languageSkillDto : request.getLanguageSkills()) {
-                EnglishSkill englishSkill = new EnglishSkill(
+                LanguageSkill languageSkill = new LanguageSkill(
                         spec,
-                        languageSkillDto.getName(),
-                        "English",
+                        languageSkillDto.getLanguageTest(),
                         languageSkillDto.getScore()
                 );
 
-                englishSkillRepository.save(englishSkill);
+                languageSkillRepository.save(languageSkill);
             }
         }
     }
