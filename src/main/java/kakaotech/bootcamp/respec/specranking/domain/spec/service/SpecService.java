@@ -9,17 +9,17 @@ import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecRe
 import kakaotech.bootcamp.respec.specranking.domain.ai.service.AiService;
 import kakaotech.bootcamp.respec.specranking.domain.certification.entity.Certification;
 import kakaotech.bootcamp.respec.specranking.domain.certification.repository.CertificationRepository;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
-import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.repository.EducationDetailRepository;
 import kakaotech.bootcamp.respec.specranking.domain.languageskill.entity.LanguageSkill;
 import kakaotech.bootcamp.respec.specranking.domain.languageskill.repository.LanguageSkillRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.store.service.FileStore;
@@ -112,23 +112,23 @@ public class SpecService {
 
     private void saveEducation(Spec spec, PostSpecRequest request) {
         if (request.getFinalEducation() != null) {
-            FinalStatus institute = request.getFinalEducation().getStatus();
-            Institute status = request.getFinalEducation().getInstitute();
+            FinalStatus status = request.getFinalEducation().getStatus();
+            Institute institute = request.getFinalEducation().getInstitute();
 
             Education education = new Education(spec, institute, status);
             Education savedEducation = educationRepository.save(education);
 
-            if (request.getEducations() != null && !request.getEducations().isEmpty()) {
-                for (PostSpecRequest.Education educationDto : request.getEducations()) {
-                    Degree degree = educationDto.getDegree();
+            if (request.getEducationDetails() != null && !request.getEducationDetails().isEmpty()) {
+                for (EducationDetail educationDetailDto : request.getEducationDetails()) {
+                    Degree degree = educationDetailDto.getDegree();
 
-                    EducationDetail educationDetail = new EducationDetail(
+                    kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail educationDetail = new kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail(
                             savedEducation,
-                            educationDto.getSchoolName(),
+                            educationDetailDto.getSchoolName(),
                             degree,
-                            educationDto.getMajor(),
-                            educationDto.getGpa(),
-                            educationDto.getMaxGpa()
+                            educationDetailDto.getMajor(),
+                            educationDetailDto.getGpa(),
+                            educationDetailDto.getMaxGpa()
                     );
 
                     educationDetailRepository.save(educationDetail);
@@ -138,13 +138,13 @@ public class SpecService {
     }
 
     private void saveWorkExperience(Spec spec, PostSpecRequest request) {
-        if (request.getWorkExperience() != null && !request.getWorkExperience().isEmpty()) {
-            for (PostSpecRequest.WorkExperience workExp : request.getWorkExperience()) {
-                CareerRole position = workExp.getPosition();
+        if (request.getWorkExperiences() != null && !request.getWorkExperiences().isEmpty()) {
+            for (PostSpecRequest.WorkExperience workExp : request.getWorkExperiences()) {
+                Position position = workExp.getPosition();
 
                 WorkExperience workExperience = new WorkExperience(
                         spec,
-                        workExp.getCompany(),
+                        workExp.getCompanyName(),
                         position,
                         workExp.getPeriod()
                 );

@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(indexes = {
-        @Index(name = "idx_work_position_total_analysis_score", columnList = "work_position, total_analysis_score"),
+        @Index(name = "idx_job_field_total_analysis_score", columnList = "job_field, total_analysis_score"),
         @Index(name = "idx_total_analysis_score", columnList = "total_analysis_score")
 })
 public class Spec extends BaseTimeEntity {
@@ -40,8 +40,8 @@ public class Spec extends BaseTimeEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "work_position", nullable = false, columnDefinition = "VARCHAR(50)")
-    private JobField workPosition;
+    @Column(name = "job_field", nullable = false, columnDefinition = "VARCHAR(50)")
+    private JobField jobField;
 
     @Column(name = "education_score", nullable = false, columnDefinition = "DOUBLE")
     private Double educationScore;
@@ -71,14 +71,14 @@ public class Spec extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ACTIVE'")
     private SpecStatus status;
 
-    public Spec(User user, JobField workPosition
+    public Spec(User user, JobField jobField
             , Double educationScore
             , Double workExperienceScore
             , Double activityNetworkingScore
             , Double certificationScore
             , Double englishSkillScore, Double totalAnalysisScore) {
         this.user = user;
-        this.workPosition = workPosition;
+        this.jobField = jobField;
         this.educationScore = educationScore;
         this.workExperienceScore = workExperienceScore;
         this.activityNetworkingScore = activityNetworkingScore;
@@ -94,11 +94,11 @@ public class Spec extends BaseTimeEntity {
         return new Spec(
                 user,
                 jobField,
-                aiResponse.getAcademicScore(),
+                aiResponse.getEducationScore(),
                 aiResponse.getWorkExperienceScore(),
-                aiResponse.getExtracurricularScore(),
+                aiResponse.getActivityNetworkingScore(),
                 aiResponse.getCertificationScore(),
-                aiResponse.getLanguageProficiencyScore(),
+                aiResponse.getLanguageSkillScore(),
                 aiResponse.getTotalScore()
         );
     }
@@ -106,6 +106,6 @@ public class Spec extends BaseTimeEntity {
     @Override
     public void delete() {
         super.delete();
-        this.status = SpecStatus.WITHDRAWN;
+        this.status = SpecStatus.DELETED;
     }
 }

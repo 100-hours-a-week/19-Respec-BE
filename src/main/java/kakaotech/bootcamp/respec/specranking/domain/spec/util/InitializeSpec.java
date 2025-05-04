@@ -1,11 +1,11 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.util;
 
 import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail;
@@ -121,8 +121,8 @@ public class InitializeSpec implements CommandLineRunner {
 
         Education education = new Education(
                 savedSpec,
-                finalStatus,
-                institute
+                institute,
+                finalStatus
         );
 
         Education savedEducation = educationRepository.save(education);
@@ -145,13 +145,13 @@ public class InitializeSpec implements CommandLineRunner {
         educationDetailRepository.save(educationDetail);
 
         String company = companies[index % companies.length];
-        CareerRole careerRole = CareerRole.FULL_TIME_EMPLOYEE;
+        Position position = Position.FULL_TIME_EMPLOYEE;
         int period = periods[index % periods.length];
 
         WorkExperience workExperience = new WorkExperience(
                 savedSpec,
                 company,
-                careerRole,
+                position,
                 period
         );
 

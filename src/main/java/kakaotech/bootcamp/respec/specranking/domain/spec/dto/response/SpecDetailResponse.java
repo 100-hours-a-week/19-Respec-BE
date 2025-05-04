@@ -1,39 +1,44 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.dto.response;
 
-import lombok.Data;
 import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecCategory;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.ScoreCategoryDetail;
+import lombok.Data;
 
 @Data
 public class SpecDetailResponse {
-    private boolean isSuccess;
+    private Boolean isSuccess;
     private String message;
-    private SpecDetailData data;
+    private SpecDetailData specDetailData;
 
     @Data
     public static class SpecDetailData {
-        private Long specId;
         private FinalEducation finalEducation;
-        private List<Education> educations;
-        private List<WorkExperience> workExperience;
+        private List<EducationDetails> educationDetails;
+        private List<WorkExperience> workExperiences;
         private List<Certification> certifications;
         private List<LanguageSkill> languageSkills;
         private List<Activity> activities;
-        private String jobField;
+        private JobField jobField;
         private Rankings rankings;
         private String portfolioUrl;
     }
 
     @Data
     public static class FinalEducation {
-        private String level;
-        private String status;
+        private Institute institute;
+        private FinalStatus finalStatus;
     }
 
     @Data
-    public static class Education {
+    public static class EducationDetails {
         private String schoolName;
-        private String degree;
+        private Degree degree;
         private String major;
         private Double gpa;
         private Double maxGpa;
@@ -42,7 +47,7 @@ public class SpecDetailResponse {
     @Data
     public static class WorkExperience {
         private String company;
-        private String position;
+        private Position position;
         private Integer period;
     }
 
@@ -53,7 +58,7 @@ public class SpecDetailResponse {
 
     @Data
     public static class LanguageSkill {
-        private String name;
+        private LanguageTest name;
         private String score;
     }
 
@@ -66,30 +71,28 @@ public class SpecDetailResponse {
 
     @Data
     public static class Rankings {
-        private Overall overall;
-        private List<Category> categories;
+        private Details details;
+        private List<ScoreDetail> categories;
     }
 
     @Data
-    public static class Overall {
+    public static class Details {
         private Double score;
-        private Integer totalUserCount;
-        private Integer rank;
+        private Long jobFieldRank;
+        private Long jobFieldUserCount;
+        private Long TotalRank;
+        private Long TotalUserCount;
     }
 
     @Data
-    public static class Category {
-        private SpecCategory name;
+    public static class ScoreDetail {
+        private ScoreCategoryDetail name;
         private Double score;
     }
 
-    public SpecDetailResponse(boolean isSuccess, String message, SpecDetailData data) {
+    public SpecDetailResponse(Boolean isSuccess, String message, SpecDetailData specDetailData) {
         this.isSuccess = isSuccess;
         this.message = message;
-        this.data = data;
-    }
-
-    public static SpecDetailResponse success(SpecDetailData data) {
-        return new SpecDetailResponse(true, "스펙 정보 조회 성공", data);
+        this.specDetailData = specDetailData;
     }
 }

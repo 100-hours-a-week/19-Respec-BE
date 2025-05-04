@@ -10,13 +10,13 @@ public class SpecMetaResponse {
 
     @Data
     public static class Meta {
+        private Long totalUserCount;
+        private double averageScore;
+
         public Meta(Long totalUserCount, double averageScore) {
             this.totalUserCount = totalUserCount;
             this.averageScore = averageScore;
         }
-
-        private Long totalUserCount;
-        private double averageScore;
     }
 
     public SpecMetaResponse(boolean isSuccess, String message, Meta data) {

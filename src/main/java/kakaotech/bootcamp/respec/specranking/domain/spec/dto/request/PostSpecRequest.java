@@ -9,12 +9,12 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import lombok.Data;
 
 @Data
@@ -23,16 +23,16 @@ public class PostSpecRequest {
     @Valid
     private FinalEducation finalEducation;
     @Valid
-    private List<Education> educations = new ArrayList<>();
+    private List<EducationDetail> educationDetails = new ArrayList<>();
     @Valid
-    private List<WorkExperience> workExperience = new ArrayList<>();
+    private List<WorkExperience> workExperiences = new ArrayList<>();
     @Valid
     private List<Certification> certifications = new ArrayList<>();
     @Valid
     private List<LanguageSkill> languageSkills = new ArrayList<>();
     @Valid
     private List<Activity> activities = new ArrayList<>();
-    @NotBlank(message = "희망 직무 분야는 필수입니다")
+    @NotNull(message = "희망 직무 분야는 필수입니다")
     private JobField jobField;
 
     @Data
@@ -45,7 +45,7 @@ public class PostSpecRequest {
     }
 
     @Data
-    public static class Education {
+    public static class EducationDetail {
         @NotBlank(message = "학교 이름은 필수입니다")
         private String schoolName;
         @NotNull(message = "학위 타입은 필수입니다")
@@ -65,10 +65,10 @@ public class PostSpecRequest {
     @Data
     public static class WorkExperience {
         @NotBlank(message = "회사명은 필수입니다")
-        private String company;
+        private String companyName;
 
         @NotNull(message = "직무는 필수입니다")
-        private CareerRole position;
+        private Position position;
 
         @NotNull(message = "근무 기간은 필수입니다")
         @Positive(message = "근무 기간은 양수여야 합니다")

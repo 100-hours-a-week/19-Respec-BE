@@ -5,7 +5,5 @@ import kakaotech.bootcamp.respec.specranking.domain.languageskill.entity.Languag
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LanguageSkillRepository extends JpaRepository<LanguageSkill, Long> {
-    void deleteBySpecId(Long specId);
-
     List<LanguageSkill> findBySpecId(Long specId);
 }

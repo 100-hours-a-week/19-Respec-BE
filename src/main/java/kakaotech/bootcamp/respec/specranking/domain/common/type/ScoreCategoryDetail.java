@@ -6,9 +6,9 @@ import java.util.Arrays;
 import lombok.Getter;
 
 @Getter
-public enum SpecCategory {
+public enum ScoreCategoryDetail {
 
-    EDUCATION_GPA("학력_성적"),
+    EDUCATION_SCORE("학력_성적"),
     WORK_EXPERIENCE("직무_경험"),
     CERTIFICATION_SKILLS("자격증_스킬"),
     LANGUAGE_PROFICIENCY("어학_능력"),
@@ -16,7 +16,7 @@ public enum SpecCategory {
 
     private final String value;
 
-    SpecCategory(String value) {
+    ScoreCategoryDetail(String value) {
         this.value = value;
     }
 
@@ -26,9 +26,9 @@ public enum SpecCategory {
     }
 
     @JsonCreator
-    public static SpecCategory fromValue(String value) {
-        return Arrays.stream(SpecCategory.values())
-                .filter(specCategory -> specCategory.value.equals(value))
+    public static ScoreCategoryDetail fromValue(String value) {
+        return Arrays.stream(ScoreCategoryDetail.values())
+                .filter(scoreCategoryDetail -> scoreCategoryDetail.value.equals(value))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown Category value: " + value));
     }

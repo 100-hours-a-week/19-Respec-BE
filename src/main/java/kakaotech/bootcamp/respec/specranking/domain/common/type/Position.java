@@ -6,14 +6,14 @@ import java.util.Arrays;
 import lombok.Getter;
 
 @Getter
-public enum CareerRole {
+public enum Position {
     CEO("대표"),
     FULL_TIME_EMPLOYEE("정규직"),
     INTERN("인턴");
 
     private final String value;
 
-    CareerRole(String value) {
+    Position(String value) {
         this.value = value;
     }
 
@@ -23,8 +23,8 @@ public enum CareerRole {
     }
 
     @JsonCreator
-    public static CareerRole fromValue(String value) {
-        return Arrays.stream(CareerRole.values())
+    public static Position fromValue(String value) {
+        return Arrays.stream(Position.values())
                 .filter(role -> role.value.equals(value))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown CareerRole value: " + value));

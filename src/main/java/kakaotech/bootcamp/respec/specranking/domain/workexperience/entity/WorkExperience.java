@@ -10,7 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -35,12 +35,12 @@ public class WorkExperience {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'INTERN'")
-    private CareerRole position;
+    private Position position;
 
     @Column(name = "work_month", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer workMonth;
 
-    public WorkExperience(Spec spec, String companyName, CareerRole position, Integer workMonth) {
+    public WorkExperience(Spec spec, String companyName, Position position, Integer workMonth) {
         this.spec = spec;
         this.companyName = companyName;
         this.position = position;

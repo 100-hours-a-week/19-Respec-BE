@@ -9,7 +9,7 @@ public class AiPostSpecResponse {
     private String nickname;
 
     @JsonProperty("academicScore")
-    private Double academicScore = 0.0;
+    private Double educationScore = 0.0;
 
     @JsonProperty("workExperienceScore")
     private Double workExperienceScore = 0.0;
@@ -18,10 +18,10 @@ public class AiPostSpecResponse {
     private Double certificationScore = 0.0;
 
     @JsonProperty("languageProficiencyScore")
-    private Double languageProficiencyScore = 0.0;
+    private Double languageSkillScore = 0.0;
 
     @JsonProperty("extracurricularScore")
-    private Double extracurricularScore = 0.0;
+    private Double activityNetworkingScore = 0.0;
 
     @JsonProperty("totalScore")
     private Double totalScore = 0.0;

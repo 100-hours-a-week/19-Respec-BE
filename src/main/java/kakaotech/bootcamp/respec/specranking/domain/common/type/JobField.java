@@ -16,7 +16,7 @@ public enum JobField {
     SALES_CUSTOMER_SERVICE("영업_고객상담"),
     CONSTRUCTION("건설"),
     FINANCE("금융"),
-    RESEARCH_PLANNING("연구개발_설계"),
+    RND_PLANNING("연구개발_설계"),
     DESIGN("디자인"),
     MEDIA("미디어"),
     SPECIALIZED_TECHNICAL("전문직_특수직");

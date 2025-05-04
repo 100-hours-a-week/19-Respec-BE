@@ -64,7 +64,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     @Override
-    public int countByJobField(JobField jobField) {
+    public Long countByJobField(JobField jobField) {
         Long count = getQueryFactory()
                 .select(spec.count())
                 .from(spec)
@@ -74,33 +74,33 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 )
                 .fetchOne();
 
-        return count != null ? count.intValue() : 0;
+        return count != null ? count.longValue() : 0L;
     }
 
     @Override
-    public Map<String, Integer> countByJobFields() {
+    public Map<String, Long> countByJobFields() {
         List<Object[]> results = getQueryFactory()
-                .select(spec.workPosition, spec.count())
+                .select(spec.jobField, spec.count())
                 .from(spec)
                 .where(isActive())
-                .groupBy(spec.workPosition)
+                .groupBy(spec.jobField)
                 .fetch()
                 .stream()
                 .map(tuple -> new Object[]{tuple.get(0, JobField.class), tuple.get(1, Long.class)})
                 .toList();
 
-        Map<String, Integer> countMap = new HashMap<>();
+        Map<String, Long> countMap = new HashMap<>();
         for (Object[] result : results) {
             JobField jobField = (JobField) result[0];
             Long count = (Long) result[1];
-            countMap.put(jobField.getValue(), count.intValue());
+            countMap.put(jobField.getValue(), count);
         }
 
         return countMap;
     }
 
     @Override
-    public int findRankByJobField(Long specId, JobField jobField) {
+    public Long findRankByJobField(Long specId, JobField jobField) {
         Double score = getQueryFactory()
                 .select(spec.totalAnalysisScore)
                 .from(spec)
@@ -108,7 +108,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .fetchOne();
 
         if (score == null) {
-            return 0;
+            return 0L;
         }
 
         Long rank = getQueryFactory()
@@ -121,7 +121,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 )
                 .fetchOne();
 
-        return rank != null ? rank.intValue() + 1 : 1;
+        return rank != null ? rank + 1 : 1;
     }
 
     @Override
@@ -180,7 +180,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     private BooleanExpression jobFieldEquals(JobField jobField) {
-        return jobField != null ? spec.workPosition.eq(jobField) : null;
+        return jobField != null ? spec.jobField.eq(jobField) : null;
     }
 
     private BooleanExpression nicknameContains(String nickname) {
@@ -188,11 +188,11 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     @Override
-    public long countDistinctUsersByJobField(JobField jobField) {
+    public Long countDistinctUsersByJobField(JobField jobField) {
         Long count = getQueryFactory()
                 .select(spec.user.id.countDistinct())
                 .from(spec)
-                .where(spec.workPosition.eq(jobField))
+                .where(spec.jobField.eq(jobField))
                 .fetchOne();
 
         return count != null ? count : 0L;
@@ -204,7 +204,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .select(spec.totalAnalysisScore.avg())
                 .from(spec)
                 .where(
-                        jobField != null ? spec.workPosition.eq(jobField) : null
+                        jobField != null ? spec.jobField.eq(jobField) : null
                 )
                 .fetchOne();
     }
