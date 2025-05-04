@@ -10,8 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalEducation;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -37,9 +37,9 @@ public class Education {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'MIDDLE_SCHOOL'")
-    private FinalEducation status;
+    private Institute status;
 
-    public Education(Spec spec, FinalStatus institute, FinalEducation status) {
+    public Education(Spec spec, FinalStatus institute, Institute status) {
         this.spec = spec;
         this.institute = institute;
         this.status = status;

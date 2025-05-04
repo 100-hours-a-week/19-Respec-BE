@@ -4,15 +4,15 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.QSpec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser;
 import org.springframework.stereotype.Repository;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Repository
 public class SpecRepositoryImpl implements SpecRepositoryCustom {
@@ -27,21 +27,44 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     @Override
-    public List<Spec> findByJobFieldWithPagination(String jobField, Long cursorId, int limit) {
+    public List<Spec> findByJobFieldWithPagination(JobField jobField, Long cursorId, int limit) {
+        boolean fetchAll = jobField == JobField.TOTAL;
+
+        if (cursorId == null || cursorId == Long.MAX_VALUE) {
+            return getQueryFactory()
+                    .selectFrom(spec)
+                    .where(
+                            isActive(),
+                            fetchAll ? null : jobFieldEquals(jobField)
+                    )
+                    .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
+                    .limit(limit)
+                    .fetch();
+        }
+        Double cursorScore = getQueryFactory()
+                .select(spec.totalAnalysisScore)
+                .from(spec)
+                .where(spec.id.eq(cursorId))
+                .fetchOne();
+
         return getQueryFactory()
                 .selectFrom(spec)
                 .where(
                         isActive(),
-                        jobFieldEquals(jobField),
-                        cursorLessThan(cursorId)
+                        fetchAll ? null : jobFieldEquals(jobField),
+                        spec.totalAnalysisScore.lt(cursorScore)
+                                .or(
+                                        spec.totalAnalysisScore.eq(cursorScore)
+                                                .and(spec.id.lt(cursorId))
+                                )
                 )
-                .orderBy(spec.totalAnalysisScore.desc())
+                .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
                 .limit(limit)
                 .fetch();
     }
-    
+
     @Override
-    public int countByJobField(String jobField) {
+    public int countByJobField(JobField jobField) {
         Long count = getQueryFactory()
                 .select(spec.count())
                 .from(spec)
@@ -50,10 +73,10 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                         jobFieldEquals(jobField)
                 )
                 .fetchOne();
-                
+
         return count != null ? count.intValue() : 0;
     }
-    
+
     @Override
     public Map<String, Integer> countByJobFields() {
         List<Object[]> results = getQueryFactory()
@@ -63,33 +86,31 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .groupBy(spec.workPosition)
                 .fetch()
                 .stream()
-                .map(tuple -> new Object[] { tuple.get(0, String.class), tuple.get(1, Long.class)})
+                .map(tuple -> new Object[]{tuple.get(0, JobField.class), tuple.get(1, Long.class)})
                 .toList();
-                
+
         Map<String, Integer> countMap = new HashMap<>();
         for (Object[] result : results) {
-            String jobField = (String) result[0];
+            JobField jobField = (JobField) result[0];
             Long count = (Long) result[1];
-            countMap.put(jobField, count.intValue());
+            countMap.put(jobField.getValue(), count.intValue());
         }
-        
+
         return countMap;
     }
-    
+
     @Override
-    public int findRankByJobField(Long specId, String jobField) {
-        // 해당 스펙의 점수 조회
+    public int findRankByJobField(Long specId, JobField jobField) {
         Double score = getQueryFactory()
                 .select(spec.totalAnalysisScore)
                 .from(spec)
                 .where(spec.id.eq(specId))
                 .fetchOne();
-                
+
         if (score == null) {
             return 0;
         }
-        
-        // 해당 점수보다 높은 스펙의 수 + 1 (현재 랭킹)
+
         Long rank = getQueryFactory()
                 .select(spec.count())
                 .from(spec)
@@ -99,38 +120,93 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                         spec.totalAnalysisScore.gt(score)
                 )
                 .fetchOne();
-                
+
         return rank != null ? rank.intValue() + 1 : 1;
     }
-    
+
     @Override
     public List<Spec> searchByNickname(String nickname, Long cursorId, int limit) {
+        if (cursorId == null || cursorId == Long.MAX_VALUE) {
+            return getQueryFactory()
+                    .selectFrom(spec)
+                    .join(spec.user, user)
+                    .where(
+                            isActive(),
+                            nicknameContains(nickname)
+                    )
+                    .orderBy(spec.id.desc())
+                    .limit(limit)
+                    .fetch();
+        }
+
         return getQueryFactory()
                 .selectFrom(spec)
                 .join(spec.user, user)
                 .where(
                         isActive(),
                         nicknameContains(nickname),
-                        cursorLessThan(cursorId)
+                        spec.id.lt(cursorId)
                 )
-                .orderBy(spec.totalAnalysisScore.desc())
+                .orderBy(spec.id.desc())
                 .limit(limit)
                 .fetch();
     }
-    
+
+    @Override
+    public Long findAbsoluteRank(JobField jobField, Long specId) {
+        Double targetScore = getQueryFactory()
+                .select(spec.totalAnalysisScore)
+                .from(spec)
+                .where(spec.id.eq(specId))
+                .fetchOne();
+
+        boolean fetchAll = jobField == JobField.TOTAL;
+
+        Long higherCount = getQueryFactory()
+                .select(spec.count())
+                .from(spec)
+                .where(
+                        isActive(),
+                        fetchAll ? null : jobFieldEquals(jobField),
+                        spec.totalAnalysisScore.gt(targetScore)
+                )
+                .fetchOne();
+
+        return higherCount + 1;
+    }
+
     private BooleanExpression isActive() {
         return spec.status.eq(SpecStatus.ACTIVE);
     }
-    
-    private BooleanExpression jobFieldEquals(String jobField) {
-        return jobField != null && !jobField.isEmpty() ? spec.workPosition.eq(jobField) : null;
+
+    private BooleanExpression jobFieldEquals(JobField jobField) {
+        return jobField != null ? spec.workPosition.eq(jobField) : null;
     }
-    
-    private BooleanExpression cursorLessThan(Long cursorId) {
-        return cursorId != null ? spec.id.lt(cursorId) : null;
-    }
-    
+
     private BooleanExpression nicknameContains(String nickname) {
         return nickname != null && !nickname.isEmpty() ? user.nickname.contains(nickname) : null;
     }
+
+    @Override
+    public long countDistinctUsersByJobField(JobField jobField) {
+        Long count = getQueryFactory()
+                .select(spec.user.id.countDistinct())
+                .from(spec)
+                .where(spec.workPosition.eq(jobField))
+                .fetchOne();
+
+        return count != null ? count : 0L;
+    }
+
+    @Override
+    public Double findAverageScoreByJobField(JobField jobField) {
+        return getQueryFactory()
+                .select(spec.totalAnalysisScore.avg())
+                .from(spec)
+                .where(
+                        jobField != null ? spec.workPosition.eq(jobField) : null
+                )
+                .fetchOne();
+    }
+
 }

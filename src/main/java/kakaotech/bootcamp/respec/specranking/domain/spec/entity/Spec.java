@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import lombok.AccessLevel;
@@ -38,8 +39,9 @@ public class Spec extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "work_position", nullable = false, columnDefinition = "VARCHAR(50)")
-    private String workPosition;
+    private JobField workPosition;
 
     @Column(name = "education_score", nullable = false, columnDefinition = "DOUBLE")
     private Double educationScore;
@@ -69,7 +71,7 @@ public class Spec extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ACTIVE'")
     private SpecStatus status;
 
-    public Spec(User user, String workPosition
+    public Spec(User user, JobField workPosition
             , Double educationScore
             , Double workExperienceScore
             , Double activityNetworkingScore
@@ -88,7 +90,7 @@ public class Spec extends BaseTimeEntity {
         this.status = SpecStatus.ACTIVE;
     }
 
-    public static Spec createFromAiResponse(User user, String jobField, AiPostSpecResponse aiResponse) {
+    public static Spec createFromAiResponse(User user, JobField jobField, AiPostSpecResponse aiResponse) {
         return new Spec(
                 user,
                 jobField,
@@ -101,28 +103,9 @@ public class Spec extends BaseTimeEntity {
         );
     }
 
-    public void updateInfo(String workPosition, Double educationScore, Double workExperienceScore,
-                           Double activityNetworkingScore, Double certificationScore,
-                           Double englishSkillScore, Double totalAnalysisScore) {
-        this.workPosition = workPosition;
-        this.educationScore = educationScore;
-        this.workExperienceScore = workExperienceScore;
-        this.activityNetworkingScore = activityNetworkingScore;
-        this.certificationScore = certificationScore;
-        this.englishSkillScore = englishSkillScore;
-        this.totalAnalysisScore = totalAnalysisScore;
-    }
-
-    // Spec 클래스에 추가할 메서드
-    public void sleep() {
-        this.status = SpecStatus.SLEEP;
-    }
-
-    public void activate() {
-        this.status = SpecStatus.ACTIVE;
-    }
-
-    public void withdraw() {
+    @Override
+    public void delete() {
+        super.delete();
         this.status = SpecStatus.WITHDRAWN;
     }
 }
