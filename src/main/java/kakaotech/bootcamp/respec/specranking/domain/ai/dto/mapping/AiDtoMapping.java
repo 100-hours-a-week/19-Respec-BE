@@ -3,7 +3,9 @@ package kakaotech.bootcamp.respec.specranking.domain.ai.dto.mapping;
 import java.util.List;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.University;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.EducationDetail;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.LanguageSkill;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.WorkExperience;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 
 public class AiDtoMapping {
@@ -12,8 +14,8 @@ public class AiDtoMapping {
                                                        String portfolioUrl) {
         AiPostSpecRequest aiRequest = new AiPostSpecRequest();
 
-        aiRequest.setDesiredJob(request.getJobField());
-        aiRequest.setFilelink(portfolioUrl);
+        aiRequest.setJobField(request.getJobField());
+        aiRequest.setPortfolioURL(portfolioUrl);
         aiRequest.setNickname(userNickname);
 
         if (request.getFinalEducation() != null) {
@@ -21,31 +23,31 @@ public class AiDtoMapping {
             aiRequest.setFinalStatus(request.getFinalEducation().getStatus());
         }
 
-        if (request.getEducations() != null && !request.getEducations().isEmpty()) {
-            List<University> universities = request.getEducations().stream()
+        if (request.getEducationDetails() != null && !request.getEducationDetails().isEmpty()) {
+            List<EducationDetail> universities = request.getEducationDetails().stream()
                     .map(edu -> {
-                        AiPostSpecRequest.University university = new AiPostSpecRequest.University();
-                        university.setSchoolName(edu.getSchoolName());
-                        university.setDegree(edu.getDegree());
-                        university.setMajor(edu.getMajor());
-                        university.setGpa(edu.getGpa());
-                        university.setGpaMax(edu.getMaxGpa());
-                        return university;
+                        EducationDetail educationDetail = new EducationDetail();
+                        educationDetail.setSchoolName(edu.getSchoolName());
+                        educationDetail.setDegree(edu.getDegree());
+                        educationDetail.setMajor(edu.getMajor());
+                        educationDetail.setGpa(edu.getGpa());
+                        educationDetail.setMaxGpa(edu.getMaxGpa());
+                        return educationDetail;
                     })
                     .collect(Collectors.toList());
-            aiRequest.setUniversities(universities);
+            aiRequest.setEducationDetails(universities);
         }
 
-        if (request.getWorkExperience() != null && !request.getWorkExperience().isEmpty()) {
-            List<AiPostSpecRequest.Career> careers = request.getWorkExperience().stream()
+        if (request.getWorkExperiences() != null && !request.getWorkExperiences().isEmpty()) {
+            List<WorkExperience> workExperiences = request.getWorkExperiences().stream()
                     .map(work -> {
-                        AiPostSpecRequest.Career career = new AiPostSpecRequest.Career();
-                        career.setCompany(work.getCompany());
-                        career.setRole(work.getPosition());
-                        return career;
+                        WorkExperience workExperience = new WorkExperience();
+                        workExperience.setCompanyName(work.getCompanyName());
+                        workExperience.setPosition(work.getPosition());
+                        return workExperience;
                     })
                     .collect(Collectors.toList());
-            aiRequest.setCareers(careers);
+            aiRequest.setWorkExperiences(workExperiences);
         }
 
         if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
@@ -56,15 +58,15 @@ public class AiDtoMapping {
         }
 
         if (request.getLanguageSkills() != null && !request.getLanguageSkills().isEmpty()) {
-            List<AiPostSpecRequest.Language> languages = request.getLanguageSkills().stream()
+            List<LanguageSkill> languageSkills = request.getLanguageSkills().stream()
                     .map(lang -> {
-                        AiPostSpecRequest.Language language = new AiPostSpecRequest.Language();
-                        language.setTest(lang.getLanguageTest().getValue());
-                        language.setScoreOrGrade(lang.getScore());
-                        return language;
+                        LanguageSkill languageSkill = new LanguageSkill();
+                        languageSkill.setLanguageTest(lang.getLanguageTest());
+                        languageSkill.setScore(lang.getScore());
+                        return languageSkill;
                     })
                     .collect(Collectors.toList());
-            aiRequest.setLanguages(languages);
+            aiRequest.setLanguageSkills(languageSkills);
         }
 
         if (request.getActivities() != null && !request.getActivities().isEmpty()) {

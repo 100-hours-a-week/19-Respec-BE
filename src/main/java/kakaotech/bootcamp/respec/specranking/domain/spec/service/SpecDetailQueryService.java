@@ -9,7 +9,7 @@ import kakaotech.bootcamp.respec.specranking.domain.activitynetworking.repositor
 import kakaotech.bootcamp.respec.specranking.domain.certification.entity.Certification;
 import kakaotech.bootcamp.respec.specranking.domain.certification.repository.CertificationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecCategory;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.ScoreCategoryDetail;
 import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail;
@@ -19,6 +19,9 @@ import kakaotech.bootcamp.respec.specranking.domain.languageskill.repository.Lan
 import kakaotech.bootcamp.respec.specranking.domain.portfolio.entity.Portfolio;
 import kakaotech.bootcamp.respec.specranking.domain.portfolio.repository.PortfolioRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.Details;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.EducationDetails;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.ScoreDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.workexperience.entity.WorkExperience;
@@ -46,30 +49,29 @@ public class SpecDetailQueryService {
                 .orElseThrow(() -> new IllegalArgumentException("Spec not found"));
 
         SpecDetailResponse.SpecDetailData data = new SpecDetailResponse.SpecDetailData();
-        data.setSpecId(spec.getId());
 
         Education education = educationRepository.findBySpecId(specId);
         if (education != null) {
             SpecDetailResponse.FinalEducation finalEducation = new SpecDetailResponse.FinalEducation();
-            finalEducation.setLevel(education.getInstitute().getValue());
-            finalEducation.setStatus(education.getStatus().getValue());
+            finalEducation.setInstitute(education.getInstitute());
+            finalEducation.setFinalStatus(education.getStatus());
             data.setFinalEducation(finalEducation);
         }
 
         if (education != null) {
             List<EducationDetail> educationDetails = educationDetailRepository.findByEducationId(education.getId());
-            List<SpecDetailResponse.Education> educationList = new ArrayList<>();
+            List<EducationDetails> educationDetailsList = new ArrayList<>();
 
             for (EducationDetail ed : educationDetails) {
-                SpecDetailResponse.Education edu = new SpecDetailResponse.Education();
+                EducationDetails edu = new EducationDetails();
                 edu.setSchoolName(ed.getSchoolName());
-                edu.setDegree(ed.getDegree().getValue());
+                edu.setDegree(ed.getDegree());
                 edu.setMajor(ed.getMajor());
                 edu.setGpa(ed.getGpa());
                 edu.setMaxGpa(ed.getMaxGpa());
-                educationList.add(edu);
+                educationDetailsList.add(edu);
             }
-            data.setEducations(educationList);
+            data.setEducationDetails(educationDetailsList);
         }
 
         List<WorkExperience> workExperiences = workExperienceRepository.findBySpecId(specId);
@@ -78,11 +80,11 @@ public class SpecDetailQueryService {
         for (WorkExperience we : workExperiences) {
             SpecDetailResponse.WorkExperience work = new SpecDetailResponse.WorkExperience();
             work.setCompany(we.getCompanyName());
-            work.setPosition(we.getPosition().getValue());
+            work.setPosition(we.getPosition());
             work.setPeriod(we.getWorkMonth());
             workList.add(work);
         }
-        data.setWorkExperience(workList);
+        data.setWorkExperiences(workList);
 
         List<Certification> certifications = certificationRepository.findBySpecId(specId);
         List<SpecDetailResponse.Certification> certList = new ArrayList<>();
@@ -99,7 +101,7 @@ public class SpecDetailQueryService {
 
         for (LanguageSkill lang : languages) {
             SpecDetailResponse.LanguageSkill l = new SpecDetailResponse.LanguageSkill();
-            l.setName(lang.getLanguageTest().getValue());
+            l.setName(lang.getLanguageTest());
             l.setScore(lang.getScore());
             langList.add(l);
         }
@@ -117,30 +119,38 @@ public class SpecDetailQueryService {
         }
         data.setActivities(activityList);
 
-        data.setJobField(spec.getWorkPosition().getValue());
+        data.setJobField(spec.getJobField());
 
         SpecDetailResponse.Rankings rankings = new SpecDetailResponse.Rankings();
 
-        SpecDetailResponse.Overall overall = new SpecDetailResponse.Overall();
-        overall.setScore(spec.getTotalAnalysisScore());
+        Details details = new Details();
 
-        Map<String, Integer> jobFieldUserCountMap = specRepository.countByJobFields();
-        int totalUserCount = jobFieldUserCountMap.values().stream()
-                .mapToInt(Integer::intValue)
+        Map<String, Long> jobFieldUserCountMap = specRepository.countByJobFields();
+        Long totalUserCount = jobFieldUserCountMap.values().stream()
+                .mapToLong(Long::longValue)
                 .sum();
-        overall.setTotalUserCount(totalUserCount);
 
-        long rank = specRepository.findAbsoluteRank(JobField.TOTAL, specId);
-        overall.setRank((int) rank);
+        Long totalRank = specRepository.findAbsoluteRank(JobField.TOTAL, specId);
 
-        rankings.setOverall(overall);
+        JobField jobField = spec.getJobField();
+        Long jobFieldRank = specRepository.findAbsoluteRank(jobField, specId);
+        Long jobFieldUserCount = specRepository.countByJobField(jobField);
 
-        List<SpecDetailResponse.Category> categories = new ArrayList<>();
-        categories.add(createCategory(SpecCategory.EDUCATION_GPA, spec.getEducationScore()));
-        categories.add(createCategory(SpecCategory.WORK_EXPERIENCE, spec.getWorkExperienceScore()));
-        categories.add(createCategory(SpecCategory.CERTIFICATION_SKILLS, spec.getCertificationScore()));
-        categories.add(createCategory(SpecCategory.LANGUAGE_PROFICIENCY, spec.getEnglishSkillScore()));
-        categories.add(createCategory(SpecCategory.ACTIVITY_NETWORKING, spec.getActivityNetworkingScore()));
+        details.setJobFieldRank(jobFieldRank);
+        details.setJobFieldUserCount(jobFieldUserCount);
+
+        details.setScore(spec.getTotalAnalysisScore());
+        details.setTotalUserCount(totalUserCount);
+        details.setTotalRank(totalRank);
+
+        rankings.setDetails(details);
+
+        List<ScoreDetail> categories = new ArrayList<>();
+        categories.add(createCategory(ScoreCategoryDetail.EDUCATION_SCORE, spec.getEducationScore()));
+        categories.add(createCategory(ScoreCategoryDetail.WORK_EXPERIENCE, spec.getWorkExperienceScore()));
+        categories.add(createCategory(ScoreCategoryDetail.CERTIFICATION_SKILLS, spec.getCertificationScore()));
+        categories.add(createCategory(ScoreCategoryDetail.LANGUAGE_PROFICIENCY, spec.getEnglishSkillScore()));
+        categories.add(createCategory(ScoreCategoryDetail.ACTIVITY_NETWORKING, spec.getActivityNetworkingScore()));
         rankings.setCategories(categories);
 
         data.setRankings(rankings);
@@ -152,13 +162,14 @@ public class SpecDetailQueryService {
             data.setPortfolioUrl("");
         }
 
-        return SpecDetailResponse.success(data);
+        return new SpecDetailResponse(true, "세부 스펙 조회 성공!", data);
+
     }
 
-    private SpecDetailResponse.Category createCategory(SpecCategory name, Double score) {
-        SpecDetailResponse.Category category = new SpecDetailResponse.Category();
-        category.setName(name);
-        category.setScore(score);
-        return category;
+    private ScoreDetail createCategory(ScoreCategoryDetail name, Double score) {
+        ScoreDetail scoreDetail = new ScoreDetail();
+        scoreDetail.setName(name);
+        scoreDetail.setScore(score);
+        return scoreDetail;
     }
 }

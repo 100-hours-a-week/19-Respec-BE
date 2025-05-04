@@ -9,17 +9,17 @@ public interface SpecRepositoryCustom {
 
     List<Spec> findByJobFieldWithPagination(JobField jobField, Long cursorId, int limit);
 
-    int countByJobField(JobField jobField);
+    Long countByJobField(JobField jobField);
 
-    Map<String, Integer> countByJobFields();
+    Map<String, Long> countByJobFields();
 
-    int findRankByJobField(Long specId, JobField jobField);
+    Long findRankByJobField(Long specId, JobField jobField);
 
     List<Spec> searchByNickname(String nickname, Long cursorId, int limit);
 
     Long findAbsoluteRank(JobField jobField, Long specId);
 
-    long countDistinctUsersByJobField(JobField jobField);
+    Long countDistinctUsersByJobField(JobField jobField);
 
     Double findAverageScoreByJobField(JobField jobField);
 }

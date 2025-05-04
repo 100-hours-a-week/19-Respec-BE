@@ -1,11 +1,12 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.dto.response;
 
 import java.util.List;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import lombok.Data;
 
 @Data
 public class SearchResponse {
-    private boolean isSuccess;
+    private Boolean isSuccess;
     private String message;
     private SearchData data;
 
@@ -13,7 +14,7 @@ public class SearchResponse {
     public static class SearchData {
         private String keyword;
         private List<SearchResult> results;
-        private boolean hasNext;
+        private Boolean hasNext;
         private String nextCursor;
     }
 
@@ -23,23 +24,24 @@ public class SearchResponse {
         private String nickname;
         private String profileImageUrl;
         private Long specId;
-        private String jobField;
-        private double totalAnalyzeScore;
+        private Double score;
+        private Long totalRank;
+        private Long totalUsersCount;
+        private JobField jobField;
         private Long rankByJobField;
-        private int totalUsersCountByJobField;
-        private Long rank;
-        private boolean isBookmarked;
-        private int commentsCount;
-        private int bookmarksCount;
+        private Long totalUsersCountByJobField;
+        private Boolean isBookmarked;
+        private Long commentsCount;
+        private Long bookmarksCount;
     }
 
-    public SearchResponse(boolean isSuccess, String message, SearchData data) {
+    public SearchResponse(Boolean isSuccess, String message, SearchData data) {
         this.isSuccess = isSuccess;
         this.message = message;
         this.data = data;
     }
 
-    public static SearchResponse success(String keyword, List<SearchResult> results, boolean hasNext,
+    public static SearchResponse success(String keyword, List<SearchResult> results, Boolean hasNext,
                                          String nextCursor) {
         SearchData data = new SearchData();
         data.setKeyword(keyword);

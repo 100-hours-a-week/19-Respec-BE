@@ -1,18 +1,19 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.dto.response;
 
 import java.util.List;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import lombok.Data;
 
 @Data
 public class RankingResponse {
-    private boolean isSuccess;
+    private Boolean isSuccess;
     private String message;
     private RankingData data;
 
     @Data
     public static class RankingData {
         private List<RankingItem> rankings;
-        private boolean hasNext;
+        private Boolean hasNext;
         private String nextCursor;
     }
 
@@ -22,23 +23,24 @@ public class RankingResponse {
         private String nickname;
         private String profileImageUrl;
         private Long specId;
-        private String jobField;
-        private double totalAnalyzeScore;
+        private Double score;
+        private Long totalRank;
+        private Long totalUsersCount;
+        private JobField jobField;
         private Long rankByJobField;
-        private int totalUsersCountByJobField;
-        private long rank;
-        private boolean isBookmarked;
-        private int commentsCount;
-        private int bookmarksCount;
+        private Long usersCountByJobField;
+        private Boolean isBookmarked;
+        private Long commentsCount;
+        private Long bookmarksCount;
     }
 
-    public RankingResponse(boolean isSuccess, String message, RankingData data) {
+    public RankingResponse(Boolean isSuccess, String message, RankingData data) {
         this.isSuccess = isSuccess;
         this.message = message;
         this.data = data;
     }
 
-    public static RankingResponse success(List<RankingItem> rankings, boolean hasNext, String nextCursor) {
+    public static RankingResponse success(List<RankingItem> rankings, Boolean hasNext, String nextCursor) {
         RankingData data = new RankingData();
         data.setRankings(rankings);
         data.setHasNext(hasNext);

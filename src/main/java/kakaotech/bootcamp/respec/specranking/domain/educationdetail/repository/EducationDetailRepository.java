@@ -5,7 +5,5 @@ import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.Educa
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EducationDetailRepository extends JpaRepository<EducationDetail, Long> {
-    void deleteByEducationSpecId(Long specId);
-
     List<EducationDetail> findByEducationId(Long educationId);
 }

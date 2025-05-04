@@ -3,11 +3,12 @@ package kakaotech.bootcamp.respec.specranking.domain.ai.dto.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.CareerRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import lombok.Data;
 
 @Data
@@ -22,23 +23,27 @@ public class AiPostSpecRequest {
     private FinalStatus finalStatus;
 
     @JsonProperty("desired_job")
-    private JobField desiredJob;
+    private JobField jobField;
 
-    private List<University> universities;
+    @JsonProperty("universities")
+    private List<EducationDetail> educationDetails;
 
-    private List<Career> careers;
+    @JsonProperty("careers")
+    private List<WorkExperience> workExperiences;
 
     private List<String> certificates;
 
-    private List<Language> languages;
+    @JsonProperty("languages")
+    private List<LanguageSkill> languageSkills;
 
     private List<Activity> activities;
 
     @JsonIgnore
-    private String filelink;
+    @JsonProperty("filelink")
+    private String portfolioURL;
 
     @Data
-    public static class University {
+    public static class EducationDetail {
         @JsonProperty("school_name")
         private String schoolName;
 
@@ -49,21 +54,24 @@ public class AiPostSpecRequest {
         private Double gpa;
 
         @JsonProperty("gpa_max")
-        private Double gpaMax;
+        private Double maxGpa;
     }
 
     @Data
-    public static class Career {
-        private String company;
-        private CareerRole role;
+    public static class WorkExperience {
+        @JsonProperty("company")
+        private String companyName;
+        @JsonProperty("role")
+        private Position position;
     }
 
     @Data
-    public static class Language {
-        private String test;
+    public static class LanguageSkill {
+        @JsonProperty("test")
+        private LanguageTest languageTest;
 
         @JsonProperty("score_or_grade")
-        private String scoreOrGrade;
+        private String score;
     }
 
     @Data

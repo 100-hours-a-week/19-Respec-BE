@@ -20,11 +20,11 @@ public class MockAiServer implements AiServer {
         AiPostSpecResponse response = new AiPostSpecResponse();
 
         response.setNickname(aiPostSpecRequest.getNickname());
-        response.setAcademicScore(generateRandomScore());
+        response.setEducationScore(generateRandomScore());
         response.setWorkExperienceScore(generateRandomScore());
         response.setCertificationScore(generateRandomScore());
-        response.setLanguageProficiencyScore(generateRandomScore());
-        response.setExtracurricularScore(generateRandomScore());
+        response.setLanguageSkillScore(generateRandomScore());
+        response.setActivityNetworkingScore(generateRandomScore());
 
         double avgScore = calculateAverageScore(response);
         double totalScore = adjustTotalScore(avgScore);
@@ -40,11 +40,11 @@ public class MockAiServer implements AiServer {
 
 
     private double calculateAverageScore(AiPostSpecResponse response) {
-        return (response.getAcademicScore() +
+        return (response.getEducationScore() +
                 response.getWorkExperienceScore() +
                 response.getCertificationScore() +
-                response.getLanguageProficiencyScore() +
-                response.getExtracurricularScore()) / 5.0;
+                response.getLanguageSkillScore() +
+                response.getActivityNetworkingScore()) / 5.0;
     }
 
 

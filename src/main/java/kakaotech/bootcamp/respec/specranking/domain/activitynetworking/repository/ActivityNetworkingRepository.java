@@ -5,7 +5,5 @@ import kakaotech.bootcamp.respec.specranking.domain.activitynetworking.entity.Ac
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ActivityNetworkingRepository extends JpaRepository<ActivityNetworking, Long> {
-    void deleteBySpecId(Long specId);
-
     List<ActivityNetworking> findBySpecId(Long specId);
 }

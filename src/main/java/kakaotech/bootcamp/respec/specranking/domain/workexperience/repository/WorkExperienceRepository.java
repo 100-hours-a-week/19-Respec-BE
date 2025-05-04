@@ -5,7 +5,5 @@ import kakaotech.bootcamp.respec.specranking.domain.workexperience.entity.WorkEx
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WorkExperienceRepository extends JpaRepository<WorkExperience, Long> {
-    void deleteBySpecId(Long specId);
-
     List<WorkExperience> findBySpecId(Long specId);
 }
