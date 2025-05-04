@@ -17,8 +17,8 @@ import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.repository.EducationDetailRepository;
-import kakaotech.bootcamp.respec.specranking.domain.englishskill.entity.LanguageSkill;
-import kakaotech.bootcamp.respec.specranking.domain.englishskill.repository.EnglishSkillRepository;
+import kakaotech.bootcamp.respec.specranking.domain.languageskill.entity.LanguageSkill;
+import kakaotech.bootcamp.respec.specranking.domain.languageskill.repository.LanguageSkillRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
@@ -45,7 +45,7 @@ public class SpecService {
     private final EducationDetailRepository educationDetailRepository;
     private final WorkExperienceRepository workExperienceRepository;
     private final CertificationRepository certificationRepository;
-    private final EnglishSkillRepository englishSkillRepository;
+    private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
     private final FileStore fileStore;
 
@@ -176,7 +176,7 @@ public class SpecService {
                         languageSkillDto.getScore()
                 );
 
-                englishSkillRepository.save(languageSkill);
+                languageSkillRepository.save(languageSkill);
             }
         }
     }

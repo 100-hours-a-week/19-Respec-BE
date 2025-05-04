@@ -156,4 +156,6 @@ public class SpecQueryService {
         String decodedString = new String(decodedBytes);
         return Long.parseLong(decodedString);
     }
+
+    
 }

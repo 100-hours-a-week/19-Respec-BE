@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.englishskill.entity;
+package kakaotech.bootcamp.respec.specranking.domain.languageskill.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
