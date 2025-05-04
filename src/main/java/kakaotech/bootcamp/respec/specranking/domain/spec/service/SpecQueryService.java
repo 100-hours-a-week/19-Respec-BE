@@ -48,7 +48,7 @@ public class SpecQueryService {
         Map<String, Integer> jobFieldUserCountMap;
         if (jobField != null) {
             String jobFieldValue = jobField.getValue();
-            jobFieldUserCountMap = Map.of(jobFieldValue, specRepository.countByJobField(jobFieldValue));
+            jobFieldUserCountMap = Map.of(jobFieldValue, specRepository.countByJobField(jobField));
         } else {
             jobFieldUserCountMap = specRepository.countByJobFields();
         }
@@ -60,8 +60,8 @@ public class SpecQueryService {
             JobField specJobField = spec.getWorkPosition();
             String jobFieldValue = specJobField.getValue();
 
-            int currentRank = specRepository.findAbsoluteRank(jobFieldValue, spec.getId());
-            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobFieldValue);
+            Long currentRank = specRepository.findAbsoluteRank(jobField, spec.getId());
+            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobField);
 
             double totalAnalysisScore = spec.getTotalAnalysisScore();
 
@@ -115,8 +115,8 @@ public class SpecQueryService {
             JobField jobField = spec.getWorkPosition();
             String jobFieldValue = jobField.getValue();
 
-            int currentRank = specRepository.findAbsoluteRank(jobFieldValue, spec.getId());
-            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobFieldValue);
+            Long currentRank = specRepository.findAbsoluteRank(jobField, spec.getId());
+            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobField);
 
             double averageScore = spec.getTotalAnalysisScore();
 

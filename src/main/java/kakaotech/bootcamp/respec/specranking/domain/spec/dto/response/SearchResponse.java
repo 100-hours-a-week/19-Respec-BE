@@ -27,7 +27,7 @@ public class SearchResponse {
         private double totalAnalyzeScore;
         private int rankByJobField;
         private int totalUsersCountByJobField;
-        private int rank;
+        private Long rank;
         private boolean isBookmarked;
         private int commentsCount;
         private int bookmarksCount;

@@ -28,12 +28,14 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
 
     @Override
     public List<Spec> findByJobFieldWithPagination(JobField jobField, Long cursorId, int limit) {
+        boolean fetchAll = jobField == JobField.TOTAL;
+
         if (cursorId == null || cursorId == Long.MAX_VALUE) {
             return getQueryFactory()
                     .selectFrom(spec)
                     .where(
                             isActive(),
-                            jobFieldEquals(jobField)
+                            fetchAll ? null : jobFieldEquals(jobField)
                     )
                     .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
                     .limit(limit)
@@ -49,17 +51,20 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .selectFrom(spec)
                 .where(
                         isActive(),
-                        jobFieldEquals(jobField),
-                        spec.totalAnalysisScore.eq(cursorScore),
-                        spec.id.lt(cursorId)
+                        fetchAll ? null : jobFieldEquals(jobField),
+                        spec.totalAnalysisScore.lt(cursorScore)
+                                .or(
+                                        spec.totalAnalysisScore.eq(cursorScore)
+                                                .and(spec.id.lt(cursorId))
+                                )
                 )
-                .orderBy(spec.id.desc())
+                .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
                 .limit(limit)
                 .fetch();
     }
 
     @Override
-    public int countByJobField(String jobField) {
+    public int countByJobField(JobField jobField) {
         Long count = getQueryFactory()
                 .select(spec.count())
                 .from(spec)
@@ -95,7 +100,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     @Override
-    public int findRankByJobField(Long specId, String jobField) {
+    public int findRankByJobField(Long specId, JobField jobField) {
         Double score = getQueryFactory()
                 .select(spec.totalAnalysisScore)
                 .from(spec)
@@ -148,28 +153,26 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     @Override
-    public int findAbsoluteRank(String jobField, Long specId) {
+    public Long findAbsoluteRank(JobField jobField, Long specId) {
         Double targetScore = getQueryFactory()
                 .select(spec.totalAnalysisScore)
                 .from(spec)
                 .where(spec.id.eq(specId))
                 .fetchOne();
 
-        if (targetScore == null) {
-            return 0;
-        }
+        boolean fetchAll = jobField == JobField.TOTAL;
 
         Long higherCount = getQueryFactory()
                 .select(spec.count())
                 .from(spec)
                 .where(
                         isActive(),
-                        jobFieldEquals(jobField),
+                        fetchAll ? null : jobFieldEquals(jobField),
                         spec.totalAnalysisScore.gt(targetScore)
                 )
                 .fetchOne();
 
-        return (higherCount != null ? higherCount.intValue() : 0) + 1;
+        return higherCount + 1;
     }
 
     private BooleanExpression isActive() {
@@ -178,18 +181,6 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
 
     private BooleanExpression jobFieldEquals(JobField jobField) {
         return jobField != null ? spec.workPosition.eq(jobField) : null;
-    }
-
-    private BooleanExpression jobFieldEquals(String jobFieldStr) {
-        try {
-            if (jobFieldStr != null && !jobFieldStr.isEmpty()) {
-                JobField jobField = JobField.valueOf(jobFieldStr);
-                return spec.workPosition.eq(jobField);
-            }
-        } catch (IllegalArgumentException e) {
-            // 존재하지 않는 JobField 값이 넘어온 경우
-        }
-        return null;
     }
 
     private BooleanExpression nicknameContains(String nickname) {
