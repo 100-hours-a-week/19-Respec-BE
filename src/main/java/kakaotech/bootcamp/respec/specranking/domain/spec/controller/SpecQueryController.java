@@ -4,6 +4,8 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecMetaResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecDetailQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.spec.service.SpecQueryService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,12 @@ public class SpecQueryController {
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
         return specQueryService.searchByNickname(keyword, cursor, limit);
+    }
+
+    @GetMapping(params = "type=meta")
+    public SpecMetaResponse getSpecMeta(@RequestParam(value = "jobField") JobField jobField) {
+        Meta metaData = specQueryService.getMetaData(jobField);
+        return new SpecMetaResponse(true, "메타 데이터 조회 성공!", metaData);
     }
 
     @GetMapping("/{specId}")

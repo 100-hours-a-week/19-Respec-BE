@@ -187,4 +187,26 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
         return nickname != null && !nickname.isEmpty() ? user.nickname.contains(nickname) : null;
     }
 
+    @Override
+    public long countDistinctUsersByJobField(JobField jobField) {
+        Long count = getQueryFactory()
+                .select(spec.user.id.countDistinct())
+                .from(spec)
+                .where(spec.workPosition.eq(jobField))
+                .fetchOne();
+
+        return count != null ? count : 0L;
+    }
+
+    @Override
+    public Double findAverageScoreByJobField(JobField jobField) {
+        return getQueryFactory()
+                .select(spec.totalAnalysisScore.avg())
+                .from(spec)
+                .where(
+                        jobField != null ? spec.workPosition.eq(jobField) : null
+                )
+                .fetchOne();
+    }
+
 }

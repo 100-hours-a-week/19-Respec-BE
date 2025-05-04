@@ -18,4 +18,8 @@ public interface SpecRepositoryCustom {
     List<Spec> searchByNickname(String nickname, Long cursorId, int limit);
 
     Long findAbsoluteRank(JobField jobField, Long specId);
+
+    long countDistinctUsersByJobField(JobField jobField);
+
+    Double findAverageScoreByJobField(JobField jobField);
 }

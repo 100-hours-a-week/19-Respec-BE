@@ -10,9 +10,11 @@ import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRe
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SearchResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
+import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class SpecQueryService {
     private final SpecRepository specRepository;
     private final BookmarkRepository bookmarkRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
 
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
         Long currentUserId = UserUtils.getCurrentUserId();
@@ -157,5 +160,24 @@ public class SpecQueryService {
         return Long.parseLong(decodedString);
     }
 
-    
+    public Meta getMetaData(JobField jobField) {
+        long totalUserCount = 0;
+        Double averageScore = 0.0;
+
+        if (jobField == JobField.TOTAL) {
+            totalUserCount = userRepository.count();
+            averageScore = specRepository.findAverageScoreByJobField(null);
+        } else {
+            totalUserCount = specRepository.countDistinctUsersByJobField(jobField);
+            averageScore = specRepository.findAverageScoreByJobField(jobField);
+        }
+
+        if (averageScore == null) {
+            averageScore = 0.0;
+        }
+
+        Meta meta = new Meta(totalUserCount, averageScore);
+
+        return meta;
+    }
 }
