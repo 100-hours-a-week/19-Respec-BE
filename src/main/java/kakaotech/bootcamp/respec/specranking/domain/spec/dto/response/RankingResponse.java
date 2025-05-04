@@ -24,7 +24,7 @@ public class RankingResponse {
         private Long specId;
         private String jobField;
         private double totalAnalyzeScore;
-        private int rankByJobField;
+        private Long rankByJobField;
         private int totalUsersCountByJobField;
         private long rank;
         private boolean isBookmarked;

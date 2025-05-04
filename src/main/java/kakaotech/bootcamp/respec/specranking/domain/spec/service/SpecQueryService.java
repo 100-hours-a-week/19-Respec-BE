@@ -60,8 +60,8 @@ public class SpecQueryService {
             JobField specJobField = spec.getWorkPosition();
             String jobFieldValue = specJobField.getValue();
 
-            Long currentRank = specRepository.findAbsoluteRank(jobField, spec.getId());
-            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobField);
+            Long currentRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRank(jobField, spec.getId());
 
             double totalAnalysisScore = spec.getTotalAnalysisScore();
 
@@ -115,8 +115,8 @@ public class SpecQueryService {
             JobField jobField = spec.getWorkPosition();
             String jobFieldValue = jobField.getValue();
 
-            Long currentRank = specRepository.findAbsoluteRank(jobField, spec.getId());
-            int jobFieldRank = specRepository.findRankByJobField(spec.getId(), jobField);
+            Long currentRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRank(jobField, spec.getId());
 
             double averageScore = spec.getTotalAnalysisScore();
 
