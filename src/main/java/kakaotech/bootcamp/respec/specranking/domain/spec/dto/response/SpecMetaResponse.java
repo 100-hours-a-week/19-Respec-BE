@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class SpecMetaResponse {
-    private boolean isSuccess;
+    private Boolean isSuccess;
     private String message;
     private Meta data;
 
@@ -19,7 +19,7 @@ public class SpecMetaResponse {
         }
     }
 
-    public SpecMetaResponse(boolean isSuccess, String message, Meta data) {
+    public SpecMetaResponse(Boolean isSuccess, String message, Meta data) {
         this.isSuccess = isSuccess;
         this.message = message;
         this.data = data;
