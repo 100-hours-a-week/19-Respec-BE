@@ -57,7 +57,7 @@ public class SpecQueryService {
             JobField specJobField = spec.getJobField();
 
             Long totalRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
-            Long jobFieldRank = specRepository.findAbsoluteRank(jobField, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRank(specJobField, spec.getId());
 
             Double totalAnalysisScore = spec.getTotalAnalysisScore();
 
