@@ -63,7 +63,7 @@ public class SpecQueryService {
 
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
-            Long totalUserCount = userRepository.count();
+            Long totalUserCount = userRepository.countUsersHavingSpec();
 
             RankingResponse.RankingItem item = new RankingResponse.RankingItem();
             item.setUserId(user.getId());
@@ -119,7 +119,7 @@ public class SpecQueryService {
 
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
-            Long totalUserCount = userRepository.count();
+            Long totalUserCount = userRepository.countUsersHavingSpec();
 
             SearchResponse.SearchResult item = new SearchResponse.SearchResult();
             item.setUserId(user.getId());
@@ -161,7 +161,7 @@ public class SpecQueryService {
         Double averageScore = 0.0;
 
         if (jobField == JobField.TOTAL) {
-            totalUserCount = userRepository.count();
+            totalUserCount = userRepository.countUsersHavingSpec();
             averageScore = specRepository.findAverageScoreByJobField(null);
         } else {
             totalUserCount = specRepository.countDistinctUsersByJobField(jobField);
