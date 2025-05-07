@@ -34,7 +34,7 @@ public class EducationDetail {
     private String schoolName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'COMPLETION'")
+    @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'COMPLETION'")
     private Degree degree;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")

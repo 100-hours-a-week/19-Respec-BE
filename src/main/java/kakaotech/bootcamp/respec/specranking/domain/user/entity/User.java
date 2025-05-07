@@ -42,7 +42,7 @@ public class User extends BaseTimeEntity {
     private String nickname;
 
     @Column(name = "is_open_spec", nullable = false, columnDefinition = "TINYINT(1)")
-    private boolean isOpenSpec;
+    private Boolean isOpenSpec;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ROLE_USER'")
