@@ -32,11 +32,11 @@ public class Education {
     private Spec spec;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "institute", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'MIDDLE_SCHOOL'")
+    @Column(name = "institute", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'MIDDLE_SCHOOL'")
     private Institute institute;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ENROLLED'")
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'ENROLLED'")
     private FinalStatus status;
 
     public Education(Spec spec, Institute institute, FinalStatus status) {
