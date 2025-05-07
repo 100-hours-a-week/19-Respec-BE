@@ -63,6 +63,8 @@ public class AiPostSpecRequest {
         private String companyName;
         @JsonProperty("role")
         private Position position;
+        @JsonProperty("work_month")
+        private Integer period;
     }
 
     @Data

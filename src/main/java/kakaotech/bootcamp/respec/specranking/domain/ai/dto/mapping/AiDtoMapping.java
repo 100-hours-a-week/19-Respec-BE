@@ -44,6 +44,7 @@ public class AiDtoMapping {
                         WorkExperience workExperience = new WorkExperience();
                         workExperience.setCompanyName(work.getCompanyName());
                         workExperience.setPosition(work.getPosition());
+                        workExperience.setPeriod(work.getPeriod());
                         return workExperience;
                     })
                     .collect(Collectors.toList());
