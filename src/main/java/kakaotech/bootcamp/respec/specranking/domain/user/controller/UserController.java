@@ -1,12 +1,18 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -17,46 +23,81 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final JWTUtil jwtUtil;
 
     // 회원가입
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(
+    public ResponseEntity<?> createUser(
             @RequestBody UserSignupRequestDto request,
-            @AuthenticationPrincipal AuthenticatedUserDto userDto) {
-        request.setLoginId(userDto.getLoginId());
-        UserResponseDto user = userService.signup(request);
-        return ResponseEntity.ok(user);
-    }
+            HttpServletResponse response) {
+        System.out.println("✅ UserController createUser 진입");
+        System.out.println(request);
 
-    // 내 기본정보 조회
-    @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
-        // 회원가입이 완료되지 않은 사용자
-        if (userDto.getId() == null) {
-            String loginId = userDto.getLoginId();
-            if (loginId == null || !loginId.contains(" ")) {
-                return ResponseEntity.badRequest().body(Map.of("message", "잘못된 loginId 형식입니다."));
-            }
-
-            String[] parts = loginId.split(" ", 2);
-            String provider = parts[0];
-            String providerId = parts[1];
-
-            return ResponseEntity.ok(Map.of(
-                    "loginId", loginId,
-                    "provider", provider,
-                    "providerId", providerId
-            ));
+        if (request.getLoginId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("loginId가 필요합니다.");
         }
 
-        // 회원가입 완료된 사용자
-        return ResponseEntity.ok(userService.getUserInfo(userDto.getId()));
+        // user 생성
+        UserResponseDto user = userService.signup(request);
+        System.out.println("UserController createUser : user 생성");
+
+        // JWT 생성 (userId 포함)
+        String token = jwtUtil.createJwts(user.getId(), request.getLoginId(), 1000L * 60 * 60);
+        System.out.println("UserController createUser : 토큰 생성");
+
+        // 새 authorization 쿠키 설정
+        Cookie newCookie = new Cookie("Authorization", token);
+        newCookie.setMaxAge(60 * 60); // 1시간
+        newCookie.setPath("/");
+        response.addCookie(newCookie);
+
+        return ResponseEntity.ok(user);
     }
 
     // 사용자 기본정보 조회
     @GetMapping("/{userId}")
-    public UserResponseDto getUserInfo(@PathVariable Long userId) {
-        return userService.getUserInfo(userId);
+    public ResponseEntity<?> getUserInfo(@PathVariable String userId) {
+        Long id;
+
+        // me이면 현재 로그인한 사용자 id 추출, 숫자인 경우 타인 id 조회
+        if ("me".equals(userId)) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "isSuccess", false,
+                        "message", "로그인 정보가 없습니다."
+                ));
+            }
+
+            AuthenticatedUserDto userDto = (AuthenticatedUserDto) authentication.getPrincipal();
+            id = userDto.getId();
+
+            if (id == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "isSuccess", false,
+                        "message", "사용자 ID가 없습니다."
+                ));
+            }
+        } else {
+            try {
+                id = Long.parseLong(userId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "isSuccess", false,
+                        "message", "유효하지 않은 userId입니다."
+                ));
+            }
+        }
+
+        // 사용자 정보 조회
+        UserResponseDto userResponseDto = userService.getUserInfo(id);
+
+        return ResponseEntity.ok(Map.of(
+                "isSuccess", true,
+                "message", "정보 조회 성공",
+                "data", Map.of("user", userResponseDto)
+        ));
     }
 
     // 회원탈퇴
