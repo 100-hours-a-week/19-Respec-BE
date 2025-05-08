@@ -34,7 +34,7 @@ public class WorkExperience {
     private String companyName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'INTERN'")
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private Position position;
 
     @Column(name = "work_month", nullable = false, columnDefinition = "SMALLINT UNSIGNED")

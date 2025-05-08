@@ -23,7 +23,7 @@ public class OAuth {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "provider_name", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'KAKAO'")
+    @Column(name = "provider_name", nullable = false, columnDefinition = "VARCHAR(50)")
     private OAuthProvider providerName;
 
     @Column(name = "provider_id", nullable = false, columnDefinition = "VARCHAR(255)")
@@ -34,5 +34,4 @@ public class OAuth {
         this.providerName = providerName;
         this.providerId = providerId;
     }
-
 }

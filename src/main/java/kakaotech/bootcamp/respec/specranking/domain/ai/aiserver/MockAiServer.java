@@ -9,14 +9,15 @@ import org.springframework.stereotype.Service;
 @Service
 @Profile("!ai")
 public class MockAiServer implements AiServer {
-
-    private final Random random = new Random();
-
     private static final double MIN_SCORE = 20.0;
     private static final double MAX_SCORE = 100.0;
 
     @Override
     public AiPostSpecResponse analyzeSpec(AiPostSpecRequest aiPostSpecRequest) {
+        return createMockAiResponse(aiPostSpecRequest);
+    }
+
+    private AiPostSpecResponse createMockAiResponse(AiPostSpecRequest aiPostSpecRequest) {
         AiPostSpecResponse response = new AiPostSpecResponse();
 
         response.setNickname(aiPostSpecRequest.getNickname());
@@ -26,20 +27,20 @@ public class MockAiServer implements AiServer {
         response.setLanguageSkillScore(generateRandomScore());
         response.setActivityNetworkingScore(generateRandomScore());
 
-        double avgScore = calculateAverageScore(response);
-        double totalScore = adjustTotalScore(avgScore);
+        Double avgScore = calculateAverageScoreWithBasicField(response);
+        Double totalScore = adjustTotalScore(avgScore);
         response.setTotalScore(totalScore);
-
         return response;
     }
 
 
-    private double generateRandomScore() {
+    private Double generateRandomScore() {
+        Random random = new Random();
         return MIN_SCORE + (MAX_SCORE - MIN_SCORE) * random.nextDouble();
     }
 
 
-    private double calculateAverageScore(AiPostSpecResponse response) {
+    private Double calculateAverageScoreWithBasicField(AiPostSpecResponse response) {
         return (response.getEducationScore() +
                 response.getWorkExperienceScore() +
                 response.getCertificationScore() +
@@ -48,15 +49,16 @@ public class MockAiServer implements AiServer {
     }
 
 
-    private double adjustTotalScore(double avgScore) {
-        double adjustment = (random.nextDouble() * 10.0) - 5.0;
-        double adjusted = avgScore + adjustment;
+    private Double adjustTotalScore(Double avgScore) {
+        Random random = new Random();
+        Double adjustment = (random.nextDouble() * 10.0) - 5.0;
+        Double adjusted = avgScore + adjustment;
 
         adjusted = guaranteeBetweenLowestAndHighest(adjusted);
         return adjusted;
     }
 
-    private static double guaranteeBetweenLowestAndHighest(double adjusted) {
+    private Double guaranteeBetweenLowestAndHighest(Double adjusted) {
         return Math.min(Math.max(adjusted, MIN_SCORE), MAX_SCORE);
     }
 }

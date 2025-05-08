@@ -1,8 +1,17 @@
 package kakaotech.bootcamp.respec.specranking.domain.comment.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,10 +41,10 @@ public class Comment extends BaseTimeEntity {
     private String content;
 
     @Column(nullable = false, columnDefinition = "INT UNSIGNED")
-    private int bundle;
+    private Integer bundle;
 
     @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED DEFAULT 0")
-    private int depth;
+    private Integer depth;
 
     public Comment(Spec spec, Comment parentComment, String content, int bundle, int depth) {
         this.spec = spec;

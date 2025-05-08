@@ -40,7 +40,7 @@ public class Spec extends BaseTimeEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "job_field", nullable = false, columnDefinition = "VARCHAR(50)")
+    @Column(name = "job_field", nullable = false, columnDefinition = "VARCHAR(100)")
     private JobField jobField;
 
     @Column(name = "education_score", nullable = false, columnDefinition = "DOUBLE")

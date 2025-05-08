@@ -34,7 +34,7 @@ public class EducationDetail {
     private String schoolName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'COMPLETION'")
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private Degree degree;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")
@@ -43,7 +43,7 @@ public class EducationDetail {
     @Column(nullable = false, columnDefinition = "DOUBLE")
     private Double gpa;
 
-    @Column(name = "max_gpa", nullable = false, columnDefinition = "DOUBLE DEFAULT 4.0")
+    @Column(name = "max_gpa", nullable = false, columnDefinition = "DOUBLE")
     private Double maxGpa;
 
     public EducationDetail(Education education, String schoolName, Degree degree,
