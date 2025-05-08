@@ -30,20 +30,15 @@ public class UserController {
     public ResponseEntity<?> createUser(
             @RequestBody UserSignupRequestDto request,
             HttpServletResponse response) {
-        System.out.println("✅ UserController createUser 진입");
-        System.out.println(request);
-
         if (request.getLoginId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("loginId가 필요합니다.");
         }
 
         // user 생성
         UserResponseDto user = userService.signup(request);
-        System.out.println("UserController createUser : user 생성");
 
         // JWT 생성 (userId 포함)
         String token = jwtUtil.createJwts(user.getId(), request.getLoginId(), 1000L * 60 * 60);
-        System.out.println("UserController createUser : 토큰 생성");
 
         // 새 authorization 쿠키 설정
         Cookie newCookie = new Cookie("Authorization", token);
