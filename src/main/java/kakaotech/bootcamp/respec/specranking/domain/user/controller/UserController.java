@@ -58,22 +58,14 @@ public class UserController {
         if ("me".equals(userId)) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            if (authentication == null) {
+            if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUserDto userDto)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                         "isSuccess", false,
                         "message", "로그인 정보가 없습니다."
                 ));
             }
 
-            AuthenticatedUserDto userDto = (AuthenticatedUserDto) authentication.getPrincipal();
             id = userDto.getId();
-
-            if (id == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                        "isSuccess", false,
-                        "message", "사용자 ID가 없습니다."
-                ));
-            }
         } else {
             try {
                 id = Long.parseLong(userId);
@@ -86,12 +78,12 @@ public class UserController {
         }
 
         // 사용자 정보 조회
-        UserResponseDto userResponseDto = userService.getUserInfo(id);
+        Map<String, Object> userData = userService.getUserInfo(id);
 
         return ResponseEntity.ok(Map.of(
                 "isSuccess", true,
                 "message", "정보 조회 성공",
-                "data", Map.of("user", userResponseDto)
+                "data", Map.of("user", userData)
         ));
     }
 
