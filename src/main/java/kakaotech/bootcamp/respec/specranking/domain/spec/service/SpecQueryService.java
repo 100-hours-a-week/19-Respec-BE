@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
@@ -46,7 +45,7 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        Set<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
+        List<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
 
         Map<String, Long> jobFieldUserCountMap = specRepository.countByJobFields();
 
@@ -102,7 +101,7 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        Set<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
+        List<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
 
         Map<String, Long> jobFieldUserCountMap = specRepository.countByJobFields();
 
