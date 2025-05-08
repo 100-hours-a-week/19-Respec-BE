@@ -12,6 +12,6 @@ import java.time.LocalDateTime;
 public class UserResponseDto {
     private Long id;
     private String nickname;
-    private String userProfileUrl;
+    private String profileImageUrl;
     private LocalDateTime createdAt;
 }
