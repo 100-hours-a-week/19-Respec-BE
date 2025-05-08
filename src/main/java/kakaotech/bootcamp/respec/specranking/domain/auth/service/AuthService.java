@@ -43,23 +43,12 @@ public class AuthService {
         }
 
         // 유효기간 1시간인 엑세스 토큰 발급
-        String accessToken = jwtUtil.createJwts(String.valueOf(user.getId()), user.getLoginId(), 1000L * 60 * 60);
+        String accessToken = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60);
         // 유효기간 24시간인 리프레시 토큰 발급
-        String refreshToken = jwtUtil.createJwts(String.valueOf(user.getId()), user.getLoginId(), 1000L * 60 * 60 * 24);
+        String refreshToken = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60 * 24);
 
         return new AuthTokenResponseDto(accessToken, refreshToken);
     }
-
-//    // 엑세스 토큰 재발급
-//    public String refreshAccessToken(String refreshToken) {
-//        if (jwtUtil.isExpired(refreshToken)) {
-//            throw new IllegalArgumentException("리프레시 토큰이 만료되었습니다.");
-//        }
-//
-//        String userId = jwtUtil.getUserId(refreshToken);
-//
-//        return jwtUtil.createJwts(userId, 1000L * 60 * 60);
-//    }
 
     // 로그아웃
     public void logout(HttpServletResponse response) {
@@ -67,7 +56,6 @@ public class AuthService {
         Cookie cookie = new Cookie("Authorization", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
-        cookie.setHttpOnly(true);
 
         response.addCookie(cookie);
     }

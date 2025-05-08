@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -30,11 +28,4 @@ public class AuthController {
         authService.logout(response);
         return ResponseEntity.noContent().build();
     }
-
-//    // 엑세스 토큰 재발급
-//    @PostMapping("/token/refresh")
-//    public ResponseEntity<Map<String, String>> refreshToken(@RequestHeader("Authorization") String refreshToken) {
-//        String newAccessToken = authService.refreshAccessToken(refreshToken.replace("Bearer ", ""));
-//        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
-//    }
 }

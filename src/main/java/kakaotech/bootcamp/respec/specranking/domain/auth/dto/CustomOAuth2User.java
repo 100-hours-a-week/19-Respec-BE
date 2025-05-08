@@ -13,23 +13,6 @@ public class CustomOAuth2User implements OAuth2User {
     private final OAuth2Response oAuth2Response;
     private final Map<String, Object> attributes;
 
-    // 생성자 1
-    public CustomOAuth2User(AuthenticatedUserDto userDto) {
-        this.userDto = userDto;
-        this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-
-        // attributes 설정
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("id", userDto.getId());
-        attributes.put("loginId", userDto.getLoginId());
-        attributes.put("nickname", userDto.getNickname());
-        attributes.put("userProfileUrl", userDto.getUserProfileUrl());
-        this.attributes = attributes;
-
-        this.oAuth2Response = null;
-    }
-
-    // 생성자 2
     public CustomOAuth2User(AuthenticatedUserDto userDto, OAuth2Response oAuth2Response) {
         this.userDto = userDto;
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));

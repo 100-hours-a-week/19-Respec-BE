@@ -19,7 +19,7 @@ public class JWTUtil {
     }
 
     // JWT 토큰 생성
-    public String createJwts(String userId, String loginId, Long expiredMs) {
+    public String createJwts(Long userId, String loginId, Long expiredMs) {
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("loginId", loginId)
@@ -30,8 +30,8 @@ public class JWTUtil {
     }
 
     // 토큰에서 userId 추출 (PK인 id를 의미함)
-    public String getUserId(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", String.class);
+    public Long getUserId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
     }
 
     // 토큰 만료 여부 확인
