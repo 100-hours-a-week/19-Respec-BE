@@ -3,8 +3,11 @@ package kakaotech.bootcamp.respec.specranking.domain.user.service;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.UserStatus;
+import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +31,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final OAuthRepository oAuthRepository;
+    private final SpecRepository specRepository;
 
     // 닉네임.프로필이미지 설정 및 회원가입
     public UserResponseDto signup(UserSignupRequestDto request) {
@@ -76,16 +82,43 @@ public class UserService {
     }
 
     // 사용자 정보 조회
-    public UserResponseDto getUserInfo(Long id) {
-        Optional<User> optUser = userRepository.findById(id);
-        if (optUser.isEmpty()) {
-            throw new RuntimeException("해당 사용자가 존재하지 않습니다.");
+    public Map<String, Object> getUserInfo(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+
+        // 사용자 정보 생성
+        UserResponseDto userDto = createUserResponseDto(user);
+
+        // 활성화된 스펙 조회
+        Optional<Spec> activeSpecOpt = specRepository.findByUserIdAndStatus(user.getId(), SpecStatus.ACTIVE);
+
+        Map<String, Object> specMap = new HashMap<>();
+        if (activeSpecOpt.isPresent()) {
+            Spec spec = activeSpecOpt.get();
+            specMap.put("hasActiveSpec", true);
+            specMap.put("activeSpec", spec.getId());
+            specMap.put("jobField", spec.getJobField().name());
+        } else {
+            specMap.put("hasActiveSpec", false);
+            specMap.put("activeSpec", null);
+            specMap.put("jobField", null);
         }
 
-        User user = optUser.get();
+        // 사용자 정보 Map 구성
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", userDto.getId());
+        userMap.put("nickname", userDto.getNickname());
+        userMap.put("profileImageUrl", userDto.getProfileImageUrl());
+        userMap.put("createdAt", userDto.getCreatedAt());
+        userMap.put("jobField", specMap.get("jobField"));
+        userMap.put("spec", Map.of(
+                "hasActiveSpec", specMap.get("hasActiveSpec"),
+                "activeSpec", specMap.get("activeSpec")
+        ));
 
-        return createUserResponseDto(user);
+        return userMap;
     }
+
 
     // 회원 탈퇴
     public void deleteUser(Long id) {
