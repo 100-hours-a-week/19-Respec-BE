@@ -204,6 +204,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .select(spec.totalAnalysisScore.avg())
                 .from(spec)
                 .where(
+                        isActive(),
                         jobField != null ? spec.jobField.eq(jobField) : null
                 )
                 .fetchOne();
