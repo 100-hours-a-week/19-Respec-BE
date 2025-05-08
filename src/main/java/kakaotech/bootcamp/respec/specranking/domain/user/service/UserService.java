@@ -1,5 +1,10 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.service;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
@@ -15,12 +20,6 @@ import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserReposito
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -111,10 +110,15 @@ public class UserService {
         userMap.put("profileImageUrl", userDto.getProfileImageUrl());
         userMap.put("createdAt", userDto.getCreatedAt());
         userMap.put("jobField", specMap.get("jobField"));
-        userMap.put("spec", Map.of(
-                "hasActiveSpec", specMap.get("hasActiveSpec"),
-                "activeSpec", specMap.get("activeSpec")
-        ));
+
+        Map<String, Object> specInfo = new HashMap<>();
+        specInfo.put("hasActiveSpec", specMap.get("hasActiveSpec"));
+        specInfo.put("activeSpec", specMap.get("activeSpec"));
+        userMap.put("spec", specInfo);
+//        userMap.put("spec", Map.of(
+//                "hasActiveSpec", specMap.get("hasActiveSpec"),
+//                "activeSpec", specMap.get("activeSpec")
+//        ));
 
         return userMap;
     }
