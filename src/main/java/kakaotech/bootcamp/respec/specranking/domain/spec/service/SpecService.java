@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.service;
 
+import java.util.List;
 import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.activitynetworking.entity.ActivityNetworking;
 import kakaotech.bootcamp.respec.specranking.domain.activitynetworking.repository.ActivityNetworkingRepository;
@@ -57,7 +58,7 @@ public class SpecService {
         validateMultipleSpec(userId);
 
         String portfolioUrl = "";
-        if (portfolioFile != null) {
+        if (existsPortfolioFile(portfolioFile)) {
             portfolioUrl = fileStore.upload(portfolioFile);
         }
 
@@ -71,25 +72,31 @@ public class SpecService {
     public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
         Long userId = UserUtils.getCurrentUserId();
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
+
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스펙입니다. ID: " + specId));
 
-        if (!spec.getUser().getId().equals(userId)) {
+        if (!spec.getUser().equals(user)) {
             throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
         }
 
         String portfolioUrl = "";
-        if (portfolioFile != null) {
+        if (existsPortfolioFile(portfolioFile)) {
             portfolioUrl = fileStore.upload(portfolioFile);
         }
 
-        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, spec.getUser().getNickname(),
+        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, user.getNickname(),
                 portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
-        User user = spec.getUser();
         spec.delete();
         saveSpecWithChaining(request, aiPostSpecResponse, user);
+    }
+
+    private static boolean existsPortfolioFile(MultipartFile portfolioFile) {
+        return portfolioFile != null;
     }
 
     private void validateMultipleSpec(Long userId) {
@@ -111,14 +118,14 @@ public class SpecService {
     }
 
     private void saveEducation(Spec spec, PostSpecRequest request) {
-        if (request.getFinalEducation() != null) {
+        if (isNotEmpty(request.getFinalEducation())) {
             FinalStatus status = request.getFinalEducation().getStatus();
             Institute institute = request.getFinalEducation().getInstitute();
 
             Education education = new Education(spec, institute, status);
             Education savedEducation = educationRepository.save(education);
 
-            if (request.getEducationDetails() != null && !request.getEducationDetails().isEmpty()) {
+            if (isNotEmpty(request.getEducationDetails())) {
                 for (EducationDetail educationDetailDto : request.getEducationDetails()) {
                     Degree degree = educationDetailDto.getDegree();
 
@@ -138,7 +145,7 @@ public class SpecService {
     }
 
     private void saveWorkExperience(Spec spec, PostSpecRequest request) {
-        if (request.getWorkExperiences() != null && !request.getWorkExperiences().isEmpty()) {
+        if (isNotEmpty(request.getWorkExperiences())) {
             for (PostSpecRequest.WorkExperience workExp : request.getWorkExperiences()) {
                 Position position = workExp.getPosition();
 
@@ -155,34 +162,32 @@ public class SpecService {
     }
 
     private void saveCertifications(Spec spec, PostSpecRequest request) {
-        if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
+        if (isNotEmpty(request.getCertifications())) {
             for (PostSpecRequest.Certification certificationDto : request.getCertifications()) {
                 Certification certification = new Certification(
                         spec,
                         certificationDto.getName()
                 );
-
                 certificationRepository.save(certification);
             }
         }
     }
 
     private void saveLanguageSkills(Spec spec, PostSpecRequest request) {
-        if (request.getLanguageSkills() != null && !request.getLanguageSkills().isEmpty()) {
+        if (isNotEmpty(request.getLanguageSkills())) {
             for (PostSpecRequest.LanguageSkill languageSkillDto : request.getLanguageSkills()) {
                 LanguageSkill languageSkill = new LanguageSkill(
                         spec,
                         languageSkillDto.getLanguageTest(),
                         languageSkillDto.getScore()
                 );
-
                 languageSkillRepository.save(languageSkill);
             }
         }
     }
 
     private void saveActivities(Spec spec, PostSpecRequest request) {
-        if (request.getActivities() != null && !request.getActivities().isEmpty()) {
+        if (isNotEmpty(request.getActivities())) {
             for (PostSpecRequest.Activity activityDto : request.getActivities()) {
                 ActivityNetworking activity = new ActivityNetworking(
                         spec,
@@ -190,10 +195,17 @@ public class SpecService {
                         activityDto.getRole(),
                         activityDto.getAward()
                 );
-
                 activityNetworkingRepository.save(activity);
             }
         }
+    }
+
+    private boolean isNotEmpty(List<?> list) {
+        return list != null && !list.isEmpty();
+    }
+
+    private boolean isNotEmpty(Object obj) {
+        return obj != null;
     }
 
 }
