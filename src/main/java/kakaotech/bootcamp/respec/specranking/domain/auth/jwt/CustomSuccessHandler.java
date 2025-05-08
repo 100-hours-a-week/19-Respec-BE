@@ -17,43 +17,30 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        System.out.println("✅ [SuccessHandler] 진입");
 
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-        Long userId = customUserDetails.getId();
         String loginId = customUserDetails.getLoginId();
-
-        String token = jwtUtil.createJwts(String.valueOf(userId), loginId, 60*60*1000L);
-
-        response.addCookie(createCookie("Authorization", token));
 
         // 신규 사용자 판별 → 리디렉션 분기
         boolean isNewUser = !userRepository.existsByLoginId(loginId);
 
-        System.out.println("얏호얏호얏호호잇짜");
         if (isNewUser) {
-            System.out.println("얏호얏호얏호호잇짜1111");
+            String tmpLoginId = customUserDetails.getProvider() + "_" + customUserDetails.getProviderId();
+
+            // 임시 쿠키로 loginId 전달
+            Cookie loginIdCookie = new Cookie("TempLoginId", tmpLoginId);
+            loginIdCookie.setPath("/");
+            loginIdCookie.setHttpOnly(false);
+            loginIdCookie.setMaxAge(300);
+            response.addCookie(loginIdCookie);
+
             response.sendRedirect("http://localhost:3000/profile-setup");
         } else {
-            System.out.println("얏호얏호얏호호잇짜2222");
             response.sendRedirect("http://localhost:3000/oauth2/callback");
         }
-        System.out.println("얏호얏호얏호");
-    }
-
-    private Cookie createCookie(String key, String value) {
-        System.out.println("야호야호야호야호야호");
-        Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60*60);
-//        cookie.setSecure(true);  // https일 때 활성화, http일 때는 필요없음
-        cookie.setPath("/");
-//        cookie.setHttpOnly(true);
-
-        return cookie;
     }
 }

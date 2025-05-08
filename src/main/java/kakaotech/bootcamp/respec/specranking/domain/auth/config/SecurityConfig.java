@@ -28,7 +28,6 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
-    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -77,7 +76,6 @@ public class SecurityConfig {
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                                 .userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler)
-                        .failureHandler(new CustomOAuth2FailureHandler())
                 );
 
         // 경로별 인가 작업
@@ -87,7 +85,7 @@ public class SecurityConfig {
                                 "/",
                                 "/api/auth/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**")
+                                "/login/oauth2/**","/api/**")
                         .permitAll()
                         .anyRequest().authenticated());
 
@@ -95,15 +93,6 @@ public class SecurityConfig {
         http
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        // 인증 실패 시 302 대신 401 반환
-        http
-                .exceptionHandling(exception -> exception
-                        .defaultAuthenticationEntryPointFor(
-                                customAuthenticationEntryPoint,
-                                new AntPathRequestMatcher("/api/**")
-                        )
-                );
 
         return http.build();
     }

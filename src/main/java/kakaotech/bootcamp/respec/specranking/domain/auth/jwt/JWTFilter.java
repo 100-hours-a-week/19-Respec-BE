@@ -26,23 +26,17 @@ public class JWTFilter extends OncePerRequestFilter {
         // 쿠키를 모두 불러와 authorization key에 담긴 쿠키 찾기
         String authorization = null;
         Cookie[] cookies = request.getCookies();
-        System.out.println("======= 쿠키 목록 ======");
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                System.out.println(cookie.getName() + " = " + cookie.getValue());
                 if (cookie.getName().equals("Authorization")) {
                     authorization = cookie.getValue();
                     break;
                 }
             }
-        } else {
-            System.out.println("쿠키 없음");
         }
 
         // authorization 헤더 검증
         if (authorization == null) {
-            System.out.println("token null");
-
             filterChain.doFilter(request, response);
             return;
         }
@@ -51,14 +45,12 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 토큰 소멸시간 검증
         if (jwtUtil.isExpired(token)) {
-            System.out.println("token expired");
-
             filterChain.doFilter(request, response);
             return;
         }
 
         // userId, loginId 파싱
-        String userIdStr = jwtUtil.getUserId(token);
+        Long userId = jwtUtil.getUserId(token);
         String loginId = jwtUtil.getLoginId(token);
 
         if (loginId == null) {
@@ -70,9 +62,9 @@ public class JWTFilter extends OncePerRequestFilter {
         AuthenticatedUserDto userDto = new AuthenticatedUserDto();
         userDto.setLoginId(loginId);
 
-        if (userIdStr != null) {
+        if (userId != null) {
             try {
-                userDto.setId(Long.valueOf(userIdStr));
+                userDto.setId(userId);
             } catch (NumberFormatException ignored) {
                 // 유효하지 않은 userId는 무시하고 로그인 ID 기반으로만 인증
             }
