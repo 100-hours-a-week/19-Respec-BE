@@ -4,19 +4,18 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDt
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
-public class CurrentUserService {
+@Component
+public class UserUtils {
 
-    @Value("${mock.login.user}")
-    private Boolean mockUserEnabled;
+    private static Boolean mockUserEnabled;
 
-    public void setFakeUserIdEnabled(Boolean enabled) {
-        mockUserEnabled = enabled;
+    public UserUtils(@Value("${mock.login.user}") Boolean mockUserEnabled) {
+        UserUtils.mockUserEnabled = mockUserEnabled;
     }
 
-    public Long getCurrentUserId() {
+    public static Long getCurrentUserId() {
         if (mockUserEnabled) {
             return 1L;
         }
