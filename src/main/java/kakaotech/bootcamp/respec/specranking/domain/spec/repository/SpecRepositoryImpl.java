@@ -74,7 +74,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 )
                 .fetchOne();
 
-        return count != null ? count.longValue() : 0L;
+        return count != null ? count : 0L;
     }
 
     @Override
@@ -175,18 +175,6 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
         return higherCount + 1;
     }
 
-    private BooleanExpression isActive() {
-        return spec.status.eq(SpecStatus.ACTIVE);
-    }
-
-    private BooleanExpression jobFieldEquals(JobField jobField) {
-        return jobField != null ? spec.jobField.eq(jobField) : null;
-    }
-
-    private BooleanExpression nicknameContains(String nickname) {
-        return nickname != null && !nickname.isEmpty() ? user.nickname.contains(nickname) : null;
-    }
-
     @Override
     public Long countDistinctUsersByJobField(JobField jobField) {
         Long count = getQueryFactory()
@@ -210,4 +198,15 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .fetchOne();
     }
 
+    private BooleanExpression isActive() {
+        return spec.status.eq(SpecStatus.ACTIVE);
+    }
+
+    private BooleanExpression jobFieldEquals(JobField jobField) {
+        return jobField != null ? spec.jobField.eq(jobField) : null;
+    }
+
+    private BooleanExpression nicknameContains(String nickname) {
+        return nickname != null && !nickname.isEmpty() ? user.nickname.contains(nickname) : null;
+    }
 }
