@@ -32,7 +32,7 @@ public class SpecQueryService {
         Long currentUserId = UserUtils.getCurrentUserId();
         Long cursorId = decodeCursor(cursor);
 
-        List<Spec> specs = specRepository.findByJobFieldWithPagination(jobField, cursorId, limit + 1);
+        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
 
         boolean hasNext = specs.size() > limit;
         if (hasNext) {
@@ -51,8 +51,8 @@ public class SpecQueryService {
             User user = spec.getUser();
             JobField specJobField = spec.getJobField();
 
-            Long totalRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
-            Long jobFieldRank = specRepository.findAbsoluteRank(specJobField, spec.getId());
+            Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRankByJobField(specJobField, spec.getId());
 
             Double totalAnalysisScore = spec.getTotalAnalysisScore();
 
@@ -86,7 +86,7 @@ public class SpecQueryService {
         Long currentUserId = UserUtils.getCurrentUserId();
         Long cursorId = decodeCursor(cursor);
 
-        List<Spec> specs = specRepository.searchByNickname(keyword, cursorId, limit + 1);
+        List<Spec> specs = specRepository.searchByNicknameWithCursor(keyword, cursorId, limit + 1);
 
         boolean hasNext = specs.size() > limit;
         if (hasNext) {
@@ -105,8 +105,8 @@ public class SpecQueryService {
             User user = spec.getUser();
             JobField jobField = spec.getJobField();
 
-            Long currentRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
-            Long jobFieldRank = specRepository.findAbsoluteRank(jobField, spec.getId());
+            Long currentRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRankByJobField(jobField, spec.getId());
 
             double averageScore = spec.getTotalAnalysisScore();
 
@@ -144,7 +144,7 @@ public class SpecQueryService {
             totalUserCount = userRepository.countUsersHavingSpec();
             averageScore = specRepository.findAverageScoreByJobField(null);
         } else {
-            totalUserCount = specRepository.countDistinctUsersByJobField(jobField);
+            totalUserCount = specRepository.countByJobField(jobField);
             averageScore = specRepository.findAverageScoreByJobField(jobField);
         }
 

@@ -1,8 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.service;
 
+import static kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus.ACTIVE;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.activitynetworking.entity.ActivityNetworking;
 import kakaotech.bootcamp.respec.specranking.domain.activitynetworking.repository.ActivityNetworkingRepository;
@@ -125,22 +126,19 @@ public class SpecDetailQueryService {
 
         Details details = new Details();
 
-        Map<String, Long> jobFieldUserCountMap = specRepository.countByJobFields();
-        Long totalUserCount = jobFieldUserCountMap.values().stream()
-                .mapToLong(Long::longValue)
-                .sum();
+        Long activeSpecCount = specRepository.countByStatus(ACTIVE);
 
-        Long totalRank = specRepository.findAbsoluteRank(JobField.TOTAL, specId);
+        Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, specId);
 
         JobField jobField = spec.getJobField();
-        Long jobFieldRank = specRepository.findAbsoluteRank(jobField, specId);
+        Long jobFieldRank = specRepository.findAbsoluteRankByJobField(jobField, specId);
         Long jobFieldUserCount = specRepository.countByJobField(jobField);
 
         details.setJobFieldRank(jobFieldRank);
         details.setJobFieldUserCount(jobFieldUserCount);
 
         details.setScore(spec.getTotalAnalysisScore());
-        details.setTotalUserCount(totalUserCount);
+        details.setTotalUserCount(activeSpecCount);
         details.setTotalRank(totalRank);
 
         rankings.setDetails(details);
