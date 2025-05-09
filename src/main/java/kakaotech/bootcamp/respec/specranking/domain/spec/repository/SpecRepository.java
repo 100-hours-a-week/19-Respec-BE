@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SpecRepository extends JpaRepository<Spec, Long>, SpecRepositoryCustom {
     Optional<Spec> findByUserId(Long userId);
 
+    Long countByStatus(SpecStatus status);
+    
     Optional<Spec> findByUserIdAndStatus(Long userId, SpecStatus status);
 
 }

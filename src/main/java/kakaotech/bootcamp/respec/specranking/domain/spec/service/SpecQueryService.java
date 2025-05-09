@@ -3,8 +3,6 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.service;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
@@ -34,7 +32,7 @@ public class SpecQueryService {
         Long currentUserId = UserUtils.getCurrentUserId();
         Long cursorId = decodeCursor(cursor);
 
-        List<Spec> specs = specRepository.findByJobFieldWithPagination(jobField, cursorId, limit + 1);
+        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
 
         boolean hasNext = specs.size() > limit;
         if (hasNext) {
@@ -46,24 +44,22 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        Set<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
-
-        Map<String, Long> jobFieldUserCountMap = specRepository.countByJobFields();
-
+        List<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
         List<RankingResponse.RankingItem> rankingItems = new ArrayList<>();
 
         for (Spec spec : specs) {
             User user = spec.getUser();
             JobField specJobField = spec.getJobField();
 
-            Long totalRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
-            Long jobFieldRank = specRepository.findAbsoluteRank(specJobField, spec.getId());
+            Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRankByJobField(specJobField, spec.getId());
 
             Double totalAnalysisScore = spec.getTotalAnalysisScore();
 
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
             Long totalUserCount = userRepository.countUsersHavingSpec();
+            Long usersCountByJobField = specRepository.countByJobField(specJobField);
 
             RankingResponse.RankingItem item = new RankingResponse.RankingItem();
             item.setUserId(user.getId());
@@ -75,7 +71,7 @@ public class SpecQueryService {
             item.setTotalRank(totalRank);
             item.setTotalUsersCount(totalUserCount);
             item.setRankByJobField(jobFieldRank);
-            item.setUsersCountByJobField(jobFieldUserCountMap.getOrDefault(specJobField.getValue(), 0L));
+            item.setUsersCountByJobField(usersCountByJobField);
             item.setIsBookmarked(bookmarkedSpecIds.contains(spec.getId()));
             item.setCommentsCount(commentsCount);
             item.setBookmarksCount(bookmarksCount);
@@ -90,7 +86,7 @@ public class SpecQueryService {
         Long currentUserId = UserUtils.getCurrentUserId();
         Long cursorId = decodeCursor(cursor);
 
-        List<Spec> specs = specRepository.searchByNickname(keyword, cursorId, limit + 1);
+        List<Spec> specs = specRepository.searchByNicknameWithCursor(keyword, cursorId, limit + 1);
 
         boolean hasNext = specs.size() > limit;
         if (hasNext) {
@@ -102,24 +98,22 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        Set<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
-
-        Map<String, Long> jobFieldUserCountMap = specRepository.countByJobFields();
-
+        List<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
         List<SearchResponse.SearchResult> searchResults = new ArrayList<>();
 
         for (Spec spec : specs) {
             User user = spec.getUser();
             JobField jobField = spec.getJobField();
 
-            Long currentRank = specRepository.findAbsoluteRank(JobField.TOTAL, spec.getId());
-            Long jobFieldRank = specRepository.findAbsoluteRank(jobField, spec.getId());
+            Long currentRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
+            Long jobFieldRank = specRepository.findAbsoluteRankByJobField(jobField, spec.getId());
 
             double averageScore = spec.getTotalAnalysisScore();
 
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
             Long totalUserCount = userRepository.countUsersHavingSpec();
+            Long totalUsersCountByJobField = specRepository.countByJobField(jobField);
 
             SearchResponse.SearchResult item = new SearchResponse.SearchResult();
             item.setUserId(user.getId());
@@ -131,7 +125,7 @@ public class SpecQueryService {
             item.setTotalRank(currentRank);
             item.setTotalUsersCount(totalUserCount);
             item.setRankByJobField(jobFieldRank);
-            item.setTotalUsersCountByJobField(jobFieldUserCountMap.getOrDefault(jobField.getValue(), 0L));
+            item.setTotalUsersCountByJobField(totalUsersCountByJobField);
             item.setIsBookmarked(bookmarkedSpecIds.contains(spec.getId()));
             item.setCommentsCount(commentsCount);
             item.setBookmarksCount(bookmarksCount);
@@ -140,6 +134,27 @@ public class SpecQueryService {
         }
 
         return SearchResponse.success(keyword, searchResults, hasNext, nextCursor);
+    }
+
+    public Meta getMetaData(JobField jobField) {
+        long totalUserCount = 0;
+        Double averageScore = 0.0;
+
+        if (jobField == JobField.TOTAL) {
+            totalUserCount = userRepository.countUsersHavingSpec();
+            averageScore = specRepository.findAverageScoreByJobField(null);
+        } else {
+            totalUserCount = specRepository.countByJobField(jobField);
+            averageScore = specRepository.findAverageScoreByJobField(jobField);
+        }
+
+        if (averageScore == null) {
+            averageScore = 0.0;
+        }
+
+        Meta meta = new Meta(totalUserCount, averageScore);
+
+        return meta;
     }
 
     private String encodeCursor(Long id) {
@@ -156,24 +171,5 @@ public class SpecQueryService {
         return Long.parseLong(decodedString);
     }
 
-    public Meta getMetaData(JobField jobField) {
-        long totalUserCount = 0;
-        Double averageScore = 0.0;
 
-        if (jobField == JobField.TOTAL) {
-            totalUserCount = userRepository.countUsersHavingSpec();
-            averageScore = specRepository.findAverageScoreByJobField(null);
-        } else {
-            totalUserCount = specRepository.countDistinctUsersByJobField(jobField);
-            averageScore = specRepository.findAverageScoreByJobField(jobField);
-        }
-
-        if (averageScore == null) {
-            averageScore = 0.0;
-        }
-
-        Meta meta = new Meta(totalUserCount, averageScore);
-
-        return meta;
-    }
 }
