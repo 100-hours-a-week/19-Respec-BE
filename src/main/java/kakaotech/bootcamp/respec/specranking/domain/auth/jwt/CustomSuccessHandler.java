@@ -38,9 +38,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             loginIdCookie.setMaxAge(300);
             response.addCookie(loginIdCookie);
 
-            response.sendRedirect("http://54.180.253.121:3000/profile-setup");
+            response.sendRedirect("http://localhost:3000/profile-setup");
         } else {
-            response.sendRedirect("http://54.180.253.121:3000/oauth2/callback");
+            response.sendRedirect("http://localhost:3000/oauth2/callback");
         }
     }
 }
