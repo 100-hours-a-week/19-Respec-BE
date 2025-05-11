@@ -1,13 +1,16 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Collections;
+import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CustomSuccessHandler;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTFilter;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
-import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CustomSuccessHandler;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,12 +19,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Profile("!no-auth")
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -50,7 +51,6 @@ public class SecurityConfig {
                         return config;
                     }
                 }));
-
 
         // csrf disable
         http
@@ -83,7 +83,7 @@ public class SecurityConfig {
                                 "/",
                                 "/api/auth/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**","/api/**")
+                                "/login/oauth2/**", "/api/**")
                         .permitAll()
                         .anyRequest().authenticated());
 

@@ -2,6 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.ai.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
@@ -26,17 +27,17 @@ public class AiPostSpecRequest {
     private JobField jobField;
 
     @JsonProperty("universities")
-    private List<EducationDetail> educationDetails;
+    private List<EducationDetail> educationDetails = new ArrayList<>();
 
     @JsonProperty("careers")
-    private List<WorkExperience> workExperiences;
+    private List<WorkExperience> workExperiences = new ArrayList<>();
 
-    private List<String> certificates;
+    private List<String> certificates = new ArrayList<>();
 
     @JsonProperty("languages")
-    private List<LanguageSkill> languageSkills;
+    private List<LanguageSkill> languageSkills = new ArrayList<>();
 
-    private List<Activity> activities;
+    private List<Activity> activities = new ArrayList<>();
 
     @JsonIgnore
     @JsonProperty("filelink")
