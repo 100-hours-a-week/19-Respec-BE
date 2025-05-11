@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
+import static kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider.kakao;
+
 @Getter
 @RequiredArgsConstructor
 public class KakaoResponse implements OAuth2Response{
@@ -13,7 +15,7 @@ public class KakaoResponse implements OAuth2Response{
 
     @Override
     public String getProvider() {
-        return "kakao";
+        return kakao.name();
     }
 
     @Override

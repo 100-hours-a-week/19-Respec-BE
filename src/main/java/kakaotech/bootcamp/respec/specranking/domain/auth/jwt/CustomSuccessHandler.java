@@ -1,7 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.jwt;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -16,6 +15,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private static final String TEMP_LOGIN_ID_COOKIE_NAME = "TempLoginId";
+    private static final String IS_NEW_USER_COOKIE_NAME = "IsNewUser";
+
     private final UserRepository userRepository;
 
     @Override
@@ -24,23 +26,13 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         String loginId = customUserDetails.getLoginId();
-
-        // 신규 사용자 판별 → 리디렉션 분기
         boolean isNewUser = !userRepository.existsByLoginId(loginId);
+        String tmpLoginId = customUserDetails.getProvider() + "_" + customUserDetails.getProviderId();
 
-        if (isNewUser) {
-            String tmpLoginId = customUserDetails.getProvider() + "_" + customUserDetails.getProviderId();
+        // 쿠키 생성
+        CookieUtils.addCookie(response, TEMP_LOGIN_ID_COOKIE_NAME, tmpLoginId, 5 * 60);
+        CookieUtils.addCookie(response, IS_NEW_USER_COOKIE_NAME, String.valueOf(isNewUser), 5 * 60);
 
-            // 임시 쿠키로 loginId 전달
-            Cookie loginIdCookie = new Cookie("TempLoginId", tmpLoginId);
-            loginIdCookie.setPath("/");
-            loginIdCookie.setHttpOnly(false);
-            loginIdCookie.setMaxAge(300);
-            response.addCookie(loginIdCookie);
-
-            response.sendRedirect("http://localhost:3000/profile-setup");
-        } else {
-            response.sendRedirect("http://localhost:3000/oauth2/callback");
-        }
+        getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/oauth-redirect");
     }
 }

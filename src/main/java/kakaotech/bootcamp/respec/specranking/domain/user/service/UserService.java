@@ -21,6 +21,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -115,10 +121,6 @@ public class UserService {
         specInfo.put("hasActiveSpec", specMap.get("hasActiveSpec"));
         specInfo.put("activeSpec", specMap.get("activeSpec"));
         userMap.put("spec", specInfo);
-//        userMap.put("spec", Map.of(
-//                "hasActiveSpec", specMap.get("hasActiveSpec"),
-//                "activeSpec", specMap.get("activeSpec")
-//        ));
 
         return userMap;
     }
