@@ -8,6 +8,7 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTFilter;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -25,6 +26,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Profile("!no-auth")
 public class SecurityConfig {
 
+    @Value("${frontend.base-url}")
+    private String frontendBaseUrl;
+
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
@@ -40,7 +44,7 @@ public class SecurityConfig {
 
                         CorsConfiguration config = new CorsConfiguration();
 
-                        config.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        config.setAllowedOrigins(Collections.singletonList(frontendBaseUrl));
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.setAllowedHeaders(Collections.singletonList("*"));
