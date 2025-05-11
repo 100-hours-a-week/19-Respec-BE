@@ -111,10 +111,11 @@ public class UserService {
         userMap.put("profileImageUrl", userDto.getProfileImageUrl());
         userMap.put("createdAt", userDto.getCreatedAt());
         userMap.put("jobField", specMap.get("jobField"));
-        userMap.put("spec", Map.of(
-                "hasActiveSpec", specMap.get("hasActiveSpec"),
-                "activeSpec", specMap.get("activeSpec")
-        ));
+
+        Map<String, Object> specInfo = new HashMap<>();
+        specInfo.put("hasActiveSpec", specMap.get("hasActiveSpec"));
+        specInfo.put("activeSpec", specMap.get("activeSpec"));
+        userMap.put("spec", specInfo);
 
         return userMap;
     }

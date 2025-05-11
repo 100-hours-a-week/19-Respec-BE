@@ -1,10 +1,12 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.service;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
+import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
@@ -51,12 +53,8 @@ public class AuthService {
     }
 
     // 로그아웃
-    public void logout(HttpServletResponse response) {
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키 삭제를 위해 만료시간을 0으로 설정한 쿠키 생성
-        Cookie cookie = new Cookie("Authorization", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-
-        response.addCookie(cookie);
+        CookieUtils.deleteCookie(request, response, "Authorization");
     }
 }
