@@ -94,6 +94,13 @@ public class UserService {
         // 사용자 정보 생성
         UserResponseDto userDto = createUserResponseDto(user);
 
+        // 사용자 정보 Map 구성
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", userDto.getId());
+        userMap.put("nickname", userDto.getNickname());
+        userMap.put("profileImageUrl", userDto.getProfileImageUrl());
+        userMap.put("createdAt", userDto.getCreatedAt());
+
         // 활성화된 스펙 조회
         Optional<Spec> activeSpecOpt = specRepository.findByUserIdAndStatus(user.getId(), SpecStatus.ACTIVE);
 
@@ -102,25 +109,14 @@ public class UserService {
             Spec spec = activeSpecOpt.get();
             specMap.put("hasActiveSpec", true);
             specMap.put("activeSpec", spec.getId());
-            specMap.put("jobField", spec.getJobField().name());
+            userMap.put("jobField", spec.getJobField().getValue());
         } else {
             specMap.put("hasActiveSpec", false);
             specMap.put("activeSpec", null);
-            specMap.put("jobField", null);
+            userMap.put("jobField", null);
         }
 
-        // 사용자 정보 Map 구성
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("id", userDto.getId());
-        userMap.put("nickname", userDto.getNickname());
-        userMap.put("profileImageUrl", userDto.getProfileImageUrl());
-        userMap.put("createdAt", userDto.getCreatedAt());
-        userMap.put("jobField", specMap.get("jobField"));
-
-        Map<String, Object> specInfo = new HashMap<>();
-        specInfo.put("hasActiveSpec", specMap.get("hasActiveSpec"));
-        specInfo.put("activeSpec", specMap.get("activeSpec"));
-        userMap.put("spec", specInfo);
+        userMap.put("spec", specMap);
 
         return userMap;
     }
