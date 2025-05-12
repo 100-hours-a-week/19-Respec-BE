@@ -22,14 +22,19 @@ public class PostSpecRequest {
     @NotNull(message = "최종 학력 정보는 필수입니다")
     @Valid
     private FinalEducation finalEducation;
+    @NotNull(message = "null로 보낼 수 없습니다. 값이 없으면 빈 리스트로 보내십시오.")
     @Valid
     private List<EducationDetail> educationDetails = new ArrayList<>();
+    @NotNull(message = "null로 보낼 수 없습니다. 값이 없으면 빈 리스트로 보내십시오.")
     @Valid
     private List<WorkExperience> workExperiences = new ArrayList<>();
+    @NotNull(message = "null로 보낼 수 없습니다. 값이 없으면 빈 리스트로 보내십시오.")
     @Valid
     private List<Certification> certifications = new ArrayList<>();
+    @NotNull(message = "null로 보낼 수 없습니다. 값이 없으면 빈 리스트로 보내십시오.")
     @Valid
     private List<LanguageSkill> languageSkills = new ArrayList<>();
+    @NotNull(message = "null로 보낼 수 없습니다. 값이 없으면 빈 리스트로 보내십시오.")
     @Valid
     private List<Activity> activities = new ArrayList<>();
     @NotNull(message = "희망 직무 분야는 필수입니다")

@@ -1,29 +1,27 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.repository;
 
+import static kakaotech.bootcamp.respec.specranking.domain.spec.entity.QSpec.spec;
+import static kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser.user;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import kakaotech.bootcamp.respec.specranking.domain.spec.entity.QSpec;
-import kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser;
 
 public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-    private final QSpec spec = QSpec.spec;
-    private final QUser user = QUser.user;
+    private final JPAQueryFactory queryFactory;
 
-    private JPAQueryFactory getQueryFactory() {
-        return new JPAQueryFactory(entityManager);
+    public UserRepositoryCustomImpl(EntityManager em) {
+        this.queryFactory = new JPAQueryFactory(em);
     }
 
     @Override
     public long countUsersHavingSpec() {
-        Long result = getQueryFactory()
+        Long result = queryFactory
                 .select(user.id.countDistinct())
                 .from(user)
                 .join(spec).on(spec.user.id.eq(user.id))
                 .fetchOne();
+        
         return result != null ? result : 0L;
     }
 }

@@ -1,29 +1,33 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Collections;
+import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CustomSuccessHandler;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTFilter;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
-import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CustomSuccessHandler;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Profile("!no-auth")
 public class SecurityConfig {
+
+    @Value("${frontend.base-url}")
+    private String frontendBaseUrl;
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
@@ -40,7 +44,7 @@ public class SecurityConfig {
 
                         CorsConfiguration config = new CorsConfiguration();
 
-                        config.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        config.setAllowedOrigins(Collections.singletonList(frontendBaseUrl));
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.setAllowedHeaders(Collections.singletonList("*"));
@@ -51,7 +55,6 @@ public class SecurityConfig {
                         return config;
                     }
                 }));
-
 
         // csrf disable
         http
@@ -84,7 +87,7 @@ public class SecurityConfig {
                                 "/",
                                 "/api/auth/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**","/api/**")
+                                "/login/oauth2/**", "/api/**")
                         .permitAll()
                         .anyRequest().authenticated());
 
