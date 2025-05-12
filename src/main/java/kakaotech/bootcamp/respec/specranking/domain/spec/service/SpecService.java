@@ -51,7 +51,9 @@ public class SpecService {
     private final FileStore fileStore;
 
     public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
-        Long userId = UserUtils.getCurrentUserId();
+        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
+        Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
 
@@ -70,7 +72,8 @@ public class SpecService {
     }
 
     public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
-        Long userId = UserUtils.getCurrentUserId();
+        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
+        Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
