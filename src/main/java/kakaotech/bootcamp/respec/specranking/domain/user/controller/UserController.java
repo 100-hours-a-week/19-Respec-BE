@@ -1,8 +1,10 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
@@ -29,7 +31,9 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> createUser(
             @RequestBody UserSignupRequestDto request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) {
+
         if (request.getLoginId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("loginId가 필요합니다.");
         }
@@ -37,14 +41,18 @@ public class UserController {
         // user 생성
         UserResponseDto user = userService.signup(request);
 
-        // JWT 생성 (userId 포함)
+        // JWT 생성 (userId, loginId 포함)
         String token = jwtUtil.createJwts(user.getId(), request.getLoginId(), 1000L * 60 * 60);
 
+        // TempLoginId 쿠키 삭제
+        CookieUtils.deleteCookie(httpRequest, response, "TempLoginId");
+
         // 새 authorization 쿠키 설정
-        Cookie newCookie = new Cookie("Authorization", token);
-        newCookie.setMaxAge(60 * 60); // 1시간
-        newCookie.setPath("/");
-        response.addCookie(newCookie);
+//        Cookie newCookie = new Cookie("Authorization", token);
+//        newCookie.setMaxAge(60 * 60); // 1시간
+//        newCookie.setPath("/");
+//        response.addCookie(newCookie);
+        CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24 * 7);
 
         return ResponseEntity.ok(user);
     }
