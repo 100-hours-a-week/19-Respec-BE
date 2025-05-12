@@ -19,9 +19,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(indexes = {
-        @Index(name = "idx_spec_id", columnList = "spec_id")
-})
+@Table(
+        name = "comments",
+        indexes = {
+                @Index(name = "idx_spec_id", columnList = "spec_id")
+        })
 public class Comment extends BaseTimeEntity {
 
     @Id

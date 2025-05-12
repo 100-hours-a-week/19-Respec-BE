@@ -1,19 +1,33 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.UserStatus;
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-@Table(indexes = {
-        @Index(name = "idx_nickname", columnList= "nickname")
-})
+@Table(
+        name = "users",
+        indexes = {
+                @Index(name = "idx_nickname", columnList = "nickname")
+        })
 public class User extends BaseTimeEntity {
 
     @Id
