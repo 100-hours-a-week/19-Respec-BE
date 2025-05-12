@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.util;
 
+import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -15,16 +16,17 @@ public class UserUtils {
         UserUtils.mockUserEnabled = mockUserEnabled;
     }
 
-    public static Long getCurrentUserId() {
+    public static Optional<Long> getCurrentUserId() {
         if (mockUserEnabled) {
-            return 1L;
+            return Optional.of(1L);
         }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUserDto userDto)) {
-            throw new IllegalStateException("인증 정보가 없습니다.");
+            return Optional.empty();
         }
 
-        return userDto.getId();
+        return Optional.of(userDto.getId());
     }
 }

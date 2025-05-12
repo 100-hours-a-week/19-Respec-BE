@@ -3,6 +3,7 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.service;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
@@ -29,7 +30,6 @@ public class SpecQueryService {
     private final UserRepository userRepository;
 
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
-        Long currentUserId = UserUtils.getCurrentUserId();
         Long cursorId = decodeCursor(cursor);
 
         List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
@@ -44,7 +44,12 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        List<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
+        Optional<Long> userId = UserUtils.getCurrentUserId();
+        List<Long> bookmarkedSpecIds = new ArrayList<>();
+        if (userId.isPresent()) {
+            bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(userId.get());
+        }
+
         List<RankingResponse.RankingItem> rankingItems = new ArrayList<>();
 
         for (Spec spec : specs) {
@@ -83,7 +88,6 @@ public class SpecQueryService {
     }
 
     public SearchResponse searchByNickname(String keyword, String cursor, int limit) {
-        Long currentUserId = UserUtils.getCurrentUserId();
         Long cursorId = decodeCursor(cursor);
 
         List<Spec> specs = specRepository.searchByNicknameWithCursor(keyword, cursorId, limit + 1);
@@ -98,7 +102,12 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        List<Long> bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(currentUserId);
+        Optional<Long> userId = UserUtils.getCurrentUserId();
+        List<Long> bookmarkedSpecIds = new ArrayList<>();
+        if (userId.isPresent()) {
+            bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(userId.get());
+        }
+        
         List<SearchResponse.SearchResult> searchResults = new ArrayList<>();
 
         for (Spec spec : specs) {
