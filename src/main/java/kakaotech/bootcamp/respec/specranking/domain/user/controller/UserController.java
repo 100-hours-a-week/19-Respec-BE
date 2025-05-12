@@ -1,6 +1,5 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
@@ -48,10 +47,6 @@ public class UserController {
         CookieUtils.deleteCookie(httpRequest, response, "TempLoginId");
 
         // 새 authorization 쿠키 설정
-//        Cookie newCookie = new Cookie("Authorization", token);
-//        newCookie.setMaxAge(60 * 60); // 1시간
-//        newCookie.setPath("/");
-//        response.addCookie(newCookie);
         CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24 * 7);
 
         return ResponseEntity.ok(user);
@@ -100,5 +95,29 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
         userService.deleteUser(userDto.getId());
         return ResponseEntity.noContent().build();
+    }
+}
+
+class NicknameCheckResponse {
+    private boolean available;
+
+    public NicknameCheckResponse(boolean available) {
+        this.available = available;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+}
+
+class ErrorResponse {
+    private String message;
+
+    public ErrorResponse(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
