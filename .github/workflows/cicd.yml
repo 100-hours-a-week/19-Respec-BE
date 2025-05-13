@@ -39,7 +39,7 @@ jobs:
             git pull origin stage
 
             echo "📦 application.properties 생성 중 (Secrets 기반)..."
-            cat <<EOF > src/main/resources/application.properties
+            cat > src/main/resources/application.properties <<EOF
 spring.datasource.url=${{ secrets.DB_URL }}
 spring.datasource.username=${{ secrets.DB_USERNAME }}
 spring.datasource.password=${{ secrets.DB_PASSWORD }}
