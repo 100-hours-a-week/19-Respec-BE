@@ -26,6 +26,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL
           script: |
             REPO_DIR=19-Respec-BE
             LOG_FILE=~/backend.log
@@ -38,76 +39,58 @@ jobs:
             git checkout stage
             git pull origin stage
 
-            echo "📆 application.properties 생성 중 (Secrets 기반)..."
-            cat > src/main/resources/application.properties <<EOF
-spring.datasource.url=${{ secrets.DB_URL }}
-spring.datasource.username=${{ secrets.DB_USERNAME }}
-spring.datasource.password=${{ secrets.DB_PASSWORD }}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.format_sql=false
-server.port=8080
-spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize
-
-spring.jwt.secret=${{ secrets.JWT_SECRET }}
-
-spring.security.oauth2.client.registration.kakao.client-name=kakao
-spring.security.oauth2.client.registration.kakao.client-id=${{ secrets.KAKAO_CLIENT_ID }}
-spring.security.oauth2.client.registration.kakao.client-secret=${{ secrets.KAKAO_CLIENT_SECRET }}
-spring.security.oauth2.client.registration.kakao.redirect-uri=\${backend.base-url}/login/oauth2/code/kakao
-spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code
-spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post
-
-spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize
-spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
-spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
-spring.security.oauth2.client.provider.kakao.user-name-attribute=id
-
-spring.cloud.aws.s3.enabled=false
-spring.cloud.aws.stack.auto=false
-logging.level.org.springframework.security.oauth2.client=DEBUG
-logging.level.org.springframework.web.client.RestTemplate=DEBUG
-mock.login.user=false
-
-backend.base-url=${{ secrets.BACKEND_BASE_URL }}
-frontend.base-url=${{ secrets.FRONTEND_BASE_URL }}
-frontend.redirect-url=\${frontend.base-url}/oauth-redirect
-spring.graphql.cors.allowed-origins=\${frontend.base-url}
-
-ai.server.url=${{ secrets.AI_SERVER_URL }}
-ai.server.url.path=/spec/v1/post
-EOF
+            echo "📦 application.properties 생성 중..."
+            mkdir -p src/main/resources
+            {
+              echo "spring.datasource.url=$DB_URL"
+              echo "spring.datasource.username=$DB_USERNAME"
+              echo "spring.datasource.password=$DB_PASSWORD"
+              echo "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver"
+              echo "spring.jpa.hibernate.ddl-auto=none"
+              echo "spring.jpa.show-sql=false"
+              echo "spring.jpa.properties.hibernate.format_sql=false"
+              echo "server.port=8080"
+              echo "spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize"
+              echo "spring.jwt.secret=$JWT_SECRET"
+              echo "spring.security.oauth2.client.registration.kakao.client-name=kakao"
+              echo "spring.security.oauth2.client.registration.kakao.client-id=$KAKAO_CLIENT_ID"
+              echo "spring.security.oauth2.client.registration.kakao.client-secret=$KAKAO_CLIENT_SECRET"
+              echo "spring.security.oauth2.client.registration.kakao.redirect-uri=\${backend.base-url}/login/oauth2/code/kakao"
+              echo "spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code"
+              echo "spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post"
+              echo "spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize"
+              echo "spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token"
+              echo "spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me"
+              echo "spring.security.oauth2.client.provider.kakao.user-name-attribute=id"
+              echo "spring.cloud.aws.s3.enabled=false"
+              echo "spring.cloud.aws.stack.auto=false"
+              echo "logging.level.org.springframework.security.oauth2.client=DEBUG"
+              echo "logging.level.org.springframework.web.client.RestTemplate=DEBUG"
+              echo "mock.login.user=false"
+              echo "backend.base-url=$BACKEND_BASE_URL"
+              echo "frontend.base-url=$FRONTEND_BASE_URL"
+              echo "frontend.redirect-url=\${frontend.base-url}/oauth-redirect"
+              echo "spring.graphql.cors.allowed-origins=\${frontend.base-url}"
+              echo "ai.server.url=$AI_SERVER_URL"
+              echo "ai.server.url.path=/spec/v1/post"
+            } > src/main/resources/application.properties
 
             echo "☕ JAVA_HOME 설정 중..."
             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
             export PATH=$JAVA_HOME/bin:$PATH
-            echo "✅ JAVA_HOME: $JAVA_HOME"
 
-            echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생롭)..."
+            echo "🚀 Spring Boot 프로젝트 빌드 시작..."
             ./gradlew clean build --no-daemon --refresh-dependencies -x test || { echo "❌ 빌드 실패"; exit 1; }
 
             JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
 
-            if [ -z "$JAR_FILE" ]; then
-              echo "❌ JAR 파일을 찾을 수 없습니다."
-              exit 1
-            fi
-
-            echo "✅ JAR 파일 찾음: $(basename "$JAR_FILE")"
-
-            echo "🔁 백어드 서버 재시작..."
+            echo "🔁 백엔드 서버 재시작..."
             EXISTING_PID=$(pgrep -f 'java -jar')
             if [ -n "$EXISTING_PID" ]; then
-              echo "💚 기존 백어드 프로세스 종료 (PID: $EXISTING_PID)"
               kill $EXISTING_PID
               sleep 2
-            else
-              echo "✅ 실행 중인 백어드 없음"
             fi
 
-            echo "🚀 새로운 백어드 실행 중..."
-            nohup java -jar "$JAR_FILE" --server.port=8080 --spring.profiles.active=auth,ai,no-spec-initialize,no-user-initialize > $LOG_FILE 2>&1 &
-
-            echo "✅ 백어드 실행 완료 (로그: $LOG_FILE)"
+            echo "🚀 새 백엔드 실행 중..."
+            nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
+            echo "✅ 실행 완료 (로그: $LOG_FILE)"
