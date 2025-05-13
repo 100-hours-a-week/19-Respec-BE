@@ -38,8 +38,8 @@ jobs:
             git checkout stage
             git pull origin stage
 
-            echo "📦 application.properties 생성 중 (Secrets 기반)..."
-            cat <<'EOF' > src/main/resources/application.properties
+            echo "📆 application.properties 생성 중 (Secrets 기반)..."
+            cat > src/main/resources/application.properties <<EOF
 spring.datasource.url=${{ secrets.DB_URL }}
 spring.datasource.username=${{ secrets.DB_USERNAME }}
 spring.datasource.password=${{ secrets.DB_PASSWORD }}
@@ -85,7 +85,7 @@ EOF
             export PATH=$JAVA_HOME/bin:$PATH
             echo "✅ JAVA_HOME: $JAVA_HOME"
 
-            echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생략)..."
+            echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생롭)..."
             ./gradlew clean build --no-daemon --refresh-dependencies -x test || { echo "❌ 빌드 실패"; exit 1; }
 
             JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
@@ -97,17 +97,17 @@ EOF
 
             echo "✅ JAR 파일 찾음: $(basename "$JAR_FILE")"
 
-            echo "🔁 백엔드 서버 재시작..."
+            echo "🔁 백어드 서버 재시작..."
             EXISTING_PID=$(pgrep -f 'java -jar')
             if [ -n "$EXISTING_PID" ]; then
-              echo "🛑 기존 백엔드 프로세스 종료 (PID: $EXISTING_PID)"
+              echo "💚 기존 백어드 프로세스 종료 (PID: $EXISTING_PID)"
               kill $EXISTING_PID
               sleep 2
             else
-              echo "✅ 실행 중인 백엔드 없음"
+              echo "✅ 실행 중인 백어드 없음"
             fi
 
-            echo "🚀 새로운 백엔드 실행 중..."
+            echo "🚀 새로운 백어드 실행 중..."
             nohup java -jar "$JAR_FILE" --server.port=8080 --spring.profiles.active=auth,ai,no-spec-initialize,no-user-initialize > $LOG_FILE 2>&1 &
 
-            echo "✅ 백엔드 실행 완료 (로그: $LOG_FILE)"
+            echo "✅ 백어드 실행 완료 (로그: $LOG_FILE)"
