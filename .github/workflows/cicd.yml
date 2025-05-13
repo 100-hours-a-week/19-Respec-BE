@@ -20,25 +20,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Check EC2 status and start if stopped
-        id: ec2
-        run: |
-          INSTANCE_ID=${{ secrets.EC2_INSTANCE_ID }}
+      # - name: Check EC2 status and start if stopped
+      #   id: ec2
+      #   run: |
+      #     INSTANCE_ID=${{ secrets.EC2_INSTANCE_ID }}
           
-          STATE=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
-            --query "Reservations[0].Instances[0].State.Name" \
-            --output text)
+      #     STATE=$(aws ec2 describe-instances \
+      #       --instance-ids $INSTANCE_ID \
+      #       --query "Reservations[0].Instances[0].State.Name" \
+      #       --output text)
 
-          echo "EC2 instance state: $STATE"
+      #     echo "EC2 instance state: $STATE"
 
-          if [ "$STATE" = "stopped" ]; then
-            echo "Starting EC2 instance..."
-            aws ec2 start-instances --instance-ids $INSTANCE_ID
+      #     if [ "$STATE" = "stopped" ]; then
+      #       echo "Starting EC2 instance..."
+      #       aws ec2 start-instances --instance-ids $INSTANCE_ID
 
-            echo "Waiting for EC2 to be running..."
-            aws ec2 wait instance-running --instance-ids $INSTANCE_ID
-          fi
+      #       echo "Waiting for EC2 to be running..."
+      #       aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+      #     fi
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.6
