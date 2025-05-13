@@ -6,7 +6,7 @@ on:
       - stage
 
 jobs:
-  deploy:
+  deploy: 
     runs-on: ubuntu-latest
 
     steps:
