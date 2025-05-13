@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - stage
-      
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,7 +24,6 @@ jobs:
       #   id: ec2
       #   run: |
       #     INSTANCE_ID=${{ secrets.EC2_INSTANCE_ID }}
-          
       #     STATE=$(aws ec2 describe-instances \
       #       --instance-ids $INSTANCE_ID \
       #       --query "Reservations[0].Instances[0].State.Name" \
@@ -35,7 +34,6 @@ jobs:
       #     if [ "$STATE" = "stopped" ]; then
       #       echo "Starting EC2 instance..."
       #       aws ec2 start-instances --instance-ids $INSTANCE_ID
-
       #       echo "Waiting for EC2 to be running..."
       #       aws ec2 wait instance-running --instance-ids $INSTANCE_ID
       #     fi
@@ -57,6 +55,11 @@ jobs:
             cd $REPO_DIR
             git checkout stage
             git pull origin stage
+
+            echo "☕ JAVA_HOME 설정 중..."
+            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+            export PATH=$JAVA_HOME/bin:$PATH
+            echo "✅ JAVA_HOME: $JAVA_HOME"
 
             echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생략)..."
             ./gradlew build -x test || { echo "❌ 빌드 실패"; exit 1; }
