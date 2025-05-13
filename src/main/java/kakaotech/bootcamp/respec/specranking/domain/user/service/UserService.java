@@ -13,6 +13,7 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.UserStatus;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.store.service.ImageFileStore;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -21,20 +22,20 @@ import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameE
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
 
-    private static final String DEFAULT_PROFILE_URL = "https://preview.free3d.com/img/2019/02/2174901357427820287/amms1v4j.jpg";
-
     private final UserRepository userRepository;
     private final OAuthRepository oAuthRepository;
     private final SpecRepository specRepository;
+    private final ImageFileStore imageFileStore;
 
     // 닉네임.프로필이미지 설정 및 회원가입
-    public UserResponseDto signup(UserSignupRequestDto request) {
+    public UserResponseDto signup(UserSignupRequestDto request, MultipartFile profileImage) {
         String loginId = request.getLoginId(); // ex. "kakao 123456789"
 
         if (userRepository.existsByLoginId(loginId)) {
@@ -56,16 +57,25 @@ public class UserService {
         // 랜덤 비밀번호 생성
         String randomPassword = UUID.randomUUID().toString().substring(0, 16);
 
+        // 프로필 이미지 처리
+        String profileUrl;
+        if (profileImage != null) {
+            try {
+                profileUrl = imageFileStore.upload(profileImage);
+            } catch (Exception e) {
+                throw new RuntimeException("프로필 이미지 업로드 실패: " + e.getMessage(), e);
+            }
+        } else {
+            // S3에서 기본 이미지 URL 가져오기
+            profileUrl = imageFileStore.getDefaultImageUrl();
+        }
+
         // User 생성
         User user = User.builder()
                 .loginId(loginId)
                 .password(randomPassword)
                 .nickname(nickname)
-                .userProfileUrl(
-                        request.getUserProfileUrl() != null && !request.getUserProfileUrl().isBlank()
-                                ? request.getUserProfileUrl()
-                                : DEFAULT_PROFILE_URL
-                )
+                .userProfileUrl(profileUrl)
                 .isOpenSpec(true)
                 .role(UserRole.ROLE_USER)
                 .status(UserStatus.ACTIVE)
