@@ -40,45 +40,45 @@ jobs:
 
             echo "📦 application.properties 생성 중 (Secrets 기반)..."
             cat <<EOF > src/main/resources/application.properties
-            spring.datasource.url=${{ secrets.DB_URL }}
-            spring.datasource.username=${{ secrets.DB_USERNAME }}
-            spring.datasource.password=${{ secrets.DB_PASSWORD }}
-            spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=${{ secrets.DB_URL }}
+spring.datasource.username=${{ secrets.DB_USERNAME }}
+spring.datasource.password=${{ secrets.DB_PASSWORD }}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-            spring.jpa.hibernate.ddl-auto=none
-            spring.jpa.show-sql=false
-            spring.jpa.properties.hibernate.format_sql=false
-            server.port=8080
-            spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=false
+server.port=8080
+spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize
 
-            spring.jwt.secret=${{ secrets.JWT_SECRET }}
+spring.jwt.secret=${{ secrets.JWT_SECRET }}
 
-            spring.security.oauth2.client.registration.kakao.client-name=kakao
-            spring.security.oauth2.client.registration.kakao.client-id=${{ secrets.KAKAO_CLIENT_ID }}
-            spring.security.oauth2.client.registration.kakao.client-secret=${{ secrets.KAKAO_CLIENT_SECRET }}
-            spring.security.oauth2.client.registration.kakao.redirect-uri=\${backend.base-url}/login/oauth2/code/kakao
-            spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code
-            spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post
+spring.security.oauth2.client.registration.kakao.client-name=kakao
+spring.security.oauth2.client.registration.kakao.client-id=${{ secrets.KAKAO_CLIENT_ID }}
+spring.security.oauth2.client.registration.kakao.client-secret=${{ secrets.KAKAO_CLIENT_SECRET }}
+spring.security.oauth2.client.registration.kakao.redirect-uri=\${backend.base-url}/login/oauth2/code/kakao
+spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post
 
-            spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize
-            spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
-            spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
-            spring.security.oauth2.client.provider.kakao.user-name-attribute=id
+spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize
+spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
+spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
+spring.security.oauth2.client.provider.kakao.user-name-attribute=id
 
-            spring.cloud.aws.s3.enabled=false
-            spring.cloud.aws.stack.auto=false
-            logging.level.org.springframework.security.oauth2.client=DEBUG
-            logging.level.org.springframework.web.client.RestTemplate=DEBUG
-            mock.login.user=false
+spring.cloud.aws.s3.enabled=false
+spring.cloud.aws.stack.auto=false
+logging.level.org.springframework.security.oauth2.client=DEBUG
+logging.level.org.springframework.web.client.RestTemplate=DEBUG
+mock.login.user=false
 
-            backend.base-url=${{ secrets.BACKEND_BASE_URL }}
-            frontend.base-url=${{ secrets.FRONTEND_BASE_URL }}
-            frontend.redirect-url=\${frontend.base-url}/oauth-redirect
-            spring.graphql.cors.allowed-origins=\${frontend.base-url}
+backend.base-url=${{ secrets.BACKEND_BASE_URL }}
+frontend.base-url=${{ secrets.FRONTEND_BASE_URL }}
+frontend.redirect-url=\${frontend.base-url}/oauth-redirect
+spring.graphql.cors.allowed-origins=\${frontend.base-url}
 
-            ai.server.url=${{ secrets.AI_SERVER_URL }}
-            ai.server.url.path=/spec/v1/post
-            EOF
+ai.server.url=${{ secrets.AI_SERVER_URL }}
+ai.server.url.path=/spec/v1/post
+EOF
 
             echo "☕ JAVA_HOME 설정 중..."
             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
@@ -108,6 +108,6 @@ jobs:
             fi
 
             echo "🚀 새로운 백엔드 실행 중..."
-            nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
+            nohup java -jar "$JAR_FILE" --server.port=8080 --spring.profiles.active=auth,ai,no-spec-initialize,no-user-initialize > $LOG_FILE 2>&1 &
 
             echo "✅ 백엔드 실행 완료 (로그: $LOG_FILE)"
