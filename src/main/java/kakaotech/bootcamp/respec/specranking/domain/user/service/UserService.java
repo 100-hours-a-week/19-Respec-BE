@@ -17,15 +17,10 @@ import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
+import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -46,9 +41,11 @@ public class UserService {
             throw new RuntimeException("이미 존재하는 사용자입니다.");
         }
 
-        // 닉네임 중복 검사 추가
-        if (userRepository.existsByNickname(request.getNickname())) {
-            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+        String nickname = request.getNickname();
+
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(nickname)) {
+            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
         }
 
         // loginId 파싱
@@ -63,7 +60,7 @@ public class UserService {
         User user = User.builder()
                 .loginId(loginId)
                 .password(randomPassword)
-                .nickname(request.getNickname())
+                .nickname(nickname)
                 .userProfileUrl(
                         request.getUserProfileUrl() != null && !request.getUserProfileUrl().isBlank()
                                 ? request.getUserProfileUrl()
@@ -94,6 +91,13 @@ public class UserService {
         // 사용자 정보 생성
         UserResponseDto userDto = createUserResponseDto(user);
 
+        // 사용자 정보 Map 구성
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", userDto.getId());
+        userMap.put("nickname", userDto.getNickname());
+        userMap.put("profileImageUrl", userDto.getProfileImageUrl());
+        userMap.put("createdAt", userDto.getCreatedAt());
+
         // 활성화된 스펙 조회
         Optional<Spec> activeSpecOpt = specRepository.findByUserIdAndStatus(user.getId(), SpecStatus.ACTIVE);
 
@@ -102,25 +106,14 @@ public class UserService {
             Spec spec = activeSpecOpt.get();
             specMap.put("hasActiveSpec", true);
             specMap.put("activeSpec", spec.getId());
-            specMap.put("jobField", spec.getJobField().name());
+            userMap.put("jobField", spec.getJobField().getValue());
         } else {
             specMap.put("hasActiveSpec", false);
             specMap.put("activeSpec", null);
-            specMap.put("jobField", null);
+            userMap.put("jobField", null);
         }
 
-        // 사용자 정보 Map 구성
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("id", userDto.getId());
-        userMap.put("nickname", userDto.getNickname());
-        userMap.put("profileImageUrl", userDto.getProfileImageUrl());
-        userMap.put("createdAt", userDto.getCreatedAt());
-        userMap.put("jobField", specMap.get("jobField"));
-
-        Map<String, Object> specInfo = new HashMap<>();
-        specInfo.put("hasActiveSpec", specMap.get("hasActiveSpec"));
-        specInfo.put("activeSpec", specMap.get("activeSpec"));
-        userMap.put("spec", specInfo);
+        userMap.put("spec", specMap);
 
         return userMap;
     }
