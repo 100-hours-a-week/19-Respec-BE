@@ -62,7 +62,7 @@ jobs:
             echo "✅ JAVA_HOME: $JAVA_HOME"
 
             echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생략)..."
-            ./gradlew build -x test || { echo "❌ 빌드 실패"; exit 1; }
+            ./gradlew clean build -x test || { echo "❌ 빌드 실패"; exit 1; }
 
             JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
 
