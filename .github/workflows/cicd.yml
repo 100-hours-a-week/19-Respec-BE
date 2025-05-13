@@ -1,49 +1,86 @@
-name: Deploy Frontend to EC2
+name: Deploy Backend to EC2
 
-# on:
-#   push:
-#     branches:
-#       - stage
 on:
-    workflow_dispatch:
-      inputs:
-        tags:
-          description: 'Set Tags Name'
-          required: true
-          type: string
-          default: master
-          
+  push:
+    branches:
+      - stage
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-northeast-2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
-    - name: Check EC2 status and start if stopped
-      id: ec2
-      run: |
-        INSTANCE_ID=${{ secrets.EC2_INSTANCE_ID }}
-        
-        STATE=$(aws ec2 describe-instances \
-          --instance-ids $INSTANCE_ID \
-          --query "Reservations[0].Instances[0].State.Name" \
-          --output text)
+      - name: Check EC2 status and start if stopped
+        id: ec2
+        run: |
+          INSTANCE_ID=${{ secrets.EC2_INSTANCE_ID }}
+          
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text)
 
-        echo "EC2 instance state: $STATE"
+          echo "EC2 instance state: $STATE"
 
-        if [ "$STATE" = "stopped" ]; then
-          echo "Starting EC2 instance..."
-          aws ec2 start-instances --instance-ids $INSTANCE_ID
+          if [ "$STATE" = "stopped" ]; then
+            echo "Starting EC2 instance..."
+            aws ec2 start-instances --instance-ids $INSTANCE_ID
 
-          echo "Waiting for EC2 to be running..."
-          aws ec2 wait instance-running --instance-ids $INSTANCE_ID
-        fi
+            echo "Waiting for EC2 to be running..."
+            aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+          fi
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            REPO_DIR=19-Respec-BE
+            LOG_FILE=~/backend.log
+
+            if [ ! -d "$REPO_DIR" ]; then
+              git clone https://github.com/100-hours-a-week/19-Respec-BE.git
+            fi
+
+            cd $REPO_DIR
+            git checkout stage
+            git pull origin stage
+
+            echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생략)..."
+            ./gradlew build -x test || { echo "❌ 빌드 실패"; exit 1; }
+
+            JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
+
+            if [ -z "$JAR_FILE" ]; then
+              echo "❌ JAR 파일을 찾을 수 없습니다."
+              exit 1
+            fi
+
+            echo "✅ JAR 파일 찾음: $(basename "$JAR_FILE")"
+
+            echo "🔁 백엔드 서버 재시작..."
+            EXISTING_PID=$(pgrep -f 'java -jar')
+            if [ -n "$EXISTING_PID" ]; then
+              echo "🛑 기존 백엔드 프로세스 종료 (PID: $EXISTING_PID)"
+              kill $EXISTING_PID
+              sleep 2
+            else
+              echo "✅ 실행 중인 백엔드 없음"
+            fi
+
+            echo "🚀 새로운 백엔드 실행 중..."
+            nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
+
+            echo "✅ 백엔드 실행 완료 (로그: $LOG_FILE)"
