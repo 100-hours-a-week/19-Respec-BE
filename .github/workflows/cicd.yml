@@ -63,7 +63,7 @@ jobs:
             spring.datasource.password=$SPRING_DATASOURCE_PASSWORD
             spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-            spring.jpa.hibernate.ddl-auto=none
+            spring.jpa.hibernate.ddl-auto=create
             spring.jpa.show-sql=false
             spring.jpa.properties.hibernate.format_sql=false
             server.port=8080
