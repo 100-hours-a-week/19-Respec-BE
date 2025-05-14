@@ -79,10 +79,10 @@ jobs:
             spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
             spring.security.oauth2.client.provider.kakao.user-name-attribute=id
 
-            spring.cloud.aws.s3.enabled=true
-            spring.cloud.aws.stack.auto=false
-            cloud.aws.s3.bucket=$AWS_S3_BUCKET
-            cloud.aws.region.static=$AWS_REGION
+            # spring.cloud.aws.s3.enabled=true
+            # spring.cloud.aws.stack.auto=false
+            # cloud.aws.s3.bucket=$AWS_S3_BUCKET
+            # cloud.aws.region.static=$AWS_REGION
 
             logging.level.org.springframework.security.oauth2.client=DEBUG
             logging.level.org.springframework.web.client.RestTemplate=DEBUG
