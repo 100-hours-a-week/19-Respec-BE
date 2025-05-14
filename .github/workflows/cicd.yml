@@ -45,25 +45,19 @@ jobs:
           script: |
             REPO_DIR=19-Respec-BE
             LOG_FILE=~/backend.log
+            CONFIG_PATH=src/main/resources/application.properties
 
             echo "📁 코드 클론 또는 진입"
             if [ ! -d "$REPO_DIR" ]; then
               git clone https://github.com/100-hours-a-week/19-Respec-BE.git
             fi
-
             cd $REPO_DIR
             git fetch origin
             git checkout stage
             git reset --hard origin/stage
 
-            echo "🔍 주요 환경변수 출력"
-            echo "SPRING_DATASOURCE_URL=$SPRING_DATASOURCE_URL"
-            echo "SPRING_JWT_SECRET=$SPRING_JWT_SECRET"
-            echo "AI_SERVER_URL=$AI_SERVER_URL"
-            echo "BACKEND_BASE_URL=$BACKEND_BASE_URL"
-
-            echo "📦 application.properties 생성 중..."
-            cat <<EOF > src/main/resources/application.properties
+            echo "📦 application.properties 생성 시작..."
+            cat <<EOF > $CONFIG_PATH
             spring.datasource.url=$SPRING_DATASOURCE_URL
             spring.datasource.username=$SPRING_DATASOURCE_USERNAME
             spring.datasource.password=$SPRING_DATASOURCE_PASSWORD
@@ -108,6 +102,14 @@ jobs:
             ai.server.url=$AI_SERVER_URL
             ai.server.url.path=/spec/v1/post
             EOF
+            echo "✅ application.properties 생성 완료"
+
+            echo "🔍 application.properties 유효성 검사"
+            if [ ! -s $CONFIG_PATH ]; then
+              echo "❌ application.properties 파일이 비어있습니다."
+              exit 1
+            fi
+            grep -q "spring.datasource.url=" $CONFIG_PATH || { echo "❌ datasource URL 누락"; exit 1; }
 
             echo "☕ JAVA_HOME 설정 중..."
             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
@@ -116,9 +118,10 @@ jobs:
             echo "🚀 Spring Boot 빌드 시작..."
             ./gradlew clean build -x test || { echo "❌ 빌드 실패"; exit 1; }
 
-            JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
+            echo "📦 실행 가능한 JAR 선택 중..."
+            JAR_FILE=$(find build/libs -name "*.jar" ! -name "*plain*" | head -n 1)
             if [ -z "$JAR_FILE" ]; then
-              echo "❌ JAR 파일을 찾을 수 없습니다."
+              echo "❌ 실행 가능한 JAR 파일을 찾을 수 없습니다."
               exit 1
             fi
 
@@ -144,8 +147,6 @@ jobs:
             echo "❌ Spring Boot 실행 실패. 로그 확인:"
             echo "📄 backend.log"
             [ -f "$LOG_FILE" ] && tail -n 50 $LOG_FILE || echo "❌ backend.log 없음"
-
             echo "📄 nohup.out"
             [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 없음"
-
             exit 1
