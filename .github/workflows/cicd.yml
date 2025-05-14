@@ -21,6 +21,8 @@ jobs:
       AI_SERVER_URL: ${{ secrets.AI_SERVER_URL }}
       AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
       - name: Checkout code
@@ -39,7 +41,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: SPRING_DATASOURCE_URL,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,SPRING_JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL,AWS_S3_BUCKET,AWS_REGION
+          envs: SPRING_DATASOURCE_URL,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,SPRING_JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL,AWS_S3_BUCKET,AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
           script: |
             REPO_DIR=19-Respec-BE
             LOG_FILE=~/backend.log
@@ -52,7 +54,7 @@ jobs:
             git checkout stage
             git pull origin stage
 
-            echo "📦 application.properties 생성 중 (환경변수 기반)..."
+            echo "📦 application.properties 생성 중..."
             cat <<EOF > src/main/resources/application.properties
             spring.datasource.url=$SPRING_DATASOURCE_URL
             spring.datasource.username=$SPRING_DATASOURCE_USERNAME
@@ -83,8 +85,8 @@ jobs:
             spring.cloud.aws.stack.auto=false
             cloud.aws.s3.bucket=$AWS_S3_BUCKET
             cloud.aws.region.static=$AWS_REGION
-            cloud.aws.credentials.access-key=${{ secrets.AWS_ACCESS_KEY_ID }}
-            cloud.aws.credentials.secret-key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            cloud.aws.credentials.access-key=$AWS_ACCESS_KEY_ID
+            cloud.aws.credentials.secret-key=$AWS_SECRET_ACCESS_KEY
 
             logging.level.org.springframework.security.oauth2.client=DEBUG
             logging.level.org.springframework.web.client.RestTemplate=DEBUG
@@ -118,4 +120,17 @@ jobs:
 
             echo "🚀 새로운 백엔드 실행..."
             nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
-            echo "✅ 실행 완료 (로그: $LOG_FILE)"
+
+            sleep 5  # 애플리케이션 부팅 대기
+
+            echo "🔍 백엔드 실행 확인 중..."
+            BACKEND_PID=$(pgrep -f 'java -jar')
+            if [ -z "$BACKEND_PID" ]; then
+              echo "❌ Spring Boot 실행 실패. 로그 출력:"
+              cat $LOG_FILE
+              exit 1
+            fi
+
+            echo "✅ 백엔드 실행 성공 (PID: $BACKEND_PID)"
+            echo "📄 백엔드 로그 미리보기:"
+            tail -n 20 $LOG_FILE
