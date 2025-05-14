@@ -19,6 +19,8 @@ jobs:
       BACKEND_BASE_URL: ${{ secrets.BACKEND_BASE_URL }}
       FRONTEND_BASE_URL: ${{ secrets.FRONTEND_BASE_URL }}
       AI_SERVER_URL: ${{ secrets.AI_SERVER_URL }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
       - name: Checkout code
@@ -29,7 +31,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.6
@@ -37,7 +39,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: SPRING_DATASOURCE_URL,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,SPRING_JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL
+          envs: SPRING_DATASOURCE_URL,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,SPRING_JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL,AWS_S3_BUCKET,AWS_REGION
           script: |
             REPO_DIR=19-Respec-BE
             LOG_FILE=~/backend.log
@@ -61,7 +63,7 @@ jobs:
             spring.jpa.show-sql=false
             spring.jpa.properties.hibernate.format_sql=false
             server.port=8080
-            spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize
+            spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize, s3
 
             spring.jwt.secret=$SPRING_JWT_SECRET
 
@@ -77,8 +79,11 @@ jobs:
             spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
             spring.security.oauth2.client.provider.kakao.user-name-attribute=id
 
-            spring.cloud.aws.s3.enabled=false
+            spring.cloud.aws.s3.enabled=true
             spring.cloud.aws.stack.auto=false
+            cloud.aws.s3.bucket=$AWS_S3_BUCKET
+            cloud.aws.region.static=$AWS_REGION
+
             logging.level.org.springframework.security.oauth2.client=DEBUG
             logging.level.org.springframework.web.client.RestTemplate=DEBUG
             mock.login.user=false
@@ -95,31 +100,20 @@ jobs:
             echo "☕ JAVA_HOME 설정 중..."
             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
             export PATH=$JAVA_HOME/bin:$PATH
-            echo "✅ JAVA_HOME: $JAVA_HOME"
 
-            echo "🚀 Spring Boot 프로젝트 빌드 시작 (테스트 생략)..."
+            echo "🚀 Spring Boot 빌드 시작..."
             ./gradlew clean build -x test || { echo "❌ 빌드 실패"; exit 1; }
 
             JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
-
             if [ -z "$JAR_FILE" ]; then
               echo "❌ JAR 파일을 찾을 수 없습니다."
               exit 1
             fi
 
-            echo "✅ JAR 파일 찾음: $(basename "$JAR_FILE")"
-
-            echo "🔁 백엔드 서버 재시작..."
+            echo "🛑 기존 프로세스 종료 (있다면)..."
             EXISTING_PID=$(pgrep -f 'java -jar')
-            if [ -n "$EXISTING_PID" ]; then
-              echo "🛑 기존 백엔드 프로세스 종료 (PID: $EXISTING_PID)"
-              kill $EXISTING_PID
-              sleep 2
-            else
-              echo "✅ 실행 중인 백엔드 없음"
-            fi
+            [ -n "$EXISTING_PID" ] && kill $EXISTING_PID && sleep 2
 
-            echo "🚀 새로운 백엔드 실행 중..."
+            echo "🚀 새로운 백엔드 실행..."
             nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
-
-            echo "✅ 백엔드 실행 완료 (로그: $LOG_FILE)"
+            echo "✅ 실행 완료 (로그: $LOG_FILE)"
