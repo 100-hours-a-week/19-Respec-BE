@@ -98,20 +98,10 @@ jobs:
             frontend.base-url=$FRONTEND_BASE_URL
             frontend.redirect-url=\${frontend.base-url}/oauth-redirect
             spring.graphql.cors.allowed-origins=\${frontend.base-url}
-
-            ai.server.url=$AI_SERVER_URL
-            ai.server.url.path=/spec/v1/post
             EOF
+
             echo "✅ application.properties 생성 완료"
 
-            echo "🔍 application.properties 유효성 검사"
-            if [ ! -s $CONFIG_PATH ]; then
-              echo "❌ application.properties 파일이 비어있습니다."
-              exit 1
-            fi
-            grep -q "spring.datasource.url=" $CONFIG_PATH || { echo "❌ datasource URL 누락"; exit 1; }
-
-            echo "☕ JAVA_HOME 설정 중..."
             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
             export PATH=$JAVA_HOME/bin:$PATH
 
