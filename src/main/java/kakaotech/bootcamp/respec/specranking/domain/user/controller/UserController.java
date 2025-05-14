@@ -8,14 +8,19 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
+import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,30 +31,75 @@ public class UserController {
     private final UserService userService;
     private final JWTUtil jwtUtil;
 
-    // 회원가입
-    @PostMapping
+    // 허용된 이미지 타입
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+            "image/jpeg", "image/jpg", "image/png"
+    );
+
+    // 최대 파일 크기 (10MB)
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+    // 회원가입 (멀티파트 폼 데이터)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createUser(
-            @RequestBody UserSignupRequestDto request,
+            @RequestPart("nickname") String nickname,
+            @RequestPart("loginId") String loginId,
+            @RequestPart(value = "userProfileUrl", required = false) MultipartFile profileImage,
             HttpServletRequest httpRequest,
             HttpServletResponse response) {
 
-        if (request.getLoginId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("loginId가 필요합니다.");
+        if (loginId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "isSuccess", false,
+                    "message", "loginId가 필요합니다."
+            ));
         }
 
-        // user 생성
-        UserResponseDto user = userService.signup(request);
+        // 이미지 파일이 있는 경우 유효성 검사
+        if (profileImage != null && !profileImage.isEmpty()) {
+            // 파일 타입 검사
+            String contentType = profileImage.getContentType();
+            if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of(
+                        "isSuccess", false,
+                        "message", "PNG 또는 JPG 형식의 이미지만 업로드 가능합니다."
+                ));
+            }
 
-        // JWT 생성 (userId, loginId 포함)
-        String token = jwtUtil.createJwts(user.getId(), request.getLoginId(), 1000L * 60 * 60);
+            // 파일 크기 검사
+            if (profileImage.getSize() > MAX_FILE_SIZE) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
+                        "isSuccess", false,
+                        "message", "이미지 크기는 10MB 이하여야 합니다."
+                ));
+            }
+        }
 
-        // TempLoginId 쿠키 삭제
-        CookieUtils.deleteCookie(httpRequest, response, "TempLoginId");
+        try {
+            UserSignupRequestDto requestDto = new UserSignupRequestDto(loginId, nickname, null);
+            UserResponseDto user = userService.signup(requestDto, profileImage);
 
-        // 새 authorization 쿠키 설정
-        CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24 * 7);
+            // JWT 생성 (userId, loginId 포함)
+            String token = jwtUtil.createJwts(user.getId(), loginId, 1000L * 60 * 60);
 
-        return ResponseEntity.ok(user);
+            // TempLoginId 쿠키 삭제
+            CookieUtils.deleteCookie(httpRequest, response, "TempLoginId");
+
+            // 새 authorization 쿠키 설정
+            CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24 * 7);
+
+            return ResponseEntity.ok(user);
+        } catch (DuplicateNicknameException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                    "isSuccess", false,
+                    "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "isSuccess", false,
+                    "message", "회원가입 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
     }
 
     // 사용자 기본정보 조회
