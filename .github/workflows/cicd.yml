@@ -98,6 +98,8 @@ jobs:
             frontend.base-url=$FRONTEND_BASE_URL
             frontend.redirect-url=\${frontend.base-url}/oauth-redirect
             spring.graphql.cors.allowed-origins=\${frontend.base-url}
+            ai.server.url=http://34.22.82.133:8000
+            ai.server.url.path=/spec/v1/post
             EOF
 
             echo "✅ application.properties 생성 완료"
