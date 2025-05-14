@@ -130,15 +130,16 @@ jobs:
             [ -n "$EXISTING_PID" ] && kill $EXISTING_PID && sleep 2
 
             echo "🚀 새로운 백엔드 실행 (nohup)..."
-            echo "START: $(date)" >> $LOG_FILE
-            nohup java -jar "$JAR_FILE" --server.port=8080 >> $LOG_FILE 2>&1 &
+            echo "START: $(date)" >> "$LOG_FILE"
+            nohup java -jar "$JAR_FILE" --server.port=8080 >> "$LOG_FILE" 2>&1 &
 
             echo "⏳ 실행 대기 중..."
             for i in {1..10}; do
               BACKEND_PID=$(pgrep -f 'java -jar')
               if [ -n "$BACKEND_PID" ]; then
                 echo "✅ 백엔드 실행 성공 (PID: $BACKEND_PID)"
-                tail -n 20 $LOG_FILE
+                echo "📄 로그 미리보기:"
+                [ -f "$LOG_FILE" ] && tail -n 20 "$LOG_FILE" || echo "❌ backend.log 없음"
                 exit 0
               fi
               sleep 1
@@ -146,7 +147,9 @@ jobs:
 
             echo "❌ Spring Boot 실행 실패. 로그 확인:"
             echo "📄 backend.log"
-            [ -f "$LOG_FILE" ] && tail -n 50 $LOG_FILE || echo "❌ backend.log 없음"
+            [ -f "$LOG_FILE" ] && tail -n 50 "$LOG_FILE" || echo "❌ backend.log 없음"
+
             echo "📄 nohup.out"
             [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 없음"
+
             exit 1
