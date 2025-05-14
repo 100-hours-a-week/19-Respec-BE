@@ -44,7 +44,7 @@ jobs:
           envs: SPRING_DATASOURCE_URL,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,SPRING_JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL,AWS_S3_BUCKET,AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
           script: |
             REPO_DIR=19-Respec-BE
-            LOG_FILE=~/backend.log
+            LOG_FILE=/home/ec2-user/backend.log
             CONFIG_PATH=src/main/resources/application.properties
 
             echo "📁 코드 클론 또는 진입"
