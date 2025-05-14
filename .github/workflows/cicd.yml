@@ -51,8 +51,10 @@ jobs:
             fi
 
             cd $REPO_DIR
+            git fetch origin
             git checkout stage
-            git pull origin stage
+            git reset --hard origin/stage
+
 
             echo "📦 application.properties 생성 중..."
             cat <<EOF > src/main/resources/application.properties
