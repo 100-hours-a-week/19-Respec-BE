@@ -121,19 +121,18 @@ jobs:
             echo "🚀 새로운 백엔드 실행 (setsid + nohup)..."
             setsid nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 < /dev/null &
 
-            sleep 5
+            echo "⏳ 실행 대기 중..."
+            for i in {1..10}; do
+              BACKEND_PID=$(pgrep -f 'java -jar')
+              if [ -n "$BACKEND_PID" ]; then
+                echo "✅ 백엔드 실행 성공 (PID: $BACKEND_PID)"
+                tail -n 20 $LOG_FILE
+                exit 0
+              fi
+              sleep 1
+            done
 
-            echo "🔍 백엔드 실행 확인 중..."
-            BACKEND_PID=$(pgrep -f 'java -jar')
-            if [ -z "$BACKEND_PID" ]; then
-              echo "❌ Spring Boot 실행 실패. 로그 확인 시작..."
-              echo "📄 backend.log:"
-              [ -f "$LOG_FILE" ] && tail -n 50 $LOG_FILE || echo "❌ backend.log 파일 없음"
-              echo "📄 nohup.out:"
-              [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 없음"
-              exit 1
-            fi
-
-            echo "✅ 백엔드 실행 성공 (PID: $BACKEND_PID)"
-            echo "📄 최근 로그:"
-            tail -n 20 $LOG_FILE
+            echo "❌ Spring Boot 실행 실패. 로그 확인:"
+            [ -f "$LOG_FILE" ] && tail -n 50 $LOG_FILE || echo "❌ backend.log 없음"
+            [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 없음"
+            exit 1
