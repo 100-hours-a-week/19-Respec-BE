@@ -46,6 +46,7 @@ jobs:
             REPO_DIR=19-Respec-BE
             LOG_FILE=~/backend.log
 
+            echo "📁 코드 클론 또는 진입"
             if [ ! -d "$REPO_DIR" ]; then
               git clone https://github.com/100-hours-a-week/19-Respec-BE.git
             fi
@@ -54,6 +55,12 @@ jobs:
             git fetch origin
             git checkout stage
             git reset --hard origin/stage
+
+            echo "🔍 주요 환경변수 출력"
+            echo "SPRING_DATASOURCE_URL=$SPRING_DATASOURCE_URL"
+            echo "SPRING_JWT_SECRET=$SPRING_JWT_SECRET"
+            echo "AI_SERVER_URL=$AI_SERVER_URL"
+            echo "BACKEND_BASE_URL=$BACKEND_BASE_URL"
 
             echo "📦 application.properties 생성 중..."
             cat <<EOF > src/main/resources/application.properties
@@ -120,7 +127,8 @@ jobs:
             [ -n "$EXISTING_PID" ] && kill $EXISTING_PID && sleep 2
 
             echo "🚀 새로운 백엔드 실행 (nohup)..."
-            nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
+            echo "START: $(date)" >> $LOG_FILE
+            nohup java -jar "$JAR_FILE" --server.port=8080 >> $LOG_FILE 2>&1 &
 
             echo "⏳ 실행 대기 중..."
             for i in {1..10}; do
@@ -134,6 +142,10 @@ jobs:
             done
 
             echo "❌ Spring Boot 실행 실패. 로그 확인:"
+            echo "📄 backend.log"
             [ -f "$LOG_FILE" ] && tail -n 50 $LOG_FILE || echo "❌ backend.log 없음"
+
+            echo "📄 nohup.out"
             [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 없음"
+
             exit 1
