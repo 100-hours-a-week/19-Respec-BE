@@ -72,7 +72,7 @@ jobs:
             spring.security.oauth2.client.registration.kakao.client-name=kakao
             spring.security.oauth2.client.registration.kakao.client-id=$KAKAO_CLIENT_ID
             spring.security.oauth2.client.registration.kakao.client-secret=$KAKAO_CLIENT_SECRET
-            spring.security.oauth2.client.registration.kakao.redirect-uri=\${backend.base-url}/login/oauth2/code/kakao
+            spring.security.oauth2.client.registration.kakao.redirect-uri=${backend.base-url}/login/oauth2/code/kakao
             spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code
             spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post
 
@@ -94,8 +94,8 @@ jobs:
 
             backend.base-url=$BACKEND_BASE_URL
             frontend.base-url=$FRONTEND_BASE_URL
-            frontend.redirect-url=\${frontend.base-url}/oauth-redirect
-            spring.graphql.cors.allowed-origins=\${frontend.base-url}
+            frontend.redirect-url=${frontend.base-url}/oauth-redirect
+            spring.graphql.cors.allowed-origins=${frontend.base-url}
 
             ai.server.url=$AI_SERVER_URL
             ai.server.url.path=/spec/v1/post
@@ -118,8 +118,8 @@ jobs:
             EXISTING_PID=$(pgrep -f 'java -jar')
             [ -n "$EXISTING_PID" ] && kill $EXISTING_PID && sleep 2
 
-            echo "🚀 새로운 백엔드 실행 (setsid + nohup)..."
-            setsid nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 < /dev/null &
+            echo "🚀 새로운 백엔드 실행 (nohup)..."
+            nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
 
             echo "⏳ 실행 대기 중..."
             for i in {1..10}; do
