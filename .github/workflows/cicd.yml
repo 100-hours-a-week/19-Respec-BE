@@ -121,16 +121,21 @@ jobs:
             echo "🚀 새로운 백엔드 실행..."
             nohup java -jar "$JAR_FILE" --server.port=8080 > $LOG_FILE 2>&1 &
 
-            sleep 5  # 애플리케이션 부팅 대기
+            sleep 5
 
             echo "🔍 백엔드 실행 확인 중..."
             BACKEND_PID=$(pgrep -f 'java -jar')
             if [ -z "$BACKEND_PID" ]; then
-              echo "❌ Spring Boot 실행 실패. 로그 출력:"
-              cat $LOG_FILE
+              echo "❌ Spring Boot 실행 실패. 로그 확인 시작..."
+              echo "📄 backend.log (존재 시):"
+              [ -f "$LOG_FILE" ] && tail -n 50 $LOG_FILE || echo "❌ backend.log 파일 없음"
+
+              echo "📄 nohup.out (존재 시):"
+              [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 파일 없음"
+
               exit 1
             fi
 
             echo "✅ 백엔드 실행 성공 (PID: $BACKEND_PID)"
-            echo "📄 백엔드 로그 미리보기:"
+            echo "📄 최근 로그:"
             tail -n 20 $LOG_FILE
