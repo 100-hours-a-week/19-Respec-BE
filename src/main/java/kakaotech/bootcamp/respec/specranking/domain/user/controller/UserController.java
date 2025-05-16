@@ -80,13 +80,13 @@ public class UserController {
             UserResponseDto user = userService.signup(requestDto, profileImage);
 
             // JWT 생성 (userId, loginId 포함)
-            String token = jwtUtil.createJwts(user.getId(), loginId, 1000L * 60 * 60);
+            String token = jwtUtil.createJwts(user.getId(), loginId, 1000L * 60 * 60 * 24);
 
             // TempLoginId 쿠키 삭제
             CookieUtils.deleteCookie(httpRequest, response, "TempLoginId");
 
             // 새 authorization 쿠키 설정
-            CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24 * 7);
+            CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24);
 
             return ResponseEntity.ok(user);
         } catch (DuplicateNicknameException e) {
