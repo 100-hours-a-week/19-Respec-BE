@@ -14,6 +14,7 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.domain.education.entity.Education;
 import kakaotech.bootcamp.respec.specranking.domain.education.repository.EducationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.repository.EducationDetailRepository;
@@ -78,8 +79,8 @@ public class SpecService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
 
-        Spec spec = specRepository.findById(specId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스펙입니다. ID: " + specId));
+        Spec spec = specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException("수정할 수 없는 스펙입니다. ID: " + specId));
 
         if (!spec.getUser().equals(user)) {
             throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
@@ -103,8 +104,8 @@ public class SpecService {
     }
 
     private void validateMultipleSpec(Long userId) {
-        Optional<Spec> existingSpec = specRepository.findByUserId(userId);
-        if (existingSpec.isPresent()) {
+        Optional<Spec> existingActiveSpec = specRepository.findByUserIdAndStatus(userId, SpecStatus.ACTIVE);
+        if (existingActiveSpec.isPresent()) {
             throw new IllegalStateException("이미 등록된 스펙이 있습니다. 스펙을 수정하려면 수정 API를 사용해주세요.");
         }
     }
