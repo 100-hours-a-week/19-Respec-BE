@@ -39,8 +39,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if (optUser.isPresent()) {
             // 기존 사용자 - JWT 발급
             User user = optUser.get();
-            String token = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60 * 24 * 7);
-            CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24 * 7);
+            String token = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60 * 24);
+            CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24);
         } else {
             // 신규 사용자 - tempLoginId 쿠키 설정
             String tmpLoginId = customUserDetails.getProvider() + "_" + customUserDetails.getProviderId();
