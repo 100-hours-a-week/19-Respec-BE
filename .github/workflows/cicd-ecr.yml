@@ -9,7 +9,7 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: my-backend-app
+  ECR_REPOSITORY: specranking
 
 jobs:
   build-and-push:
