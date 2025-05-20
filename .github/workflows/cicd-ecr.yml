@@ -1,0 +1,62 @@
+name: CI/CD to ECR (dev/stage/prod)
+
+on:
+  push:
+    branches:
+      - dev
+      - stage
+      - main
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: my-backend-app
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Set environment-based image tag
+      run: |
+        SHORT_SHA=${GITHUB_SHA::7}
+        BRANCH_NAME=${GITHUB_REF##*/}
+        echo "GIT_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
+
+        if [[ "$BRANCH_NAME" == "dev" ]]; then
+          echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+          echo "IMAGE_TAG=dev-${SHORT_SHA}" >> $GITHUB_ENV
+        elif [[ "$BRANCH_NAME" == "stage" ]]; then
+          echo "ENVIRONMENT=stage" >> $GITHUB_ENV
+          echo "IMAGE_TAG=stage-${SHORT_SHA}" >> $GITHUB_ENV
+        elif [[ "$BRANCH_NAME" == "main" ]]; then
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+          echo "IMAGE_TAG=prod-${SHORT_SHA}" >> $GITHUB_ENV
+        else
+          echo "Unknown branch $BRANCH_NAME"
+          exit 1
+        fi
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build & push Docker image
+      run: |
+        IMAGE_URI=$(aws ecr describe-repositories \
+          --repository-names $ECR_REPOSITORY \
+          --region $AWS_REGION \
+          --query 'repositories[0].repositoryUri' \
+          --output text)
+
+        echo "📦 Building Docker image: $IMAGE_URI:$IMAGE_TAG"
+        docker build -t $IMAGE_URI:$IMAGE_TAG .
+        docker push $IMAGE_URI:$IMAGE_TAG
