@@ -26,6 +26,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetail
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.SpecDetailData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.domain.workexperience.entity.WorkExperience;
 import kakaotech.bootcamp.respec.specranking.domain.workexperience.repository.WorkExperienceRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,13 @@ public class SpecDetailQueryService {
     public SpecDetailResponse getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("Spec not found"));
+
+        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
+        Long loginUserId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        if (!spec.getUser().getId().equals(loginUserId)) {
+            throw new IllegalArgumentException("자신의 스펙 정보만 조회 가능합니다.");
+        }
 
         SpecDetailResponse.SpecDetailData response = new SpecDetailResponse.SpecDetailData();
 
