@@ -19,14 +19,20 @@ public class JWTUtil {
     }
 
     // JWT 토큰 생성
-    public String createJwts(Long userId, String loginId, Long expiredMs) {
+    public String createJwts(String category, Long userId, String loginId, Long expiredMs) {
         return Jwts.builder()
+                .claim("category", category)
                 .claim("userId", userId)
                 .claim("loginId", loginId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    // 토큰에서 category 추출
+    public String getCategory(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
 
     // 토큰에서 userId 추출 (PK인 id를 의미함)
