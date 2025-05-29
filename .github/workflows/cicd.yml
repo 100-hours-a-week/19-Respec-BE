@@ -23,6 +23,8 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_HOST: ${{ secrets.EC2_HOST }}
+      AWS_EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
     steps:
       - name: Checkout code
@@ -98,7 +100,7 @@ jobs:
             frontend.base-url=$FRONTEND_BASE_URL
             frontend.redirect-url=\${frontend.base-url}/oauth-redirect
             spring.graphql.cors.allowed-origins=\${frontend.base-url}
-            ai.server.url=http://34.22.82.133:8000
+            ai.server.url=$AI_SERVER_URL
             ai.server.url.path=/spec/v1/post
             EOF
 
@@ -124,7 +126,6 @@ jobs:
             echo "🚀 새로운 백엔드 실행 (nohup)..."
             echo "START: $(date)" >> "$LOG_FILE"
             nohup java -jar "$JAR_FILE" --server.port=8080 >> "$LOG_FILE" 2>&1 &
-
 
             echo "⏳ 실행 대기 중..."
             for i in {1..10}; do
