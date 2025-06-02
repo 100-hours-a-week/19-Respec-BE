@@ -9,6 +9,4 @@ public interface SpecRepository extends JpaRepository<Spec, Long>, SpecRepositor
     Long countByStatus(SpecStatus status);
 
     Optional<Spec> findByUserIdAndStatus(Long userId, SpecStatus status);
-
-    Optional<Spec> findByIdAndStatus(Long id, SpecStatus status);
 }

@@ -81,7 +81,7 @@ public class SpecService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
 
-        Spec spec = specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
+        Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("수정할 수 없는 스펙입니다. ID: " + specId));
 
         if (!spec.getUser().equals(user)) {
