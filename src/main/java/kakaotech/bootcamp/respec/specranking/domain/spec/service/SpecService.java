@@ -31,10 +31,12 @@ import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.domain.workexperience.entity.WorkExperience;
 import kakaotech.bootcamp.respec.specranking.domain.workexperience.repository.WorkExperienceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -97,6 +99,7 @@ public class SpecService {
 
         spec.delete();
         saveSpecWithChaining(request, aiPostSpecResponse, user);
+        log.info("스펙 업데이트 완료했습니다. ID: {}", specId);
     }
 
     private static boolean existsPortfolioFile(MultipartFile portfolioFile) {
