@@ -29,10 +29,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         String privateAddress = ServerUtils.getPrivateAddress();
 
         Long userId = (Long) session.getAttributes().get("userId");
-        if (userId == null) {
-            session.close();
-            return;
-        }
 
         redisTemplate.opsForValue().set("chat:user:" + userId, privateAddress);
         userSessionMap.put(userId, session);
@@ -44,7 +40,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         Map<String, Object> incomingMessage = objectMapper.readValue(payload, Map.class);
 
-        Object senderIdObj = incomingMessage.get("senderId");
+        Object senderIdObj = session.getAttributes().get("userId");
         Object receiverIdObj = incomingMessage.get("receiverId");
         String content = (String) incomingMessage.get("content");
 
@@ -64,10 +60,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         Long userId = (Long) session.getAttributes().get("userId");
-        if (userId != null) {
-            userSessionMap.remove(userId);
-            redisTemplate.delete("chat:user:" + userId);
-        }
+        userSessionMap.remove(userId);
+        redisTemplate.delete("chat:user:" + userId);
     }
 
     public WebSocketSession getSessionByUserId(Long userId) {
