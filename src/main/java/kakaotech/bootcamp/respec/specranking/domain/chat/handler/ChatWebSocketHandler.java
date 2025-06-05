@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import kakaotech.bootcamp.respec.specranking.domain.chat.dto.produce.ChatProduceDto;
 import kakaotech.bootcamp.respec.specranking.global.util.ServerUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -21,7 +21,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final Map<Long, WebSocketSession> userSessionMap = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, ChatProduceDto> chatMessageKafkaTemplate;
-    private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
     @Override
