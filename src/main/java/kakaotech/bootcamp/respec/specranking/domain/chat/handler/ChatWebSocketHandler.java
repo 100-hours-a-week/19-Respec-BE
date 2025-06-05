@@ -19,10 +19,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @RequiredArgsConstructor
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
-    private final StringRedisTemplate redisTemplate;
     private final Map<Long, WebSocketSession> userSessionMap = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper;
     private final KafkaTemplate<String, ChatProduceDto> chatMessageKafkaTemplate;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -53,12 +53,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         String idempotentKey = UUID.randomUUID().toString();
 
-        ChatProduceDto chatProduceDto = new ChatProduceDto();
-        chatProduceDto.setIdempotentKey(idempotentKey);
-        chatProduceDto.setSenderId(senderId);
-        chatProduceDto.setReceiverId(receiverId);
-        chatProduceDto.setContent(content);
-        chatProduceDto.setStatus("SENT");
+        ChatProduceDto chatProduceDto = new ChatProduceDto(idempotentKey, senderId, receiverId, content, "SENT");
 
         String key = generateKeyForSequence(senderId, receiverId);
 
