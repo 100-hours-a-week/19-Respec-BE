@@ -44,6 +44,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     runtimeOnly "io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64"
+    implementation 'org.springframework.kafka:spring-kafka'
 
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
