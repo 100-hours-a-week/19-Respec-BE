@@ -5,6 +5,7 @@ import static kakaotech.bootcamp.respec.specranking.domain.chat.entity.QChat.cha
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.chat.entity.Chat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -27,6 +28,18 @@ public class ChatRepositoryImpl implements ChatRepositoryCustom {
                 .orderBy(chat.createdAt.desc(), chat.id.desc())
                 .limit(limitPlusOne)
                 .fetch();
+    }
+
+    @Override
+    public Optional<Chat> findLatestChatWithCursor(Long chatroomId) {
+        Chat latestChat = queryFactory
+                .selectFrom(chat)
+                .where(chat.chatroom.id.eq(chatroomId))
+                .orderBy(chat.createdAt.desc(), chat.id.desc())
+                .limit(1)
+                .fetchOne();
+
+        return Optional.ofNullable(latestChat);
     }
 
     private BooleanExpression buildCursorPredicate(Long cursorId) {
