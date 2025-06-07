@@ -68,6 +68,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         return userSessionMap.get(userId);
     }
 
+    public WebSocketSession removeSessionByUserId(Long userId) {
+        return userSessionMap.remove(userId);
+    }
+
 
     private String generateKeyForSequence(String senderId, String receiverId) {
         long senderIdLong = Long.parseLong(senderId);

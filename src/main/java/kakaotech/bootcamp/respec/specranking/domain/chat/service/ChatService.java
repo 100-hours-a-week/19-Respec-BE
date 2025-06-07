@@ -28,6 +28,18 @@ public class ChatService {
 
         WebSocketSession session = chatWebSocketHandler.getSessionByUserId(receiverId);
 
+        if (session == null) {
+            notificationService.createChatNotification(receiverId);
+            return;
+        }
+
+        if (!session.isOpen()) {
+            redisTemplate.delete("chat:user:" + receiverId);
+            chatWebSocketHandler.removeSessionByUserId(receiverId);
+            notificationService.createChatNotification(receiverId);
+            return;
+        }
+
         ChatRelayResponse messageToClient = ChatRelayResponse.builder()
                 .senderId(chatRelayDto.getSenderId())
                 .receiverId(chatRelayDto.getReceiverId())
@@ -36,12 +48,6 @@ public class ChatService {
 
         String messageJson = objectMapper.writeValueAsString(messageToClient);
 
-        if (session.isOpen()) {
-            session.sendMessage(new TextMessage(messageJson));
-            return;
-        }
-
-        redisTemplate.delete("chat:user:" + receiverId);
-        notificationService.createChatNotification(receiverId);
+        session.sendMessage(new TextMessage(messageJson));
     }
 }
