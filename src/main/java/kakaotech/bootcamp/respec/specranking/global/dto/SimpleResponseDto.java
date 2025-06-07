@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class SimpleResponseDto {
-    private boolean isSuccess;
+    private Boolean isSuccess;
     private String message;
 
-    public SimpleResponseDto(boolean isSuccess, String message) {
+    public SimpleResponseDto(Boolean isSuccess, String message) {
         this.isSuccess = isSuccess;
         this.message = message;
     }

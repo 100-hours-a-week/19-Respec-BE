@@ -2,14 +2,18 @@ package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateRequest;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -145,6 +150,14 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
         userService.deleteUser(userDto.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me")
+    public UserUpdateResponse updateUser(
+            @ModelAttribute @Valid UserUpdateRequest request,
+            @RequestPart(value = "profileImageUrl", required = false) MultipartFile profileImageUrl) {
+
+        return userService.updateUser(request, profileImageUrl);
     }
 }
 
