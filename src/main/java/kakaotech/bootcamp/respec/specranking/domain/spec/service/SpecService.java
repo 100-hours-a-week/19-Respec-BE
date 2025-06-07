@@ -20,6 +20,8 @@ import kakaotech.bootcamp.respec.specranking.domain.education.repository.Educati
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.repository.EducationDetailRepository;
 import kakaotech.bootcamp.respec.specranking.domain.languageskill.entity.LanguageSkill;
 import kakaotech.bootcamp.respec.specranking.domain.languageskill.repository.LanguageSkillRepository;
+import kakaotech.bootcamp.respec.specranking.domain.portfolio.entity.Portfolio;
+import kakaotech.bootcamp.respec.specranking.domain.portfolio.repository.PortfolioRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
@@ -49,6 +51,7 @@ public class SpecService {
     private final CertificationRepository certificationRepository;
     private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
+    private final PortfolioRepository portfolioRepository;
     private final FileStore fileStore;
 
     public void createSpec(PostSpecRequest request, MultipartFile portfolioFile) {
@@ -61,6 +64,8 @@ public class SpecService {
         validateMultipleSpec(userId);
 
         String portfolioUrl = "";
+        String originName = portfolioFile.getOriginalFilename();
+
         if (existsPortfolioFile(portfolioFile)) {
             portfolioUrl = fileStore.upload(portfolioFile);
         }
@@ -69,7 +74,7 @@ public class SpecService {
                 portfolioUrl);
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
-        saveSpecWithChaining(request, aiPostSpecResponse, user);
+        saveSpecWithChaining(request, aiPostSpecResponse, user, portfolioUrl, originName);
     }
 
     public void updateSpec(Long specId, PostSpecRequest request, MultipartFile portfolioFile) {
@@ -87,8 +92,15 @@ public class SpecService {
         }
 
         String portfolioUrl = "";
-        if (existsPortfolioFile(portfolioFile)) {
+        String originName = "";
+
+        if (!existsPortfolioFile(portfolioFile)) {
+            Portfolio portfolio = portfolioRepository.findBySpecId(specId).orElseThrow();
+            portfolioUrl = portfolio.getFileUrl();
+            originName = portfolio.getOriginName();
+        } else {
             portfolioUrl = fileStore.upload(portfolioFile);
+            originName = portfolioFile.getOriginalFilename();
         }
 
         AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, user.getNickname(),
@@ -96,7 +108,7 @@ public class SpecService {
         AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
 
         spec.delete();
-        saveSpecWithChaining(request, aiPostSpecResponse, user);
+        saveSpecWithChaining(request, aiPostSpecResponse, user, portfolioUrl, originName);
     }
 
     private static boolean existsPortfolioFile(MultipartFile portfolioFile) {
@@ -110,10 +122,12 @@ public class SpecService {
         }
     }
 
-    private void saveSpecWithChaining(PostSpecRequest request, AiPostSpecResponse aiPostSpecResponse, User user) {
+    private void saveSpecWithChaining(PostSpecRequest request, AiPostSpecResponse aiPostSpecResponse, User user,
+                                      String fileUrl, String originName) {
         Spec newSpec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
         Spec savedNewSpec = specRepository.save(newSpec);
 
+        portfolioRepository.save(new Portfolio(savedNewSpec, fileUrl, originName));
         saveEducation(savedNewSpec, request);
         saveWorkExperience(savedNewSpec, request);
         saveCertifications(savedNewSpec, request);
