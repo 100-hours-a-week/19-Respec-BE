@@ -89,7 +89,7 @@ public class SecurityConfig {
                                 "/",
                                 "/api/auth/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**", "/api/**")
+                                "/login/oauth2/**", "/api/**", "/ws/chat/**")
                         .permitAll()
                         .anyRequest().authenticated());
 
