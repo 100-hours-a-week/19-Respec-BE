@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -158,7 +157,6 @@ public class UserController {
             @ModelAttribute @Valid UserUpdateRequest request,
             @RequestPart(value = "profileImageUrl", required = false) MultipartFile profileImageUrl) {
 
-        System.out.println("UserController.updateUser 호출됨");
         return userService.updateUser(request, profileImageUrl);
     }
 }

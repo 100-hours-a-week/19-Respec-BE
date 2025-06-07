@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -156,8 +155,7 @@ public class UserService {
 
         boolean hasNicknameUpdate = request != null && request.hasNickname();
         boolean hasProfileImageUpdate = profileImageUrl != null && !profileImageUrl.isEmpty();
-        log.info("request: " + request);
-        log.info("userService: " + hasNicknameUpdate + hasProfileImageUpdate);
+
         if (!hasNicknameUpdate && !hasProfileImageUpdate) {
             throw new IllegalArgumentException("수정할 정보가 없습니다.");
         }
