@@ -81,6 +81,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         return userSessionMap.get(userId);
     }
 
+    public void removeSessionByUserId(Long userId) {
+        userSessionMap.remove(userId);
+    }
+
     private String generateKeyForSequence(Long senderId, Long receiverId) {
         if (senderId < receiverId) {
             return senderId + "_" + receiverId;
