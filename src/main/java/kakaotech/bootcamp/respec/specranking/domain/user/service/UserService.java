@@ -163,7 +163,7 @@ public class UserService {
         }
 
         if (hasNicknameUpdate) {
-            validateNicknameDuplication(request.getNickname());
+            validateNicknameDuplication(request.getNickname(), userId);
         }
 
         String newProfileImageUrl = null;
@@ -187,8 +187,8 @@ public class UserService {
         );
     }
 
-    private void validateNicknameDuplication(String nickname) {
-        if (userRepository.existsByNickname(nickname)) {
+    private void validateNicknameDuplication(String nickname, Long currentUserId) {
+        if (userRepository.existsByNicknameAndIdNot(nickname, currentUserId)) {
             throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
         }
     }
