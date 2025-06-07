@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @RequiredArgsConstructor
-@Profile("s3")
+@Profile("portfolio-s3")
 public class FileS3Store implements FileStore {
 
     private final AmazonS3Client amazonS3Client;
