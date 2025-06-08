@@ -22,7 +22,7 @@ public class SpecBookmarkService {
     private final SpecRepository specRepository;
     private final BookmarkRepository bookmarkRepository;
 
-    public void createBookmark(Long specId) {
+    public Long createBookmark(Long specId) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
@@ -36,7 +36,9 @@ public class SpecBookmarkService {
         validateDuplicateBookmark(specId, userId);
 
         Bookmark bookmark = new Bookmark(spec, user);
-        bookmarkRepository.save(bookmark);
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+
+        return savedBookmark.getId();
     }
 
     private void validateSelfBookmark(Spec spec, Long userId) {
