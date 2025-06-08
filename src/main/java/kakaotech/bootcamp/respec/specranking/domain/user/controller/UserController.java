@@ -6,12 +6,10 @@ import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateRequest;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.*;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -158,6 +156,12 @@ public class UserController {
             @RequestPart(value = "profileImageUrl", required = false) MultipartFile profileImageUrl) {
 
         return userService.updateUser(request, profileImageUrl);
+    }
+
+    @PatchMapping("/me/visibility")
+    public SimpleResponseDto updateUserVisibility(@RequestBody @Valid UserVisibilityRequest request) {
+        userService.updateUserVisibility(request.getIsPublic());
+        return new SimpleResponseDto(true, "스펙 공개여부 변경 성공");
     }
 }
 

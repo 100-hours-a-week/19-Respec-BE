@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.validation.constraints.NotNull;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
@@ -173,6 +175,16 @@ public class UserService {
 
         User savedUser = userRepository.save(updatedUser);
         return UserUpdateResponse.success(savedUser);
+    }
+
+    public void updateUserVisibility(Boolean isPublic) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+
+        user.updateIsOpenSpec(isPublic);
     }
 
     // UserResponseDto 생성 메소드

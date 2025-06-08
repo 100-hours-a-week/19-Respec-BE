@@ -106,4 +106,8 @@ public class User extends BaseTimeEntity {
                 this.status
         );
     }
+
+    public void updateIsOpenSpec(Boolean isOpenSpec) {
+        this.isOpenSpec = isOpenSpec;
+    }
 }
