@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -85,13 +86,37 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(
-                                "/",
-                                "/api/auth/**",
-                                "/oauth2/**",
-                                "/login/oauth2/**", "/api/**")
-                        .permitAll()
-                        .anyRequest().authenticated());
+                        .requestMatchers("/", "/oauth2/**", "/login/oauth2/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{userId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/specs").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/specs/{specId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/specs/{specId}/comments").permitAll()
+
+                        .requestMatchers("/ws/**").authenticated()
+
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/specs").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/specs/{specId}").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/specs/{specId}/visibility").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/specs/{specId}/bookmarks").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/specs/{specId}/bookmarks/{bookmarkId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/bookmarks").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/specs/{specId}/comments").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/specs/{specId}/comments/{commentId}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/specs/{specId}/comments/{commentId}").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/specs/{specId}/comments/{commentId}/replies").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/notifications").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/notifications").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/chatrooms").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/chatrooms/{chatroomId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/chatrooms/{chatroomId}/messages").authenticated()
+
+                        .anyRequest().authenticated()
+                );
 
         // 세션 설정 : stateless
         http
