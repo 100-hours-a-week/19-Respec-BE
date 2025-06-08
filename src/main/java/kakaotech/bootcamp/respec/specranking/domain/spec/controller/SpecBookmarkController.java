@@ -22,4 +22,10 @@ public class SpecBookmarkController {
         Long bookmarkId = specBookmarkService.createBookmark(specId);
         return new BookmarkCreateResponse(true, "즐겨찾기 등록 성공", bookmarkId);
     }
+
+    @DeleteMapping("/{specId}/bookmarks/{bookmarkId}")
+    public SimpleResponseDto deleteBookmark(@PathVariable Long specId, @PathVariable Long bookmarkId) {
+        specBookmarkService.deleteBookmark(specId, bookmarkId);
+        return new SimpleResponseDto(true, "즐겨찾기 해제 성공");
+    }
 }
