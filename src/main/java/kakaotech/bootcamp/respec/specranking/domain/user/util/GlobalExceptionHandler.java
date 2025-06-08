@@ -37,6 +37,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<SimpleResponseDto> handleIllegalStateException(IllegalStateException ex) {
+        SimpleResponseDto response = new SimpleResponseDto(false, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     // 닉네임 중복 예외 처리
     @ExceptionHandler(DuplicateNicknameException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateNicknameException(DuplicateNicknameException ex) {
