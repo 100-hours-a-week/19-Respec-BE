@@ -22,7 +22,7 @@ public class SpecBookmarkService {
     private final SpecRepository specRepository;
     private final BookmarkRepository bookmarkRepository;
 
-    public void createBookmark(Long specId) {
+    public Long createBookmark(Long specId) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
@@ -36,7 +36,22 @@ public class SpecBookmarkService {
         validateDuplicateBookmark(specId, userId);
 
         Bookmark bookmark = new Bookmark(spec, user);
-        bookmarkRepository.save(bookmark);
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+
+        return savedBookmark.getId();
+    }
+
+    public void deleteBookmark(Long specId, Long bookmarkId) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+        specRepository.findById(specId).orElseThrow(() -> new IllegalArgumentException("스펙을 찾을 수 없습니다. ID: " + specId));
+
+        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 즐겨찾기를 찾을 수 없습니다. ID: " + bookmarkId));
+
+        bookmarkRepository.delete(bookmark);
     }
 
     private void validateSelfBookmark(Spec spec, Long userId) {
