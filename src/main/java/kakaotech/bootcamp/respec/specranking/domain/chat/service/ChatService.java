@@ -29,14 +29,14 @@ public class ChatService {
         WebSocketSession session = chatWebSocketHandler.getSessionByUserId(receiverId);
 
         if (session == null) {
-            notificationService.createChatNotification(receiverId);
+            notificationService.createChatNotificationIfNotExists(receiverId);
             return;
         }
 
         if (!session.isOpen()) {
             redisTemplate.delete("chat:user:" + receiverId);
             chatWebSocketHandler.removeSessionByUserId(receiverId);
-            notificationService.createChatNotification(receiverId);
+            notificationService.createChatNotificationIfNotExists(receiverId);
             return;
         }
 
