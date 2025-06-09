@@ -1,9 +1,25 @@
 package kakaotech.bootcamp.respec.specranking.domain.comment.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRequest;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
+import kakaotech.bootcamp.respec.specranking.domain.comment.service.CommentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/comments")
+@RequestMapping("/api/specs/{specId}/comments")
+@RequiredArgsConstructor
 public class CommentController {
+
+    private final CommentService commentService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentPostResponse createComment(
+            @PathVariable Long specId,
+            @RequestBody @Valid CommentPostRequest request) {
+        return commentService.createComment(specId, request);
+    }
 }
