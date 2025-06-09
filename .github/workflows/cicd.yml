@@ -67,7 +67,8 @@ jobs:
 
       - name: Create appspec.yml and scripts
         run: |
-          mkdir codedeploy
+          mkdir -p codedeploy/scripts
+
           cat <<EOF > codedeploy/appspec.yml
 version: 0.0
 os: linux
@@ -79,15 +80,22 @@ hooks:
     - location: deploy.sh
       timeout: 300
       runas: ec2-user
-  EOF
+
+EOF
   
-  mkdir codedeploy/scripts
   cat <<EOF > codedeploy/scripts/deploy.sh
   #!/bin/bash
-  echo "🛠 Pulling image and restarting container..."
+  echo "🛠 ECR 로그인 중..."
+  aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_URI
+  
+  echo "🛠 이전 컨테이너 종료 및 삭제"
   docker stop specranking || true
   docker rm specranking || true
+  
+  echo "📦 새 이미지 Pull"
   docker pull $IMAGE_URI:$IMAGE_TAG
+  
+  echo "🚀 새 컨테이너 실행"
   docker run -d --name specranking -p 8080:8080 $IMAGE_URI:$IMAGE_TAG
   EOF
   
