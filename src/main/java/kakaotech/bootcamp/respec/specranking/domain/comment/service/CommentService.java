@@ -2,6 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.comment.service;
 
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRequest;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.entity.Comment;
 import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;
@@ -52,5 +53,41 @@ public class CommentService {
         );
 
         return new CommentPostResponse(true, "댓글 작성 성공", commentData);
+    }
+
+    public ReplyPostResponse createReply(Long specId, Long commentId, CommentPostRequest request) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+
+        Spec spec = specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException("스펙을 찾을 수 없습니다. ID: " + specId));
+
+        Comment parentComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다. ID: " + commentId));
+
+        if (!parentComment.getSpec().getId().equals(specId)) {
+            throw new IllegalArgumentException("부모 댓글이 해당 스펙에 속하지 않습니다.");
+        }
+
+        if (parentComment.getDepth() != 0) {
+            throw new IllegalArgumentException("대댓글에는 답글을 작성할 수 없습니다. 최상위 댓글에만 답글을 작성해주세요.");
+        }
+
+        Comment reply = new Comment(spec, parentComment, request.getContent(), parentComment.getBundle(), 1);
+        Comment savedReply = commentRepository.save(reply);
+
+        ReplyPostResponse.ReplyData replyData = new ReplyPostResponse.ReplyData(
+                savedReply.getId(),
+                user.getNickname(),
+                user.getUserProfileUrl(),
+                savedReply.getContent(),
+                savedReply.getDepth(),
+                parentComment.getId()
+        );
+
+        return new ReplyPostResponse(true, "대댓글 작성 성공", replyData);
     }
 }

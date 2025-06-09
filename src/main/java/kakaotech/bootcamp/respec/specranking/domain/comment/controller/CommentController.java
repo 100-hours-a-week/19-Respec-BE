@@ -3,6 +3,7 @@ package kakaotech.bootcamp.respec.specranking.domain.comment.controller;
 import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRequest;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,5 +22,14 @@ public class CommentController {
             @PathVariable Long specId,
             @RequestBody @Valid CommentPostRequest request) {
         return commentService.createComment(specId, request);
+    }
+
+    @PostMapping("/{commentId}/replies")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReplyPostResponse createReply(
+            @PathVariable Long specId,
+            @PathVariable Long commentId,
+            @RequestBody @Valid CommentPostRequest request) {
+        return commentService.createReply(specId, commentId, request);
     }
 }
