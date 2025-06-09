@@ -23,10 +23,13 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
 
-    public void createChatNotification(Long receiverId) {
+    public void createChatNotificationIfNotExists(Long receiverId) {
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + receiverId));
 
+        if (notificationRepository.existsByUserIdAndTargetName(receiverId, CHAT)) {
+            return;
+        }
         Notification notification = new Notification(receiver, CHAT);
         notificationRepository.save(notification);
     }
