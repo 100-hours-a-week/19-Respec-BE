@@ -6,6 +6,7 @@ import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRespo
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.service.CommentService;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -40,5 +41,12 @@ public class CommentController {
             @PathVariable Long commentId,
             @RequestBody @Valid CommentRequest request) {
         return commentService.updateComment(specId, commentId, request);
+    }
+
+    @DeleteMapping("/{commentId}")
+    public SimpleResponseDto deleteComment(
+            @PathVariable Long specId,
+            @PathVariable Long commentId) {
+        return commentService.deleteComment(specId, commentId);
     }
 }

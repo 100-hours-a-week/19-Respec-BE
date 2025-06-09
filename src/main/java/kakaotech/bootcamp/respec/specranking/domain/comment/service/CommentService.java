@@ -12,6 +12,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecReposito
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,5 +119,21 @@ public class CommentService {
         );
 
         return new CommentUpdateResponse(true, "댓글 수정 성공", updateData);
+    }
+
+    public SimpleResponseDto deleteComment(Long specId, Long commentId) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        Comment comment = commentRepository.findByIdAndSpecId(commentId, specId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글이거나 해당 스펙에 속하지 않는 댓글입니다. ID: " + commentId));
+
+        if (!comment.getWriter().getId().equals(userId)) { throw new IllegalArgumentException("댓글 삭제는 작성자 본인만 가능합니다."); }
+        if (comment.getDeletedAt() != null) { throw new IllegalStateException("이미 삭제된 댓글입니다."); }
+
+        comment.delete();
+        commentRepository.save(comment);
+
+        return new SimpleResponseDto(true, "댓글 삭제 성공");
     }
 }
