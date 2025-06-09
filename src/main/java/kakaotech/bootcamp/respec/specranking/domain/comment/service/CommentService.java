@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -107,9 +109,12 @@ public class CommentService {
         comment.updateContent(request.getContent());
         Comment updatedComment = commentRepository.save(comment);
 
+        String updatedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
         CommentUpdateResponse.CommentUpdateData updateData = new CommentUpdateResponse.CommentUpdateData(
                 updatedComment.getId(),
-                updatedComment.getContent()
+                updatedComment.getContent(),
+                updatedAt
         );
 
         return new CommentUpdateResponse(true, "댓글 수정 성공", updateData);

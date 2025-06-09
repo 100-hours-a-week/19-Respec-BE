@@ -12,10 +12,12 @@ public class CommentUpdateResponse {
     public static class CommentUpdateData {
         private Long commentId;
         private String content;
+        private String updatedAt;
 
-        public CommentUpdateData(Long commentId, String content) {
+        public CommentUpdateData(Long commentId, String content, String updatedAt) {
             this.commentId = commentId;
             this.content = content;
+            this.updatedAt = updatedAt;
         }
     }
 
