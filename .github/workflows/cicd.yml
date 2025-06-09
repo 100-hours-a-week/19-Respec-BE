@@ -80,7 +80,6 @@ hooks:
     - location: deploy.sh
       timeout: 300
       runas: ec2-user
-
 EOF
   
   cat <<EOF > codedeploy/scripts/deploy.sh
