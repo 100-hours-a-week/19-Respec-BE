@@ -1,4 +1,4 @@
-name: CI/CD to ECR & CodeDeploy (dev/stage/prod)
+name: Backend CI/CD
 
 on:
   push:
@@ -6,102 +6,95 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: specranking-dev-image
-  CODEDEPLOY_APP_NAME: specranking-dev
-  CODEDEPLOY_DEPLOYMENT_GROUP: specranking-dev-group
-  S3_BUCKET: specranking-dev-codedeploy
+  CODEDEPLOY_APP: respec-be-codedeploy
+  DEPLOY_GROUP: respec-be-deploy-group
+  S3_BUCKET: specranking-deploy-bucket  # 실제 배포용 S3 버킷 이름
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set image tag
-        run: |
-          SHORT_SHA=${GITHUB_SHA::7}
-          BRANCH_NAME=${GITHUB_REF##*/}
-          echo "GIT_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
-          if [[ "$BRANCH_NAME" == "dev" ]]; then
-            echo "ENVIRONMENT=dev" >> $GITHUB_ENV
-            echo "IMAGE_TAG=dev-${SHORT_SHA}" >> $GITHUB_ENV
-          elif [[ "$BRANCH_NAME" == "stage" ]]; then
-            echo "ENVIRONMENT=stage" >> $GITHUB_ENV
-            echo "IMAGE_TAG=stage-${SHORT_SHA}" >> $GITHUB_ENV
-          elif [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "ENVIRONMENT=prod" >> $GITHUB_ENV
-            echo "IMAGE_TAG=prod-${SHORT_SHA}" >> $GITHUB_ENV
-          else
-            echo "Unknown branch $BRANCH_NAME" && exit 1
-          fi
+    - name: Set environment variables
+      run: |
+        SHORT_SHA=${GITHUB_SHA::7}
+        BRANCH_NAME=${GITHUB_REF##*/}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+        if [[ "$BRANCH_NAME" == "dev" ]]; then
+          echo "ENV=dev" >> $GITHUB_ENV
+          echo "ECR_REPO=specranking-backend-dev" >> $GITHUB_ENV
+          echo "TAG=dev-${SHORT_SHA}" >> $GITHUB_ENV
+        elif [[ "$BRANCH_NAME" == "stage" ]]; then
+          echo "ENV=stage" >> $GITHUB_ENV
+          echo "ECR_REPO=specranking-backend-stage" >> $GITHUB_ENV
+          echo "TAG=stage-${SHORT_SHA}" >> $GITHUB_ENV
+        elif [[ "$BRANCH_NAME" == "main" ]]; then
+          echo "ENV=prod" >> $GITHUB_ENV
+          echo "ECR_REPO=specranking-backend-prod" >> $GITHUB_ENV
+          echo "TAG=prod-${SHORT_SHA}" >> $GITHUB_ENV
+        else
+          echo "❌ Unknown branch"
+          exit 1
+        fi
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
 
-      - name: Build & push Docker image
-        run: |
-          IMAGE_URI=$(aws ecr describe-repositories \
-            --repository-names "$ECR_REPOSITORY" \
-            --region "$AWS_REGION" \
-            --query "repositories[0].repositoryUri" --output text)
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          echo "📦 Building Docker image: $IMAGE_URI:$IMAGE_TAG"
-          docker build -t "$IMAGE_URI:$IMAGE_TAG" .
-          docker push "$IMAGE_URI:$IMAGE_TAG"
 
-      - name: Create appspec.yml and deploy scripts
-        run: |
-          mkdir -p codedeploy/scripts
+    - name: Build JAR with Gradle
+      run: ./gradlew clean build -x test
 
-          # appspec.yml 생성 (EOF 바로 다음 줄부터 내용)
-          cat <<EOF > codedeploy/appspec.yml
-version: 0.0
-os: linux
-files:
-  - source: scripts/
-    destination: /home/ec2-user/deploy
-hooks:
-  AfterInstall:
-    - location: deploy.sh
-      timeout: 300
-      runas: ec2-user
-EOF
-  
-  # deploy.sh 생성 (변수 치환 완료)
-  cat <<EOF > codedeploy/scripts/deploy.sh
-  #!/bin/bash
-set -e
-echo "🛠 ECR 로그인 중..."
-aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${IMAGE_URI}
-echo "🛠 이전 컨테이너 종료 및 삭제"
-docker stop specranking 2>/dev/null || true
-docker rm   specranking 2>/dev/null || true
-echo "📦 새 이미지 Pull"
-docker pull ${IMAGE_URI}:${IMAGE_TAG}
-echo "🚀 새 컨테이너 실행"
-docker run -d --name specranking -p 8080:8080 ${IMAGE_URI}:${IMAGE_TAG}
-EOF
-  
-  chmod +x codedeploy/scripts/deploy.sh
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-- name: Package and upload CodeDeploy bundle
-  run: |
-    zip -r "codedeploy-${IMAGE_TAG}.zip" codedeploy
-    aws s3 cp "codedeploy-${IMAGE_TAG}.zip" "s3://${S3_BUCKET}/codedeploy-${IMAGE_TAG}.zip"
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v2
 
-- name: Trigger CodeDeploy deployment
-  run: |
-    aws deploy create-deployment \
-      --application-name "$CODEDEPLOY_APP_NAME" \
-      --deployment-group-name "$CODEDEPLOY_DEPLOYMENT_GROUP" \
-      --s3-location bucket="${S3_BUCKET}",key="codedeploy-${IMAGE_TAG}.zip",bundleType=zip \
-      --region "$AWS_REGION"
+    - name: Build and Push Docker image
+      run: |
+        IMAGE_URI=$(aws ecr describe-repositories \
+          --repository-names $ECR_REPO \
+          --query 'repositories[0].repositoryUri' \
+          --output text --region $AWS_REGION)
+
+        docker build -t $IMAGE_URI:$TAG .
+        docker push $IMAGE_URI:$TAG
+
+    # ⛔ 아직 appspec.yml 및 배포 스크립트 없음. 나중에 주석 해제하세요.
+
+    # - name: Package deploy bundle
+    #   run: |
+    #     mkdir -p artifacts
+    #     zip -r artifacts/backend-deploy.zip appspec.yml deploy/start.sh deploy/stop.sh
+
+    # - name: Upload to S3
+    #   run: |
+    #     aws s3 cp artifacts/backend-deploy.zip s3://$S3_BUCKET/$ENV/backend-deploy-$TAG.zip
+
+    # - name: Manual approval for stage/prod
+    #   if: env.ENV != 'dev'
+    #   uses: trstringer/manual-approval@v1
+    #   with:
+    #     secret: ${{ secrets.GITHUB_TOKEN }}
+    #     approvers: donghyeon
+    #     minimum-approvals: 1
+    #     issue-title: "Approve backend deploy to ${{ env.ENV }}"
+    #     issue-body: "ECR Tag: ${{ env.TAG }}"
+
+    # - name: Trigger CodeDeploy deployment
+    #   run: |
+    #     aws deploy create-deployment \
+    #       --application-name $CODEDEPLOY_APP \
+    #       --deployment-group-name $DEPLOY_GROUP \
+    #       --s3-location bucket=$S3_BUCKET,key=$ENV/backend-deploy-$TAG.zip,bundleType=zip \
+    #       --region $AWS_REGION
