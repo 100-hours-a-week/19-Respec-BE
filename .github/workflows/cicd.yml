@@ -2,10 +2,7 @@ name: CI/CD to ECR & CodeDeploy (dev/stage/prod)
 
 on:
   push:
-    branches:
-      - dev
-      - stage
-      - main
+    branches: [dev, stage, main]
 
 env:
   AWS_REGION: ap-northeast-2
@@ -22,12 +19,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Set environment-based image tag
+      - name: Set image tag
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
           BRANCH_NAME=${GITHUB_REF##*/}
           echo "GIT_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
-          
           if [[ "$BRANCH_NAME" == "dev" ]]; then
             echo "ENVIRONMENT=dev" >> $GITHUB_ENV
             echo "IMAGE_TAG=dev-${SHORT_SHA}" >> $GITHUB_ENV
@@ -38,8 +34,7 @@ jobs:
             echo "ENVIRONMENT=prod" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod-${SHORT_SHA}" >> $GITHUB_ENV
           else
-            echo "Unknown branch $BRANCH_NAME"
-            exit 1
+            echo "Unknown branch $BRANCH_NAME" && exit 1
           fi
 
       - name: Configure AWS credentials
@@ -55,20 +50,19 @@ jobs:
       - name: Build & push Docker image
         run: |
           IMAGE_URI=$(aws ecr describe-repositories \
-            --repository-names $ECR_REPOSITORY \
-            --region $AWS_REGION \
-            --query 'repositories[0].repositoryUri' \
-            --output text)
-          
-          echo "📦 Building Docker image: $IMAGE_URI:$IMAGE_TAG"
-          docker build -t $IMAGE_URI:$IMAGE_TAG .
-          docker push $IMAGE_URI:$IMAGE_TAG
+            --repository-names "$ECR_REPOSITORY" \
+            --region "$AWS_REGION" \
+            --query "repositories[0].repositoryUri" --output text)
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "📦 Building Docker image: $IMAGE_URI:$IMAGE_TAG"
+          docker build -t "$IMAGE_URI:$IMAGE_TAG" .
+          docker push "$IMAGE_URI:$IMAGE_TAG"
 
-      - name: Create appspec.yml and scripts
+      - name: Create appspec.yml and deploy scripts
         run: |
           mkdir -p codedeploy/scripts
 
+          # appspec.yml 생성 (EOF 바로 다음 줄부터 내용)
           cat <<EOF > codedeploy/appspec.yml
 version: 0.0
 os: linux
@@ -82,36 +76,32 @@ hooks:
       runas: ec2-user
 EOF
   
+  # deploy.sh 생성 (변수 치환 완료)
   cat <<EOF > codedeploy/scripts/deploy.sh
   #!/bin/bash
-  echo "🛠 ECR 로그인 중..."
-  aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_URI
-  
-  echo "🛠 이전 컨테이너 종료 및 삭제"
-  docker stop specranking || true
-  docker rm specranking || true
-  
-  echo "📦 새 이미지 Pull"
-  docker pull $IMAGE_URI:$IMAGE_TAG
-  
-  echo "🚀 새 컨테이너 실행"
-  docker run -d --name specranking -p 8080:8080 $IMAGE_URI:$IMAGE_TAG
-  EOF
+set -e
+echo "🛠 ECR 로그인 중..."
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${IMAGE_URI}
+echo "🛠 이전 컨테이너 종료 및 삭제"
+docker stop specranking 2>/dev/null || true
+docker rm   specranking 2>/dev/null || true
+echo "📦 새 이미지 Pull"
+docker pull ${IMAGE_URI}:${IMAGE_TAG}
+echo "🚀 새 컨테이너 실행"
+docker run -d --name specranking -p 8080:8080 ${IMAGE_URI}:${IMAGE_TAG}
+EOF
   
   chmod +x codedeploy/scripts/deploy.sh
 
-- name: Zip for CodeDeploy
+- name: Package and upload CodeDeploy bundle
   run: |
-    zip -r codedeploy-${IMAGE_TAG}.zip codedeploy/
+    zip -r "codedeploy-${IMAGE_TAG}.zip" codedeploy
+    aws s3 cp "codedeploy-${IMAGE_TAG}.zip" "s3://${S3_BUCKET}/codedeploy-${IMAGE_TAG}.zip"
 
-- name: Upload to S3
-  run: |
-    aws s3 cp codedeploy-${IMAGE_TAG}.zip s3://${S3_BUCKET}/codedeploy-${IMAGE_TAG}.zip
-
-- name: Trigger CodeDeploy
+- name: Trigger CodeDeploy deployment
   run: |
     aws deploy create-deployment \
-      --application-name $CODEDEPLOY_APP_NAME \
-      --deployment-group-name $CODEDEPLOY_DEPLOYMENT_GROUP \
-      --s3-location bucket=$S3_BUCKET,bundleType=zip,key=codedeploy-${IMAGE_TAG}.zip \
-      --region $AWS_REGION
+      --application-name "$CODEDEPLOY_APP_NAME" \
+      --deployment-group-name "$CODEDEPLOY_DEPLOYMENT_GROUP" \
+      --s3-location bucket="${S3_BUCKET}",key="codedeploy-${IMAGE_TAG}.zip",bundleType=zip \
+      --region "$AWS_REGION"
