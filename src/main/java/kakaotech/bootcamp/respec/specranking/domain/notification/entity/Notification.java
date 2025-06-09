@@ -34,12 +34,8 @@ public class Notification {
     @Column(name = "target_name", nullable = false, columnDefinition = "VARCHAR(50)")
     private NotificationTargetType targetName;
 
-    @Column(name = "target_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
-    private Long targetId;
-
-    public Notification(User user, NotificationTargetType targetName, Long targetId) {
+    public Notification(User user, NotificationTargetType targetName) {
         this.user = user;
         this.targetName = targetName;
-        this.targetId = targetId;
     }
 }
