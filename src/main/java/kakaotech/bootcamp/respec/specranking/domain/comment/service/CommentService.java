@@ -1,6 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.comment.service;
 
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRequest;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentRequest;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.entity.Comment;
@@ -26,7 +26,7 @@ public class CommentService {
     private final SpecRepository specRepository;
     private final UserRepository userRepository;
 
-    public CommentPostResponse createComment(Long specId, CommentPostRequest request) {
+    public CommentPostResponse createComment(Long specId, CommentRequest request) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
@@ -55,7 +55,7 @@ public class CommentService {
         return new CommentPostResponse(true, "댓글 작성 성공", commentData);
     }
 
-    public ReplyPostResponse createReply(Long specId, Long commentId, CommentPostRequest request) {
+    public ReplyPostResponse createReply(Long specId, Long commentId, CommentRequest request) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
