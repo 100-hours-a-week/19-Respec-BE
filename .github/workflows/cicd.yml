@@ -2,7 +2,10 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [dev, stage, main]
+    branches:
+      - dev
+      - stage
+      - main
 
 env:
   AWS_REGION: ap-northeast-2
@@ -18,6 +21,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+<<<<<<< Updated upstream
     - name: Set environment variables
       run: |
         SHORT_SHA=${GITHUB_SHA::7}
@@ -39,6 +43,29 @@ jobs:
           echo "❌ Unknown branch"
           exit 1
         fi
+=======
+      - name: Set image tag
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [[ "$BRANCH_NAME" == "dev" ]]; then
+            IMAGE_TAG="dev-${SHORT_SHA}"
+          elif [[ "$BRANCH_NAME" == "stage" ]]; then
+            IMAGE_TAG="stage-${SHORT_SHA}"
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+            IMAGE_TAG="prod-${SHORT_SHA}"
+          else
+            echo "Unknown branch $BRANCH_NAME" && exit 1
+          fi
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+>>>>>>> Stashed changes
 
     - name: Set up JDK 21
       uses: actions/setup-java@v3
@@ -46,6 +73,7 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
+<<<<<<< Updated upstream
 
     - name: Build JAR with Gradle
       run: ./gradlew clean build -x test
@@ -98,3 +126,61 @@ jobs:
     #       --deployment-group-name $DEPLOY_GROUP \
     #       --s3-location bucket=$S3_BUCKET,key=$ENV/backend-deploy-$TAG.zip,bundleType=zip \
     #       --region $AWS_REGION
+=======
+      - name: Build & push Docker image
+        run: |
+          IMAGE_URI=$(aws ecr describe-repositories \
+            --repository-names "$ECR_REPOSITORY" \
+            --region "$AWS_REGION" \
+            --query "repositories[0].repositoryUri" \
+            --output text)
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          docker build -t "$IMAGE_URI:$IMAGE_TAG" .
+          docker push "$IMAGE_URI:$IMAGE_TAG"
+
+      - name: Create CodeDeploy bundle
+        run: |
+          mkdir -p codedeploy/scripts
+
+          # appspec.yml
+          cat <<EOF > codedeploy/appspec.yml
+version: 0.0
+os: linux
+files:
+  - source: scripts/
+    destination: /home/ec2-user/deploy
+hooks:
+  AfterInstall:
+    - location: deploy.sh
+      timeout: 300
+      runas: ec2-user
+
+EOF 
+           # deploy.sh
+          cat <<EOF > codedeploy/scripts/deploy.sh
+  #!/bin/bash
+set -e
+  
+aws ecr get-login-password --region ${AWS_REGION} | \
+  docker login --username AWS --password-stdin ${IMAGE_URI}
+docker stop specranking 2>/dev/null || true
+docker rm   specranking 2>/dev/null || true
+docker pull ${IMAGE_URI}:${IMAGE_TAG}
+docker run -d --name specranking -p 8080:8080 ${IMAGE_URI}:${IMAGE_TAG}
+EOF
+  
+          chmod +x codedeploy/scripts/deploy.sh
+
+      - name: Zip & upload to S3
+        run: |
+          zip -r codedeploy-${IMAGE_TAG}.zip codedeploy
+          aws s3 cp codedeploy-${IMAGE_TAG}.zip s3://${S3_BUCKET}/codedeploy-${IMAGE_TAG}.zip
+
+      - name: Trigger CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name "$CODEDEPLOY_APP_NAME" \
+            --deployment-group-name "$CODEDEPLOY_DEPLOYMENT_GROUP" \
+            --s3-location bucket="${S3_BUCKET}",key="codedeploy-${IMAGE_TAG}.zip",bundleType=zip \
+            --region "$AWS_REGION"
+>>>>>>> Stashed changes
