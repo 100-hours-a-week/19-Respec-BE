@@ -1,8 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.comment.controller;
 
 import jakarta.validation.Valid;
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRequest;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentRequest;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class CommentController {
     @ResponseStatus(HttpStatus.CREATED)
     public CommentPostResponse createComment(
             @PathVariable Long specId,
-            @RequestBody @Valid CommentPostRequest request) {
+            @RequestBody @Valid CommentRequest request) {
         return commentService.createComment(specId, request);
     }
 
@@ -29,7 +30,15 @@ public class CommentController {
     public ReplyPostResponse createReply(
             @PathVariable Long specId,
             @PathVariable Long commentId,
-            @RequestBody @Valid CommentPostRequest request) {
+            @RequestBody @Valid CommentRequest request) {
         return commentService.createReply(specId, commentId, request);
+    }
+
+    @PatchMapping("/{commentId}")
+    public CommentUpdateResponse updateComment(
+            @PathVariable Long specId,
+            @PathVariable Long commentId,
+            @RequestBody @Valid CommentRequest request) {
+        return commentService.updateComment(specId, commentId, request);
     }
 }

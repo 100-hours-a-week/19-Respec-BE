@@ -1,7 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.comment.service;
 
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostRequest;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentRequest;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.comment.entity.Comment;
 import kakaotech.bootcamp.respec.specranking.domain.comment.repository.CommentRepository;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -26,7 +29,7 @@ public class CommentService {
     private final SpecRepository specRepository;
     private final UserRepository userRepository;
 
-    public CommentPostResponse createComment(Long specId, CommentPostRequest request) {
+    public CommentPostResponse createComment(Long specId, CommentRequest request) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
@@ -55,7 +58,7 @@ public class CommentService {
         return new CommentPostResponse(true, "댓글 작성 성공", commentData);
     }
 
-    public ReplyPostResponse createReply(Long specId, Long commentId, CommentPostRequest request) {
+    public ReplyPostResponse createReply(Long specId, Long commentId, CommentRequest request) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
@@ -89,5 +92,31 @@ public class CommentService {
         );
 
         return new ReplyPostResponse(true, "대댓글 작성 성공", replyData);
+    }
+
+    public CommentUpdateResponse updateComment(Long specId, Long commentId, CommentRequest request) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        Comment comment = commentRepository.findByIdAndSpecId(commentId, specId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글이거나 해당 스펙에 속하지 않는 댓글입니다. ID: " + commentId));
+
+        User writer = comment.getWriter();
+        if (!writer.getId().equals(userId)) {
+            throw new IllegalArgumentException("댓글 수정은 작성자 본인만 가능합니다. ID: " + writer.getId());
+        }
+
+        comment.updateContent(request.getContent());
+        Comment updatedComment = commentRepository.save(comment);
+
+        String updatedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        CommentUpdateResponse.CommentUpdateData updateData = new CommentUpdateResponse.CommentUpdateData(
+                updatedComment.getId(),
+                updatedComment.getContent(),
+                updatedAt
+        );
+
+        return new CommentUpdateResponse(true, "댓글 수정 성공", updateData);
     }
 }
