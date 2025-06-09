@@ -39,7 +39,7 @@ public class CommentService {
         Integer maxBundle = commentRepository.findMaxBundleBySpecId(specId);
         int newBundle = (maxBundle == null) ? 1 : maxBundle + 1;
 
-        Comment comment = new Comment(spec, null, request.getContent(), newBundle, 0);
+        Comment comment = new Comment(spec, user, null, request.getContent(), newBundle, 0);
         Comment savedComment = commentRepository.save(comment);
 
         CommentPostResponse.CommentData commentData = new CommentPostResponse.CommentData(
@@ -76,7 +76,7 @@ public class CommentService {
             throw new IllegalArgumentException("대댓글에는 답글을 작성할 수 없습니다. 최상위 댓글에만 답글을 작성해주세요.");
         }
 
-        Comment reply = new Comment(spec, parentComment, request.getContent(), parentComment.getBundle(), 1);
+        Comment reply = new Comment(spec, user, parentComment, request.getContent(), parentComment.getBundle(), 1);
         Comment savedReply = commentRepository.save(reply);
 
         ReplyPostResponse.ReplyData replyData = new ReplyPostResponse.ReplyData(
