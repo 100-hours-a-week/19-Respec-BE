@@ -61,4 +61,8 @@ public class Comment extends BaseTimeEntity {
         this.bundle = bundle;
         this.depth = depth;
     }
+
+    public void updateContent(String newContent) {
+        this.content = newContent;
+    }
 }
