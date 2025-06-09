@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,10 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "parent_comment_id", columnDefinition = "BIGINT UNSIGNED")
     private Comment parentComment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "writer_id", columnDefinition = "BIGINT UNSIGNED")
+    private User writer;
+
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     private String content;
 
@@ -48,8 +53,9 @@ public class Comment extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED DEFAULT 0")
     private Integer depth;
 
-    public Comment(Spec spec, Comment parentComment, String content, int bundle, int depth) {
+    public Comment(Spec spec, User writer, Comment parentComment, String content, int bundle, int depth) {
         this.spec = spec;
+        this.writer = writer;
         this.parentComment = parentComment;
         this.content = content;
         this.bundle = bundle;
