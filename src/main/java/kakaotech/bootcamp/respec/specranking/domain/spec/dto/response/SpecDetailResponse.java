@@ -27,6 +27,7 @@ public class SpecDetailResponse {
         private JobField jobField;
         private Rankings rankings;
         private String portfolioUrl;
+        private String assessment;
     }
 
     @Data
