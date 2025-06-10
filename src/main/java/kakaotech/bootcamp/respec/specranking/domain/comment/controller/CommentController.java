@@ -1,13 +1,13 @@
 package kakaotech.bootcamp.respec.specranking.domain.comment.controller;
 
 import jakarta.validation.Valid;
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentRequest;
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentPostResponse;
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.CommentUpdateResponse;
-import kakaotech.bootcamp.respec.specranking.domain.comment.dto.ReplyPostResponse;
+import kakaotech.bootcamp.respec.specranking.domain.comment.dto.*;
+import kakaotech.bootcamp.respec.specranking.domain.comment.service.CommentQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.comment.service.CommentService;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
 
     private final CommentService commentService;
+    private final CommentQueryService commentQueryService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -48,5 +49,12 @@ public class CommentController {
             @PathVariable Long specId,
             @PathVariable Long commentId) {
         return commentService.deleteComment(specId, commentId);
+    }
+
+    @GetMapping
+    public CommentListResponse getComments(
+            @PathVariable Long specId,
+            @PageableDefault(size = 5) Pageable pageable) {
+        return commentQueryService.getComments(specId, pageable);
     }
 }

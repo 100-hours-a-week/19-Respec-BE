@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface CommentRepository extends JpaRepository<Comment, Long> {
+public interface CommentRepository extends JpaRepository<Comment, Long>, CommentRepositoryCustom {
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.spec.id = :specId")
     Long countBySpecId(@Param("specId") Long specId);
 
