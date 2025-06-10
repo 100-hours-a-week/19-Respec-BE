@@ -9,7 +9,7 @@ env:
   CODEDEPLOY_APP: respec-be-codedeploy
   DEPLOY_GROUP: respec-be-deploy-group
   S3_BUCKET: specranking-deploy-bucket
-  ACCOUNT_ID: 115313776476 # ✅ 실제 계정 ID로 변경
+  ACCOUNT_ID: 115313776476
 
 jobs:
   build-and-deploy:
@@ -34,8 +34,8 @@ jobs:
             echo "❌ Unknown branch"
             exit 1
           fi
-          echo "TAG=${ENV}-${SHORT_SHA}" >> $GITHUB_ENV
-          echo "REPO_NAME=specranking-backend-${ENV}" >> $GITHUB_ENV
+          echo "TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "REPO_NAME=specranking-backend-${BRANCH_NAME}" >> $GITHUB_ENV
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -61,6 +61,12 @@ jobs:
           IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
+
+      - name: Inject variables into start.sh
+        run: |
+          envsubst < start.sh > start.sh.tmp && mv start.sh.tmp start.sh
+          chmod +x start.sh
+          chmod +x stop.sh
 
       - name: Package deploy bundle
         run: |
