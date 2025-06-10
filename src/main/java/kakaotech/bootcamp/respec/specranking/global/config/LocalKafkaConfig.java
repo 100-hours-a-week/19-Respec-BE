@@ -19,7 +19,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @Configuration
-@Profile("local")
+@Profile({"local", "chat"})
 public class LocalKafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
