@@ -64,10 +64,11 @@ public class SpecService {
         validateMultipleSpec(userId);
 
         String portfolioUrl = "";
-        String originName = portfolioFile.getOriginalFilename();
+        String originName = "";
 
         if (existsPortfolioFile(portfolioFile)) {
             portfolioUrl = fileStore.upload(portfolioFile);
+            originName = portfolioFile.getOriginalFilename();
         }
 
         AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToAiRequest(request, user.getNickname(),
@@ -94,11 +95,11 @@ public class SpecService {
         String portfolioUrl = "";
         String originName = "";
 
-        if (!existsPortfolioFile(portfolioFile)) {
+        if (!existsPortfolioFile(portfolioFile) && request.getIsVisiblePortfolioToUser()) {
             Portfolio portfolio = portfolioRepository.findBySpecId(specId).orElseThrow();
             portfolioUrl = portfolio.getFileUrl();
             originName = portfolio.getOriginName();
-        } else {
+        } else if (existsPortfolioFile(portfolioFile)) {
             portfolioUrl = fileStore.upload(portfolioFile);
             originName = portfolioFile.getOriginalFilename();
         }
