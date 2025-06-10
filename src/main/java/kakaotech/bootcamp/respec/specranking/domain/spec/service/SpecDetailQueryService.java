@@ -101,6 +101,8 @@ public class SpecDetailQueryService {
             response.setPortfolioUrl("");
         }
 
+        response.setAssessment(spec.getAssessment());
+
         return new SpecDetailResponse(true, "세부 스펙 조회 성공!", response);
 
     }
