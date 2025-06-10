@@ -25,4 +25,7 @@ public class AiPostSpecResponse {
 
     @JsonProperty("totalScore")
     private Double totalScore = 0.0;
+
+    @JsonProperty("assessment")
+    private String assessment = "";
 }

@@ -61,6 +61,9 @@ public class Spec extends BaseTimeEntity {
     @Column(name = "total_analysis_score", nullable = false, columnDefinition = "DOUBLE")
     private Double totalAnalysisScore;
 
+    @Column(name = "assessment", nullable = false, columnDefinition = "VARCHAR(255)")
+    private String assessment;
+
     @Column(name = "bookmark_count", nullable = false, columnDefinition = "BIGINT UNSIGNED DEFAULT 0")
     private Long bookmarkCount;
 
@@ -76,7 +79,7 @@ public class Spec extends BaseTimeEntity {
             , Double workExperienceScore
             , Double activityNetworkingScore
             , Double certificationScore
-            , Double englishSkillScore, Double totalAnalysisScore) {
+            , Double englishSkillScore, Double totalAnalysisScore, String assessment) {
         this.user = user;
         this.jobField = jobField;
         this.educationScore = educationScore;
@@ -85,6 +88,7 @@ public class Spec extends BaseTimeEntity {
         this.certificationScore = certificationScore;
         this.englishSkillScore = englishSkillScore;
         this.totalAnalysisScore = totalAnalysisScore;
+        this.assessment = assessment;
         this.bookmarkCount = 0L;
         this.commentCount = 0L;
         this.status = SpecStatus.ACTIVE;
@@ -99,7 +103,8 @@ public class Spec extends BaseTimeEntity {
                 aiResponse.getActivityNetworkingScore(),
                 aiResponse.getCertificationScore(),
                 aiResponse.getLanguageSkillScore(),
-                aiResponse.getTotalScore()
+                aiResponse.getTotalScore(),
+                aiResponse.getAssessment()
         );
     }
 

@@ -30,6 +30,7 @@ public class MockAiServer implements AiServer {
         Double avgScore = calculateAverageScoreWithBasicField(response);
         Double totalScore = adjustTotalScore(avgScore);
         response.setTotalScore(totalScore);
+        response.setAssessment("스펙에 관한 AI 평가 내용이 들어갑니다.");
         return response;
     }
 
