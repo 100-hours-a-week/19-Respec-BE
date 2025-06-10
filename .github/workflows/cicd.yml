@@ -64,14 +64,14 @@ jobs:
 
       - name: Inject variables into start.sh
         run: |
-          envsubst < start.sh > start.sh.tmp && mv start.sh.tmp start.sh
-          chmod +x start.sh
-          chmod +x stop.sh
+          envsubst < scripts/start.sh > scripts/start.sh.tmp && mv start.sh.tmp scripts/start.sh
+          chmod +x scripts/start.sh
+          chmod +x scripts/stop.sh
 
       - name: Package deploy bundle
         run: |
           mkdir -p artifacts
-          zip -r artifacts/backend-deploy.zip appspec.yml start.sh stop.sh
+          zip -r artifacts/backend-deploy.zip appspec.yml scripts/start.sh scripts/stop.sh
 
       - name: Upload to S3
         run: |
