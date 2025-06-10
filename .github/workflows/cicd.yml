@@ -9,6 +9,7 @@ env:
   CODEDEPLOY_APP: respec-be-codedeploy
   DEPLOY_GROUP: respec-be-deploy-group
   S3_BUCKET: specranking-deploy-bucket
+  ACCOUNT_ID: 115313776476 # ✅ 실제 계정 ID로 변경
 
 jobs:
   build-and-deploy:
@@ -25,20 +26,16 @@ jobs:
 
           if [[ "$BRANCH_NAME" == "dev" ]]; then
             echo "ENV=dev" >> $GITHUB_ENV
-            echo "ECR_REPO=specranking-backend-dev" >> $GITHUB_ENV
-            echo "TAG=dev-${SHORT_SHA}" >> $GITHUB_ENV
           elif [[ "$BRANCH_NAME" == "stage" ]]; then
             echo "ENV=stage" >> $GITHUB_ENV
-            echo "ECR_REPO=specranking-backend-stage" >> $GITHUB_ENV
-            echo "TAG=stage-${SHORT_SHA}" >> $GITHUB_ENV
           elif [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ENV=prod" >> $GITHUB_ENV
-            echo "ECR_REPO=specranking-backend-prod" >> $GITHUB_ENV
-            echo "TAG=prod-${SHORT_SHA}" >> $GITHUB_ENV
           else
             echo "❌ Unknown branch"
             exit 1
           fi
+          echo "TAG=${ENV}-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "REPO_NAME=specranking-backend-${ENV}" >> $GITHUB_ENV
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -61,15 +58,11 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          IMAGE_URI=$(aws ecr describe-repositories \
-            --repository-names $ECR_REPO \
-            --query 'repositories[0].repositoryUri' \
-            --output text --region $AWS_REGION)
+          IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
 
-          docker build -t $IMAGE_URI:$TAG .
-          docker push $IMAGE_URI:$TAG
-
-      - name: Package deploy bundle (start/stop script + appspec.yml)
+      - name: Package deploy bundle
         run: |
           mkdir -p artifacts
           zip -r artifacts/backend-deploy.zip appspec.yml start.sh stop.sh
