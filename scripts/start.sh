@@ -16,7 +16,7 @@ echo "📦 application.properties 템플릿 생성 중..."
 mkdir -p /app/config
 
 # 템플릿 생성 (작은 따옴표로 변수 치환 방지)
-cat <<'EOF' > $CONFIG_TEMPLATE_PATH
+cat <<'EOF' > $CONFIG PATH
 spring.datasource.url=${SPRING_DATASOURCE_URL}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
