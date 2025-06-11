@@ -1,17 +1,20 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
 import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
-import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
+import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.*;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +23,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,77 +33,58 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
 
+    private final AuthService authService;
     private final UserService userService;
-    private final JWTUtil jwtUtil;
 
-    // 허용된 이미지 타입
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png"
     );
 
-    // 최대 파일 크기 (10MB)
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final String TEMP_LOGIN_ID = "TempLoginId";
+    private static final String ACCESS = "access";
+    private static final Long ACCESS_EXP = 1000L * 60; // 1분
 
-    // 회원가입 (멀티파트 폼 데이터)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createUser(
+    public UserSignupResponseDto createUser(
             @RequestPart("nickname") String nickname,
             @RequestPart("loginId") String loginId,
             @RequestPart(value = "userProfileUrl", required = false) MultipartFile profileImage,
-            HttpServletRequest httpRequest,
             HttpServletResponse response) {
 
         if (loginId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "isSuccess", false,
-                    "message", "loginId가 필요합니다."
-            ));
+            return UserSignupResponseDto.fail("loginId가 필요합니다.");
         }
 
-        // 이미지 파일이 있는 경우 유효성 검사
         if (profileImage != null && !profileImage.isEmpty()) {
-            // 파일 타입 검사
             String contentType = profileImage.getContentType();
+
             if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of(
-                        "isSuccess", false,
-                        "message", "PNG 또는 JPG 형식의 이미지만 업로드 가능합니다."
-                ));
+                return UserSignupResponseDto.fail("PNG 또는 JPG 형식의 이미지만 업로드 가능합니다.");
             }
 
-            // 파일 크기 검사
             if (profileImage.getSize() > MAX_FILE_SIZE) {
-                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
-                        "isSuccess", false,
-                        "message", "이미지 크기는 10MB 이하여야 합니다."
-                ));
+                return UserSignupResponseDto.fail("이미지 크기는 10MB 이하여야 합니다.");
             }
         }
 
         try {
-            UserSignupRequestDto requestDto = new UserSignupRequestDto(loginId, nickname, null);
-            UserResponseDto user = userService.signup(requestDto, profileImage);
+            UserSignupRequestDto signupRequestDto = new UserSignupRequestDto(loginId, nickname, null);
+            UserResponseDto user = userService.signup(signupRequestDto, profileImage);
 
-            // JWT 생성 (userId, loginId 포함)
-            String token = jwtUtil.createJwts(user.getId(), loginId, 1000L * 60 * 60 * 24);
+            CookieUtils.deleteCookie(response, TEMP_LOGIN_ID);
 
-            // TempLoginId 쿠키 삭제
-            CookieUtils.deleteCookie(httpRequest, response, "TempLoginId");
+            AuthTokenRequestDto requestDto = new AuthTokenRequestDto(user.getId(), signupRequestDto.getLoginId());
+            AuthTokenResponseDto responseDto = authService.issueToken(requestDto, false);
+            authService.convertTokenToResponse(responseDto, response);
 
-            // 새 authorization 쿠키 설정
-            CookieUtils.addCookie(response, "Authorization", token, 60 * 60 * 24);
+            CookieUtils.addCookie(response, ACCESS, responseDto.accessToken(), (int) (ACCESS_EXP / 1000));
 
-            return ResponseEntity.ok(user);
+            return UserSignupResponseDto.success(user);
         } catch (DuplicateNicknameException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                    "isSuccess", false,
-                    "message", e.getMessage()
-            ));
+            throw e;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "isSuccess", false,
-                    "message", "회원가입 중 오류가 발생했습니다: " + e.getMessage()
-            ));
+            return UserSignupResponseDto.fail("회원가입 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
@@ -162,29 +145,5 @@ public class UserController {
     public SimpleResponseDto updateUserVisibility(@RequestBody @Valid UserVisibilityRequest request) {
         userService.updateUserVisibility(request.getIsPublic());
         return new SimpleResponseDto(true, "스펙 공개여부 변경 성공");
-    }
-}
-
-class NicknameCheckResponse {
-    private boolean available;
-
-    public NicknameCheckResponse(boolean available) {
-        this.available = available;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-}
-
-class ErrorResponse {
-    private String message;
-
-    public ErrorResponse(String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
     }
 }

@@ -1,60 +1,108 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.service;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
-import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.RefreshTokenCreateDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.entity.RefreshToken;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
-import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
+import kakaotech.bootcamp.respec.specranking.domain.auth.repository.RefreshTokenRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
+import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final OAuthRepository oAuthRepository;
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    // JWT 발급
-    public AuthTokenResponseDto issueToken(AuthTokenRequestDto dto) {
-        // provider + providerId로 OAuth 사용자 찾기
-        Optional<OAuth> optOAuth = oAuthRepository.findByProviderNameAndProviderId(
-                OAuthProvider.valueOf(dto.getProvider()),
-                dto.getProviderId()
-        );
+    public static final String BEARER_PREFIX = "Bearer ";
+    public static final String ACCESS = "access";
+    public static final String REFRESH = "refresh";
 
-        if (optOAuth.isEmpty()) {
-            throw new RuntimeException("OAuth 정보가 존재하지 않습니다.");
-        }
+    private static final Long ACCESS_EXP = 1000L * 60 * 10; // 10분
+    private static final Long REFRESH_EXP = 1000L * 60 * 60 * 24 * 7; // 7일
 
-        OAuth oAuth = optOAuth.get();
-        User user = oAuth.getUser();
+    public AuthTokenResponseDto issueToken(AuthTokenRequestDto dto, boolean isReissue) {
+        String access = jwtUtil.createJwts(ACCESS, dto.getId(), dto.getLoginId(), ACCESS_EXP);
+        String refresh = jwtUtil.createJwts(REFRESH, dto.getId(), dto.getLoginId(), REFRESH_EXP);
 
-        if (user == null) {
-            throw new RuntimeException("아직 회원가입이 완료되지 않은 사용자입니다.");
-        }
+        User user = userRepository.findById(dto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        saveRefreshToken(user, refresh, isReissue);
 
-        // 유효기간 1시간인 엑세스 토큰 발급
-        String accessToken = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60);
-        // 유효기간 24시간인 리프레시 토큰 발급
-        String refreshToken = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60 * 24);
-
-        return new AuthTokenResponseDto(accessToken, refreshToken);
+        return AuthTokenResponseDto.success(access, refresh);
     }
 
-    // 로그아웃
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
-        // 쿠키 삭제를 위해 만료시간을 0으로 설정한 쿠키 생성
-        CookieUtils.deleteCookie(request, response, "Authorization");
+    public void reissueTokens(HttpServletRequest request, HttpServletResponse response) {
+        String refresh = CookieUtils.getCookie(request, REFRESH)
+                .map(Cookie::getValue)
+                .orElseThrow(() -> new IllegalArgumentException("refresh 토큰이 없습니다."));
+
+        validateExpired(refresh);
+        validateCategory(refresh);
+        validateRefreshExists(refresh);
+
+        Long userId = jwtUtil.getUserId(refresh);
+        String loginId = jwtUtil.getLoginId(refresh);
+
+        AuthTokenResponseDto dto = issueToken(new AuthTokenRequestDto(userId, loginId), true);
+        convertTokenToResponse(dto, response);
+    }
+
+    public void convertTokenToResponse(AuthTokenResponseDto dto, HttpServletResponse response) {
+        response.setHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + dto.accessToken());
+        CookieUtils.addCookie(response, REFRESH, dto.refreshToken(), (int) (REFRESH_EXP / 1000));
+    }
+
+    public void deleteByExpirationBefore(LocalDateTime currentTime) {
+        refreshTokenRepository.deleteAllByExpirationBefore(currentTime);
+    }
+
+    private void saveRefreshToken(User user, String refresh, boolean isReissue) {
+        if (isReissue) {
+            refreshTokenRepository.deleteAllByUser(user);
+        }
+
+        LocalDateTime expiration = LocalDateTime.now().plus(Duration.ofMillis(REFRESH_EXP));
+        RefreshTokenCreateDto dto = new RefreshTokenCreateDto(user, refresh, expiration);
+        RefreshToken refreshToken = new RefreshToken(dto.getUser(), dto.getValue(), dto.getExpiration());
+        refreshTokenRepository.save(refreshToken);
+    }
+
+    private void validateExpired(String refresh) {
+        try {
+            jwtUtil.isExpired(refresh);
+        } catch (ExpiredJwtException e) {
+            throw new IllegalArgumentException("refresh 토큰이 만료되었습니다.");
+        }
+    }
+
+    private void validateCategory(String refresh) {
+        String category = jwtUtil.getCategory(refresh);
+        if (!category.equals(REFRESH)) {
+            throw new IllegalArgumentException("유효하지 않은 refresh 토큰입니다.");
+        }
+    }
+
+    private void validateRefreshExists(String refresh) {
+        Boolean isExist = refreshTokenRepository.existsByValue(refresh);
+        if (!isExist) {
+            throw new IllegalArgumentException("refresh 토큰이 DB에 존재하지 않습니다.");
+        }
     }
 }
