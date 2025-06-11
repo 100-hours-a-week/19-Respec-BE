@@ -15,6 +15,7 @@ LOG_FILE=/home/ec2-user/backend.log
 echo "📦 application.properties 템플릿 생성 중..."
 mkdir -p /app/config
 sudo chown -R ec2-user:ec2-user /app/config
+echo "DEBUG: CONFIG_TEMPLATE_PATH is '$CONFIG_TEMPLATE_PATH'"
 
 # 템플릿 생성 (uc791은 따옴포함으로 변수 치환 방지)
 cat <<'EOF' > "$CONFIG_TEMPLATE_PATH"
