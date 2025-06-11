@@ -3,23 +3,23 @@ set -e
 
 AWS_REGION="ap-northeast-2"
 ACCOUNT_ID="115313776476"
-ENV="${ENV:-prod}"
+ENV="${ENV:-dev}"
 TAG="${TAG:-}"
 
 REPO_NAME="specranking-backend-${ENV}"
 
-# ✅ 자동 태그 조회
+# 최신 태그 자동 조회
 if [[ -z "$TAG" ]]; then
   TAG=$(aws ecr describe-images \
     --repository-name "$REPO_NAME" \
     --region "$AWS_REGION" \
     --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
     --output text)
-  echo "📦 자동으로 최신 태그 조회됨: $TAG"
+  echo "📦 자동 조회된 최신 ECR 태그: $TAG"
 fi
 
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
-echo "🔗 IMAGE=$IMAGE"
+echo "🔗 IMAGE=$IMAGE, ENV=$ENV, TAG=$TAG"
 
 
 #완성되면 app1 ->app 으로 수정
