@@ -1,18 +1,20 @@
 package kakaotech.bootcamp.respec.specranking.domain.bookmark.controller;
 
+import kakaotech.bootcamp.respec.specranking.domain.bookmark.dto.BookmarkCreateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.dto.BookmarkListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.service.BookmarkQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.bookmark.service.BookmarkService;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/bookmarks")
 @RequiredArgsConstructor
 public class BookmarkController {
 
+    private final BookmarkService bookmarkService;
     private final BookmarkQueryService bookmarkqueryService;
 
     @GetMapping
@@ -20,5 +22,18 @@ public class BookmarkController {
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
         return bookmarkqueryService.getBookmarkList(cursor, limit);
+    }
+
+    @PostMapping("/specs/{specId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookmarkCreateResponse createBookmark(@PathVariable Long specId) {
+        Long bookmarkId = bookmarkService.createBookmark(specId);
+        return new BookmarkCreateResponse(true, "즐겨찾기 등록 성공", bookmarkId);
+    }
+
+    @DeleteMapping("/{bookmarkId}")
+    public SimpleResponseDto deleteBookmark(@PathVariable Long bookmarkId) {
+        bookmarkService.deleteBookmark(bookmarkId);
+        return new SimpleResponseDto(true, "즐겨찾기 해제 성공");
     }
 }
