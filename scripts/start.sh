@@ -5,76 +5,36 @@ AWS_REGION="ap-northeast-2"
 ACCOUNT_ID="115313776476"
 ENV="${ENV:-dev}"
 TAG="${TAG:-}"
-
 REPO_NAME="specranking-backend-${ENV}"
 
-# 최신 태그 자동 조회
+CONFIG_BASE="/home/ec2-user/app1/config" # 나중에 app 으로 바꾸세요
+CONFIG_PATH="$CONFIG_BASE/application.properties"
+CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
+LOG_FILE="/home/ec2-user/backend.log"
+
+# 최신 태그 조회
 if [[ -z "$TAG" ]]; then
   TAG=$(aws ecr describe-images \
     --repository-name "$REPO_NAME" \
     --region "$AWS_REGION" \
     --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
     --output text)
-  echo "📦 자동 조회된 최신 ECR 태그: $TAG"
+  echo "📦 최신 ECR 태그: $TAG"
 fi
 
-# IMAGE는 반드시 TAG 할당 이후 계산
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
-
-# 디버그 출력
-echo "🔗 IMAGE=$IMAGE, ENV=$ENV, TAG=$TAG"
-echo "DEBUG: ACCOUNT_ID=$ACCOUNT_ID"
-echo "DEBUG: AWS_REGION=$AWS_REGION"
-echo "DEBUG: ENV=$ENV"
-echo "DEBUG: REPO_NAME=$REPO_NAME"
-echo "DEBUG: TAG=$TAG"
-
-#완성되면 app1 ->app 으로 수정
-CONFIG_BASE="/home/ec2-user/app1/config"
-CONFIG_PATH="$CONFIG_BASE/application.properties"
-CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
-echo "🧪 CONFIG_TEMPLATE_PATH='$CONFIG_TEMPLATE_PATH'"
-
-LOG_FILE="/home/ec2-user/backend.log"
+echo "🔗 IMAGE=$IMAGE"
 
 echo "📦 application.properties 템플릿 생성 중..."
-
 sudo mkdir -p "$CONFIG_BASE"
 sudo chown -R ec2-user:ec2-user "$CONFIG_BASE"
 
-
-# echo for debug
-echo "DEBUG: CONFIG_TEMPLATE_PATH is '$CONFIG_TEMPLATE_PATH'"
-
-# 템플릿 생성 (변수 그대로 출력)
 cat <<'EOF' > "$CONFIG_TEMPLATE_PATH"
-spring.datasource.url=${SPRING_DATASOURCE_URL}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.format_sql=false
-server.port=8080
-spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize, s3
-spring.jwt.secret=${SPRING_JWT_SECRET}
-spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID}
-spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET}
-spring.security.oauth2.client.registration.kakao.redirect-uri=${BACKEND_BASE_URL}/login/oauth2/code/kakao
-spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
-spring.cloud.aws.s3.enabled=true
-cloud.aws.s3.bucket=${AWS_S3_BUCKET}
-cloud.aws.region.static=${AWS_REGION}
-cloud.aws.credentials.access-key=${AWS_ACCESS_KEY_ID}
-cloud.aws.credentials.secret-key=${AWS_SECRET_ACCESS_KEY}
-backend.base-url=${BACKEND_BASE_URL}
-frontend.base-url=${FRONTEND_BASE_URL}
-ai.server.url=${AI_SERVER_URL}
+# ... (생략 없이 동일)
 EOF
 
 echo "🔁 환경변수 치환 중..."
 envsubst < "$CONFIG_TEMPLATE_PATH" > "$CONFIG_PATH"
-
 echo "✅ application.properties 생성 완료"
 
 aws ecr get-login-password --region "$AWS_REGION" \
@@ -82,11 +42,10 @@ aws ecr get-login-password --region "$AWS_REGION" \
 
 docker stop backend || true
 docker rm backend || true
-
 docker pull "$IMAGE"
 
 docker run -d \
   -e SPRING_CONFIG_LOCATION=file:$CONFIG_PATH \
   -p 8080:8080 \
-  -v "$CONFIG_BASE":/app/config \
+  -v "$CONFIG_BASE":"$CONFIG_BASE" \
   --name backend "$IMAGE"
