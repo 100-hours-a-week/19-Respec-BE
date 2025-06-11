@@ -15,8 +15,8 @@ LOG_FILE=/home/ec2-user/backend.log
 echo "📦 application.properties 템플릿 생성 중..."
 mkdir -p /app/config
 
-# 템플릿 생성 (작은 따옴표로 변수 치환 방지)
-cat <<'EOF' > $CONFIG PATH
+# 템플릿 생성 (uc791은 따옴포함으로 변수 치환 방지)
+cat <<'EOF' > "$CONFIG_TEMPLATE_PATH"
 spring.datasource.url=${SPRING_DATASOURCE_URL}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
@@ -42,7 +42,7 @@ ai.server.url=${AI_SERVER_URL}
 EOF
 
 echo "🔁 환경변수 적용 중..."
-envsubst < $CONFIG_TEMPLATE_PATH > $CONFIG_PATH
+envsubst < "$CONFIG_TEMPLATE_PATH" > "$CONFIG_PATH"
 
 echo "✅ application.properties 생성 완료"
 
@@ -52,12 +52,12 @@ aws ecr get-login-password --region $AWS_REGION \
 docker stop backend || true
 docker rm backend || true
 
-docker pull $IMAGE
+docker pull "$IMAGE"
 
 docker run -d \
   -e SPRING_CONFIG_LOCATION=file:$CONFIG_PATH \
   -p 8080:8080 \
   -v /app/config:/app/config \
-  --name backend $IMAGE
+  --name backend "$IMAGE"
 
 echo "🚀 백엔드 컨테이너 시작됨: $IMAGE"
