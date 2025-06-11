@@ -19,7 +19,8 @@ LOG_FILE="/home/ec2-user/backend.log"
 echo "📦 application.properties 템플릿 생성 중..."
 
 sudo mkdir -p "$CONFIG_BASE"
-sudo chown -R ec2-user:ec2-user "$(dirname "$CONFIG_BASE")"
+sudo chown -R ec2-user:ec2-user "$CONFIG_BASE"
+
 
 # echo for debug
 echo "DEBUG: CONFIG_TEMPLATE_PATH is '$CONFIG_TEMPLATE_PATH'"
@@ -66,5 +67,5 @@ docker pull "$IMAGE"
 docker run -d \
   -e SPRING_CONFIG_LOCATION=file:$CONFIG_PATH \
   -p 8080:8080 \
-  -v /app/config:/app/config \
+  -v "$CONFIG_BASE":/app/config \
   --name backend "$IMAGE"
