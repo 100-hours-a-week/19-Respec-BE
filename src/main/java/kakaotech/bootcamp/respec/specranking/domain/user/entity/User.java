@@ -67,4 +67,47 @@ public class User extends BaseTimeEntity {
         this.role = UserRole.ROLE_USER;
         this.status = UserStatus.ACTIVE;
     }
+
+    public User updateNickname(String newNickname) {
+        return new User(
+                this.id,
+                this.loginId,
+                this.password,
+                this.userProfileUrl,
+                newNickname,
+                this.isOpenSpec,
+                this.role,
+                this.status
+        );
+    }
+
+    public User updateProfileImageUrl(String newProfileImageUrl) {
+        return new User(
+                this.id,
+                this.loginId,
+                this.password,
+                newProfileImageUrl,
+                this.nickname,
+                this.isOpenSpec,
+                this.role,
+                this.status
+        );
+    }
+
+    public User updateNicknameAndProfileImageUrl(String newNickname, String newProfileImageUrl) {
+        return new User(
+                this.id,
+                this.loginId,
+                this.password,
+                newProfileImageUrl,
+                newNickname,
+                this.isOpenSpec,
+                this.role,
+                this.status
+        );
+    }
+
+    public void updateIsOpenSpec(Boolean isOpenSpec) {
+        this.isOpenSpec = isOpenSpec;
+    }
 }

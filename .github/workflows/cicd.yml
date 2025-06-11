@@ -1,148 +1,96 @@
-name: Deploy Backend to EC2
+name: Backend CI/CD
 
 on:
   push:
-    branches:
-      - stage
+    branches: [dev, stage, main]
+
+env:
+  AWS_REGION: ap-northeast-2
+  CODEDEPLOY_APP: respec-be-codedeploy
+  DEPLOY_GROUP: respec-be-deploy-group
+  S3_BUCKET: specranking-deploy-bucket
+  ACCOUNT_ID: 115313776476
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
-    env:
-      SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
-      SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      SPRING_JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-      KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
-      BACKEND_BASE_URL: ${{ secrets.BACKEND_BASE_URL }}
-      FRONTEND_BASE_URL: ${{ secrets.FRONTEND_BASE_URL }}
-      AI_SERVER_URL: ${{ secrets.AI_SERVER_URL }}
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Set environment variables
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          BRANCH_NAME=${GITHUB_REF##*/}
+
+          if [[ "$BRANCH_NAME" == "dev" ]]; then
+            echo "ENV=dev" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == "stage" ]]; then
+            echo "ENV=stage" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          else
+            echo "❌ Unknown branch"
+            exit 1
+          fi
+          echo "TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "REPO_NAME=specranking-backend-${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build JAR with Gradle
+        run: ./gradlew clean build -x test
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v0.1.6
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker image
+        run: |
+          IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Inject variables into start.sh
+        run: |
+          envsubst < scripts/start.sh > scripts/start.sh.tmp && mv scripts/start.sh.tmp scripts/start.sh
+          chmod +x scripts/start.sh
+          chmod +x scripts/stop.sh
+
+      - name: Package deploy bundle
+        run: |
+          mkdir -p artifacts
+          zip -r artifacts/backend-deploy.zip appspec.yml scripts/start.sh scripts/stop.sh
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp artifacts/backend-deploy.zip s3://$S3_BUCKET/$ENV/backend-deploy-$TAG.zip
+
+      - name: Manual approval for stage/prod
+        if: env.ENV != 'dev'
+        uses: trstringer/manual-approval@v1
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: SPRING_DATASOURCE_URL,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,SPRING_JWT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,BACKEND_BASE_URL,FRONTEND_BASE_URL,AI_SERVER_URL,AWS_S3_BUCKET,AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
-          script: |
-            REPO_DIR=19-Respec-BE
-            LOG_FILE=/home/ec2-user/backend.log
-            CONFIG_PATH=src/main/resources/application.properties
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: donghyeon
+          minimum-approvals: 1
+          issue-title: "Approve backend deploy to ${{ env.ENV }}"
+          issue-body: "ECR Tag: ${{ env.TAG }}"
 
-            echo "📁 코드 클론 또는 진입"
-            if [ ! -d "$REPO_DIR" ]; then
-              git clone https://github.com/100-hours-a-week/19-Respec-BE.git
-            fi
-            cd $REPO_DIR
-            git fetch origin
-            git checkout stage
-            git reset --hard origin/stage
-
-            echo "📦 application.properties 생성 시작..."
-            cat <<EOF > $CONFIG_PATH
-            spring.datasource.url=$SPRING_DATASOURCE_URL
-            spring.datasource.username=$SPRING_DATASOURCE_USERNAME
-            spring.datasource.password=$SPRING_DATASOURCE_PASSWORD
-            spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-            spring.jpa.hibernate.ddl-auto=none
-            spring.jpa.show-sql=false
-            spring.jpa.properties.hibernate.format_sql=false
-            server.port=8080
-            spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize, s3
-
-            spring.jwt.secret=$SPRING_JWT_SECRET
-
-            spring.security.oauth2.client.registration.kakao.client-name=kakao
-            spring.security.oauth2.client.registration.kakao.client-id=$KAKAO_CLIENT_ID
-            spring.security.oauth2.client.registration.kakao.client-secret=$KAKAO_CLIENT_SECRET
-            spring.security.oauth2.client.registration.kakao.redirect-uri=\${backend.base-url}/login/oauth2/code/kakao
-            spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code
-            spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post
-
-            spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize
-            spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
-            spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
-            spring.security.oauth2.client.provider.kakao.user-name-attribute=id
-
-            spring.cloud.aws.s3.enabled=true
-            spring.cloud.aws.stack.auto=false
-            cloud.aws.s3.bucket=$AWS_S3_BUCKET
-            cloud.aws.region.static=$AWS_REGION
-            cloud.aws.credentials.access-key=$AWS_ACCESS_KEY_ID
-            cloud.aws.credentials.secret-key=$AWS_SECRET_ACCESS_KEY
-
-            logging.level.org.springframework.security.oauth2.client=DEBUG
-            logging.level.org.springframework.web.client.RestTemplate=DEBUG
-            mock.login.user=false
-
-            backend.base-url=$BACKEND_BASE_URL
-            frontend.base-url=$FRONTEND_BASE_URL
-            frontend.redirect-url=\${frontend.base-url}/oauth-redirect
-            spring.graphql.cors.allowed-origins=\${frontend.base-url}
-            ai.server.url=http://34.22.82.133:8000
-            ai.server.url.path=/spec/v1/post
-            EOF
-
-            echo "✅ application.properties 생성 완료"
-
-            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
-            export PATH=$JAVA_HOME/bin:$PATH
-
-            echo "🚀 Spring Boot 빌드 시작..."
-            ./gradlew clean build -x test || { echo "❌ 빌드 실패"; exit 1; }
-
-            echo "📦 실행 가능한 JAR 선택 중..."
-            JAR_FILE=$(find build/libs -name "*.jar" ! -name "*plain*" | head -n 1)
-            if [ -z "$JAR_FILE" ]; then
-              echo "❌ 실행 가능한 JAR 파일을 찾을 수 없습니다."
-              exit 1
-            fi
-
-            echo "🛑 기존 프로세스 종료 (있다면)..."
-            sudo fuser -k -n tcp 8080 || true
-            sleep 2
-
-            echo "🚀 새로운 백엔드 실행 (nohup)..."
-            echo "START: $(date)" >> "$LOG_FILE"
-            nohup java -jar "$JAR_FILE" --server.port=8080 >> "$LOG_FILE" 2>&1 &
-
-
-            echo "⏳ 실행 대기 중..."
-            for i in {1..10}; do
-              BACKEND_PID=$(pgrep -f 'java -jar')
-              if [ -n "$BACKEND_PID" ]; then
-                echo "✅ 백엔드 실행 성공 (PID: $BACKEND_PID)"
-                echo "📄 로그 미리보기:"
-                [ -f "$LOG_FILE" ] && tail -n 20 "$LOG_FILE" || echo "❌ backend.log 없음"
-                exit 0
-              fi
-              sleep 1
-            done
-
-            echo "❌ Spring Boot 실행 실패. 로그 확인:"
-            echo "📄 backend.log"
-            [ -f "$LOG_FILE" ] && tail -n 50 "$LOG_FILE" || echo "❌ backend.log 없음"
-
-            echo "📄 nohup.out"
-            [ -f ~/nohup.out ] && tail -n 50 ~/nohup.out || echo "❌ nohup.out 없음"
-
-            exit 1
+      - name: Trigger CodeDeploy deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name $CODEDEPLOY_APP \
+            --deployment-group-name $DEPLOY_GROUP \
+            --s3-location bucket=$S3_BUCKET,key=$ENV/backend-deploy-$TAG.zip,bundleType=zip \
+            --region $AWS_REGION

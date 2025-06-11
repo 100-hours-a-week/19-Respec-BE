@@ -14,4 +14,5 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Query("SELECT COUNT(b) FROM Bookmark b WHERE b.spec.id = :specId")
     Long countBySpecId(@Param("specId") Long specId);
 
+    boolean existsBySpecIdAndUserId(Long specId, Long userId);
 }

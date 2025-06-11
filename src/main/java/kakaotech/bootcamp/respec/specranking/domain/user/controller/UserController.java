@@ -3,14 +3,17 @@ package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
+import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupResponseDto;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.*;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -128,5 +131,19 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
         userService.deleteUser(userDto.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me")
+    public UserUpdateResponse updateUser(
+            @ModelAttribute @Valid UserUpdateRequest request,
+            @RequestPart(value = "profileImageUrl", required = false) MultipartFile profileImageUrl) {
+
+        return userService.updateUser(request, profileImageUrl);
+    }
+
+    @PatchMapping("/me/visibility")
+    public SimpleResponseDto updateUserVisibility(@RequestBody @Valid UserVisibilityRequest request) {
+        userService.updateUserVisibility(request.getIsPublic());
+        return new SimpleResponseDto(true, "스펙 공개여부 변경 성공");
     }
 }

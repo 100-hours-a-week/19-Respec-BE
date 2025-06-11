@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.validation.constraints.NotNull;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
@@ -16,10 +18,14 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecReposito
 import kakaotech.bootcamp.respec.specranking.domain.store.service.ImageFileStore;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateRequest;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
+import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -142,6 +148,45 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public UserUpdateResponse updateUser(UserUpdateRequest request, MultipartFile profileImageUrl) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+
+        boolean hasNicknameUpdate = request != null && request.hasNickname();
+        boolean hasProfileImageUpdate = profileImageUrl != null && !profileImageUrl.isEmpty();
+
+        if (!hasNicknameUpdate && !hasProfileImageUpdate) {
+            throw new IllegalArgumentException("수정할 정보가 없습니다.");
+        }
+
+        if (hasNicknameUpdate) {
+            validateNicknameDuplication(request.getNickname(), userId);
+        }
+
+        String newProfileImageUrl = null;
+        if (hasProfileImageUpdate) {
+            newProfileImageUrl = imageFileStore.upload(profileImageUrl);
+        }
+
+        User updatedUser = updateUserEntity(user, hasNicknameUpdate ? request.getNickname() : null, newProfileImageUrl);
+
+        User savedUser = userRepository.save(updatedUser);
+        return UserUpdateResponse.success(savedUser);
+    }
+
+    public void updateUserVisibility(Boolean isPublic) {
+        Optional<Long> optUserId = UserUtils.getCurrentUserId();
+        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+
+        user.updateIsOpenSpec(isPublic);
+    }
+
     // UserResponseDto 생성 메소드
     private UserResponseDto createUserResponseDto(User user) {
         return new UserResponseDto(
@@ -150,5 +195,26 @@ public class UserService {
                 user.getUserProfileUrl(),
                 user.getCreatedAt()
         );
+    }
+
+    private void validateNicknameDuplication(String nickname, Long currentUserId) {
+        if (userRepository.existsByNicknameAndIdNot(nickname, currentUserId)) {
+            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+        }
+    }
+
+    private User updateUserEntity(User user, String newNickname, String newProfileImageUrl) {
+        if (newNickname != null && newProfileImageUrl != null) {
+            return user.updateNicknameAndProfileImageUrl(newNickname, newProfileImageUrl);
+        }
+        else if (newNickname != null) {
+            return user.updateNickname(newNickname);
+        }
+        else if (newProfileImageUrl != null) {
+            return user.updateProfileImageUrl(newProfileImageUrl);
+        }
+        else {
+            return user;
+        }
     }
 }
