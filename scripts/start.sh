@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -e
+set -e
 
 AWS_REGION="ap-northeast-2"
 ACCOUNT_ID="115313776476"
@@ -8,15 +8,18 @@ TAG="${TAG:-prod-latest}"
 REPO_NAME="specranking-backend-${ENV}"
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 
-CONFIG_PATH="/app/config/application.properties"
-CONFIG_TEMPLATE_PATH="/app/config/application.properties.template"
+
+CONFIG_BASE="/home/ec2-user/app/config"
+CONFIG_PATH="$CONFIG_BASE/application.properties"
+CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
 echo "🧪 CONFIG_TEMPLATE_PATH='$CONFIG_TEMPLATE_PATH'"
 
 LOG_FILE="/home/ec2-user/backend.log"
 
 echo "📦 application.properties 템플릿 생성 중..."
-sudo mkdir -p /app/config
-sudo chown -R ec2-user:ec2-user /app/config
+
+sudo mkdir -p "$CONFIG_BASE"
+sudo chown -R ec2-user:ec2-user "$(dirname "$CONFIG_BASE")"
 
 # echo for debug
 echo "DEBUG: CONFIG_TEMPLATE_PATH is '$CONFIG_TEMPLATE_PATH'"
@@ -65,5 +68,3 @@ docker run -d \
   -p 8080:8080 \
   -v /app/config:/app/config \
   --name backend "$IMAGE"
-
-echo "🚀 백엔드 컨테이너 시작됨: $IMAGE"
