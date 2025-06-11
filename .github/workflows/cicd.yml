@@ -58,9 +58,24 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+          IMAGE="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPO_NAME }}:${{ env.TAG }}"
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
+
+      - name: Export secrets as env vars
+        run: |
+          echo "SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "SPRING_JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}" >> $GITHUB_ENV
+          echo "FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}" >> $GITHUB_ENV
+          echo "AI_SERVER_URL=${{ secrets.AI_SERVER_URL }}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
 
       - name: Inject variables into start.sh
         run: |
@@ -75,7 +90,7 @@ jobs:
 
       - name: Upload to S3
         run: |
-          aws s3 cp artifacts/backend-deploy.zip s3://$S3_BUCKET/$ENV/backend-deploy-$TAG.zip
+          aws s3 cp artifacts/backend-deploy.zip s3://${{ env.S3_BUCKET }}/${{ env.ENV }}/backend-deploy-${{ env.TAG }}.zip
 
       - name: Manual approval for stage/prod
         if: env.ENV != 'dev'
@@ -90,7 +105,7 @@ jobs:
       - name: Trigger CodeDeploy deployment
         run: |
           aws deploy create-deployment \
-            --application-name $CODEDEPLOY_APP \
-            --deployment-group-name $DEPLOY_GROUP \
-            --s3-location bucket=$S3_BUCKET,key=$ENV/backend-deploy-$TAG.zip,bundleType=zip \
-            --region $AWS_REGION
+            --application-name ${{ env.CODEDEPLOY_APP }} \
+            --deployment-group-name ${{ env.DEPLOY_GROUP }} \
+            --s3-location bucket=${{ env.S3_BUCKET }},key=${{ env.ENV }}/backend-deploy-${{ env.TAG }}.zip,bundleType=zip \
+            --region ${{ env.AWS_REGION }}
