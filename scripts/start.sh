@@ -4,12 +4,26 @@ set -e
 AWS_REGION="ap-northeast-2"
 ACCOUNT_ID="115313776476"
 ENV="${ENV:-prod}"
-TAG="${TAG:-prod-latest}"
+TAG="${TAG:-}"
+
 REPO_NAME="specranking-backend-${ENV}"
+
+# ✅ 자동 태그 조회
+if [[ -z "$TAG" ]]; then
+  TAG=$(aws ecr describe-images \
+    --repository-name "$REPO_NAME" \
+    --region "$AWS_REGION" \
+    --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
+    --output text)
+  echo "📦 자동으로 최신 태그 조회됨: $TAG"
+fi
+
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+echo "🔗 IMAGE=$IMAGE"
 
 
-CONFIG_BASE="/home/ec2-user/app/config"
+#완성되면 app1 ->app 으로 수정
+CONFIG_BASE="/home/ec2-user/app1/config"
 CONFIG_PATH="$CONFIG_BASE/application.properties"
 CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
 echo "🧪 CONFIG_TEMPLATE_PATH='$CONFIG_TEMPLATE_PATH'"
