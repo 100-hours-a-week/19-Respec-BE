@@ -18,16 +18,16 @@ if [[ -z "$TAG" ]]; then
   echo "📦 자동 조회된 최신 ECR 태그: $TAG"
 fi
 
+# IMAGE는 반드시 TAG 할당 이후 계산
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
-echo "🔗 IMAGE=$IMAGE, ENV=$ENV, TAG=$TAG"
 
+# 디버그 출력
+echo "🔗 IMAGE=$IMAGE, ENV=$ENV, TAG=$TAG"
 echo "DEBUG: ACCOUNT_ID=$ACCOUNT_ID"
 echo "DEBUG: AWS_REGION=$AWS_REGION"
 echo "DEBUG: ENV=$ENV"
 echo "DEBUG: REPO_NAME=$REPO_NAME"
 echo "DEBUG: TAG=$TAG"
-
-
 
 #완성되면 app1 ->app 으로 수정
 CONFIG_BASE="/home/ec2-user/app1/config"
