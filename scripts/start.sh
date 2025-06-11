@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+#set -e
 
 AWS_REGION="ap-northeast-2"
 ACCOUNT_ID="115313776476"
@@ -15,7 +15,7 @@ echo "🧪 CONFIG_TEMPLATE_PATH='$CONFIG_TEMPLATE_PATH'"
 LOG_FILE="/home/ec2-user/backend.log"
 
 echo "📦 application.properties 템플릿 생성 중..."
-mkdir -p /app/config
+sudo mkdir -p /app/config
 sudo chown -R ec2-user:ec2-user /app/config
 
 # echo for debug
