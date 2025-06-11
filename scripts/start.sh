@@ -10,6 +10,8 @@ IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 
 CONFIG_PATH="/app/config/application.properties"
 CONFIG_TEMPLATE_PATH="/app/config/application.properties.template"
+echo "🧪 CONFIG_TEMPLATE_PATH='$CONFIG_TEMPLATE_PATH'"
+
 LOG_FILE="/home/ec2-user/backend.log"
 
 echo "📦 application.properties 템플릿 생성 중..."
