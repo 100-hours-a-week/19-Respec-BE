@@ -21,6 +21,13 @@ fi
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 echo "🔗 IMAGE=$IMAGE, ENV=$ENV, TAG=$TAG"
 
+echo "DEBUG: ACCOUNT_ID=$ACCOUNT_ID"
+echo "DEBUG: AWS_REGION=$AWS_REGION"
+echo "DEBUG: ENV=$ENV"
+echo "DEBUG: REPO_NAME=$REPO_NAME"
+echo "DEBUG: TAG=$TAG"
+
+
 
 #완성되면 app1 ->app 으로 수정
 CONFIG_BASE="/home/ec2-user/app1/config"
