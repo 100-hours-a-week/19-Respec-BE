@@ -1,12 +1,18 @@
-# appspec.yml
 version: 0.0
 os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/app
+
 hooks:
   ApplicationStop:
     - location: scripts/stop.sh
-      timeout: 120
-      runas: ec2-user
-  ApplicationStart:
-    - location: scripts/start.sh
       timeout: 60
       runas: ec2-user
+      interpreter: "bash"
+
+  ApplicationStart:
+    - location: scripts/start.sh
+      timeout: 300
+      runas: ec2-user
+      interpreter: "bash"
