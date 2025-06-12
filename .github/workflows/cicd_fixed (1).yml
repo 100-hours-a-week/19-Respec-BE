@@ -1,0 +1,112 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [dev, stage, main]
+
+env:
+  AWS_REGION: ap-northeast-2
+  CODEDEPLOY_APP: respec-be-codedeploy
+  DEPLOY_GROUP: respec-be-deploy-group
+  S3_BUCKET: specranking-deploy-bucket
+  ACCOUNT_ID: 115313776476
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set environment vars based on branch
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          BRANCH_NAME=${GITHUB_REF##*/}
+
+          if [[ "$BRANCH_NAME" == "dev" ]]; then
+            echo "ENV=dev" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == "stage" ]]; then
+            echo "ENV=stage" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          else
+            echo "❌ Unknown branch $BRANCH_NAME"
+            exit 1
+          fi
+
+          echo "TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "REPO_NAME=specranking-backend-${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build Spring Boot JAR
+        run: ./gradlew clean build -x test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPO_NAME }}:${{ env.TAG }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Generate .env file
+        run: |
+          cat <<EOF > config/.env
+SPRING_DATASOURCE_URL="${{ secrets.DB_URL }}"
+SPRING_DATASOURCE_USERNAME="${{ secrets.DB_USERNAME }}"
+SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASSWORD }}"
+SPRING_JWT_SECRET="${{ secrets.JWT_SECRET }}"
+
+KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}"
+KAKAO_CLIENT_SECRET="${{ secrets.KAKAO_CLIENT_SECRET }}"
+
+BACKEND_BASE_URL="${{ secrets.BACKEND_BASE_URL }}"
+FRONTEND_BASE_URL="${{ secrets.FRONTEND_BASE_URL }}"
+AI_SERVER_URL="${{ secrets.AI_SERVER_URL }}"
+
+AWS_S3_BUCKET="${{ secrets.AWS_S3_BUCKET }}"
+AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+AWS_REGION="${{ env.AWS_REGION }}"
+EOF
+
+      - name: Package deployment bundle
+        run: |
+          mkdir -p artifacts
+          zip -r artifacts/backend-deploy.zip appspec.yml scripts/ config/
+
+      - name: Upload bundle to S3
+        run: |
+          aws s3 cp artifacts/backend-deploy.zip s3://${{ env.S3_BUCKET }}/${{ env.ENV }}/backend-deploy-${{ env.TAG }}.zip
+
+      - name: Manual approval for stage/prod
+        if: env.ENV != 'dev'
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: donghyeon
+          minimum-approvals: 1
+          issue-title: "Approve deploy to ${{ env.ENV }}"
+          issue-body: "ECR Image: ${{ env.REPO_NAME }}:${{ env.TAG }}"
+
+      - name: Trigger CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ env.CODEDEPLOY_APP }} \
+            --deployment-group-name ${{ env.DEPLOY_GROUP }} \
+            --s3-location bucket=${{ env.S3_BUCKET }},key=${{ env.ENV }}/backend-deploy-${{ env.TAG }}.zip,bundleType=zip \
+            --region ${{ env.AWS_REGION }}
