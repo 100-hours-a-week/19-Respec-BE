@@ -70,7 +70,7 @@ jobs:
             echo "SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}"
             echo "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}"
             echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}"
-            echo "SPRING_JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            echo "SPRING_JWT_SECRET=\"${{ secrets.JWT_SECRET }}\""
 
             echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}"
             echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}"
