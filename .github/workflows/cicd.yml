@@ -63,20 +63,19 @@ jobs:
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
-      - name: Generate .env file safely
+      - name: Generate .env file safely (with printf)
         run: |
           mkdir -p config
-          echo "SPRING_JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"" > config/.env
-          echo "KAKAO_CLIENT_ID=\"${{ secrets.KAKAO_CLIENT_ID }}\"" >> config/.env
-          echo "KAKAO_CLIENT_SECRET=\"${{ secrets.KAKAO_CLIENT_SECRET }}\"" >> config/.env
-          echo "BACKEND_BASE_URL=\"${{ secrets.BACKEND_BASE_URL }}\"" >> config/.env
-          echo "FRONTEND_BASE_URL=\"${{ secrets.FRONTEND_BASE_URL }}\"" >> config/.env
-          echo "AI_SERVER_URL=\"${{ secrets.AI_SERVER_URL }}\"" >> config/.env
-          echo "AWS_S3_BUCKET=\"${{ secrets.AWS_S3_BUCKET }}\"" >> config/.env
-          echo "AWS_ACCESS_KEY_ID=\"${{ secrets.AWS_ACCESS_KEY_ID }}\"" >> config/.env
-          echo "AWS_SECRET_ACCESS_KEY=\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\"" >> config/.env
-          echo "AWS_REGION=\"${{ env.AWS_REGION }}\"" >> config/.env
-
+          printf 'SPRING_JWT_SECRET="%s"\n' "${{ secrets.JWT_SECRET }}" > config/.env
+          printf 'KAKAO_CLIENT_ID="%s"\n' "${{ secrets.KAKAO_CLIENT_ID }}" >> config/.env
+          printf 'KAKAO_CLIENT_SECRET="%s"\n' "${{ secrets.KAKAO_CLIENT_SECRET }}" >> config/.env
+          printf 'BACKEND_BASE_URL="%s"\n' "${{ secrets.BACKEND_BASE_URL }}" >> config/.env
+          printf 'FRONTEND_BASE_URL="%s"\n' "${{ secrets.FRONTEND_BASE_URL }}" >> config/.env
+          printf 'AI_SERVER_URL="%s"\n' "${{ secrets.AI_SERVER_URL }}" >> config/.env
+          printf 'AWS_S3_BUCKET="%s"\n' "${{ secrets.AWS_S3_BUCKET }}" >> config/.env
+          printf 'AWS_ACCESS_KEY_ID="%s"\n' "${{ secrets.AWS_ACCESS_KEY_ID }}" >> config/.env
+          printf 'AWS_SECRET_ACCESS_KEY="%s"\n' "${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> config/.env
+          printf 'AWS_REGION="%s"\n' "${{ env.AWS_REGION }}" >> config/.env
 
 
       - name: Package deployment bundle
