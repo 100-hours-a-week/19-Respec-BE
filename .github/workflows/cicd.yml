@@ -65,24 +65,24 @@ jobs:
 
       - name: Generate .env file
         run: |
-          cat <<EOF > .env
-SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
-SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
-SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
-SPRING_JWT_SECRET=${{ secrets.JWT_SECRET }}
-
-KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
-KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-
-BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}
-FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}
-AI_SERVER_URL=${{ secrets.AI_SERVER_URL }}
-
-AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
-AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-AWS_REGION=${{ env.AWS_REGION }}
-EOF
+          cat <<EOF > config/.env
+          SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SPRING_JWT_SECRET=${{ secrets.JWT_SECRET }}
+          
+          KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+          
+          BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}
+          FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}
+          AI_SERVER_URL=${{ secrets.AI_SERVER_URL }}
+          
+          AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION=${{ env.AWS_REGION }}
+          EOF
 
 
       - name: Package deployment bundle
