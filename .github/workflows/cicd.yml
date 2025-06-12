@@ -63,7 +63,7 @@ jobs:
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
-        - name: Generate .env file 
+      - name: Generate .env file 
         run: |
           mkdir -p config
           echo "SPRING_JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"" > config/.env
