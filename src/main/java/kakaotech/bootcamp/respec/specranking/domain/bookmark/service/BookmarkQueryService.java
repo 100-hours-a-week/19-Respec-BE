@@ -64,6 +64,7 @@ public class BookmarkQueryService {
 
             BookmarkListResponse.SpecInfo specInfo = new BookmarkListResponse.SpecInfo(
                     spec.getId(),
+                    specUser.getId(),
                     specUser.getNickname(),
                     specUser.getUserProfileUrl(),
                     score,

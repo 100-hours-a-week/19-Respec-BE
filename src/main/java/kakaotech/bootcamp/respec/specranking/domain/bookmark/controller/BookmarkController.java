@@ -31,9 +31,9 @@ public class BookmarkController {
         return new BookmarkCreateResponse(true, "즐겨찾기 등록 성공", bookmarkId);
     }
 
-    @DeleteMapping("/{bookmarkId}")
-    public SimpleResponseDto deleteBookmark(@PathVariable Long bookmarkId) {
-        bookmarkService.deleteBookmark(bookmarkId);
+    @DeleteMapping("/specs/{specId}")
+    public SimpleResponseDto deleteBookmark(@PathVariable Long specId) {
+        bookmarkService.deleteBookmark(specId);
         return new SimpleResponseDto(true, "즐겨찾기 해제 성공");
     }
 }

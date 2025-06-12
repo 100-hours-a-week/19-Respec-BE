@@ -41,13 +41,15 @@ public class BookmarkService {
         return savedBookmark.getId();
     }
 
-    public void deleteBookmark(Long bookmarkId) {
+    public void deleteBookmark(Long specId) {
         Optional<Long> optUserId = UserUtils.getCurrentUserId();
         Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
         userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
 
-        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 즐겨찾기를 찾을 수 없습니다. ID: " + bookmarkId));
+        specRepository.findById(specId).orElseThrow(() -> new IllegalArgumentException("스펙을 찾을 수 없습니다. ID: " + specId));
+
+        Bookmark bookmark = bookmarkRepository.findBySpecIdAndUserId(specId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 즐겨찾기를 찾을 수 없습니다. 이미 삭제되었거나 존재하지 않습니다."));
 
         bookmarkRepository.delete(bookmark);
     }
