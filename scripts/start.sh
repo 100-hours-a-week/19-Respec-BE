@@ -4,19 +4,22 @@ set -e
 # Load .env file
 ENV_FILE="/home/ec2-user/app1/config/.env"
 
-if [ -f "$ENV_FILE" ]; then
-  echo "🔐 Loading environment variables from .env"
-  export $(grep -v '^#' "$ENV_FILE" | xargs)
-else
-  echo "❌ .env file not found at $ENV_FILE"
-  exit 1
-fi
-
-
 export CONFIG_BASE="/home/ec2-user/app1/config"
 export CONFIG_PATH="$CONFIG_BASE/application.properties"
 export CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
 export LOG_FILE="/home/ec2-user/backend.log"
+
+# Load .env file if it exists
+if [ -f "$CONFIG_BASE/.env" ]; then
+  echo "🔐 Loading .env"
+  set -a
+  source "$CONFIG_BASE/.env"
+  set +a
+else
+  echo "❌ .env not found at $CONFIG_BASE/.env"
+  exit 1
+fi
+
 
 echo "🧪 초기 설정 확인"
 echo "CONFIG_BASE = $CONFIG_BASE"
