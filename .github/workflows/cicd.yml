@@ -77,10 +77,16 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
 
-      - name: Inject variables into start.sh
-        run: |
+      # - name: Inject variables into start.sh
+      #   run: |
 
-          envsubst < scripts/start.sh > scripts/start.sh.tmp && mv scripts/start.sh.tmp scripts/start.sh
+      #     envsubst < scripts/start.sh > scripts/start.sh.tmp && mv scripts/start.sh.tmp scripts/start.sh
+      #     chmod +x scripts/start.sh
+      #     chmod +x scripts/stop.sh
+
+      
+      - name: Set execute permission on scripts
+        run: |
           chmod +x scripts/start.sh
           chmod +x scripts/stop.sh
 
