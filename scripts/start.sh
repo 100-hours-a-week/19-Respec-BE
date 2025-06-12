@@ -1,16 +1,16 @@
 #!/bin/bash
 set -e
 
-AWS_REGION="ap-northeast-2"
-ACCOUNT_ID="115313776476"
-ENV="${ENV:-dev}"
-TAG="${TAG:-}"
-REPO_NAME="specranking-backend-${ENV}"
+export AWS_REGION="ap-northeast-2"
+export ACCOUNT_ID="115313776476"
+export ENV="${ENV:-dev}"
+export TAG="${TAG:-}"
+export REPO_NAME="specranking-backend-${ENV}"
 
-CONFIG_BASE="/home/ec2-user/app1/config" # 나중에 app 으로 바꾸세요
-CONFIG_PATH="$CONFIG_BASE/application.properties"
-CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
-LOG_FILE="/home/ec2-user/backend.log"
+export CONFIG_BASE="/home/ec2-user/app1/config" # 나중에 app 으로 바꾸세요
+export CONFIG_PATH="$CONFIG_BASE/application.properties"
+export CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
+export LOG_FILE="/home/ec2-user/backend.log"
 
 
 echo "DEBUG: CONFIG_BASE is '$CONFIG_BASE'"
@@ -26,7 +26,6 @@ if [[ -z "$TAG" ]]; then
   echo "📦 최신 ECR 태그: $TAG"
 fi
 
-DOCKER_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 
 echo "✅ ENV=$ENV"
 echo "✅ REPO_NAME=$REPO_NAME"
@@ -34,7 +33,7 @@ echo "✅ TAG=$TAG"
 echo "Account_ID $ACCOUNT_ID AWS_REGION $AWS_REGION REPO_NAME $REPO_NAME TAG $TAG"
 
 echo "📌 RAW: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
-DOCKER_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+export DOCKER_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 echo "🔗 DOCKER_IMAGE=$DOCKER_IMAGE"
 
 
