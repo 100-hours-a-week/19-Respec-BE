@@ -23,7 +23,14 @@ if [[ -z "$TAG" ]]; then
 fi
 
 IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+
+echo "✅ ENV=$ENV"
+echo "✅ REPO_NAME=$REPO_NAME"
+echo "✅ TAG=$TAG"
+echo "Account_ID $ACCOUNT_ID AWS_REGION $AWS_REGION REPO_NAME $REPO_NAME TAG $TAG"
 echo "🔗 IMAGE=$IMAGE"
+
+
 
 echo "📦 application.properties 템플릿 생성 중..."
 sudo mkdir -p "$CONFIG_BASE"
