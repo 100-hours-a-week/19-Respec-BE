@@ -80,8 +80,6 @@ jobs:
       - name: Inject variables into start.sh
         run: |
 
-          dos2unix scripts/start.sh
-
           envsubst < scripts/start.sh > scripts/start.sh.tmp && mv scripts/start.sh.tmp scripts/start.sh
           chmod +x scripts/start.sh
           chmod +x scripts/stop.sh
