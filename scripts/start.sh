@@ -2,15 +2,16 @@
 set -e
 
 # Load .env file
-if [ -f "/home/ec2-user/app1/config/.env" ]; then
+ENV_FILE="/home/ec2-user/app1/config/.env"
+
+if [ -f "$ENV_FILE" ]; then
   echo "🔐 Loading environment variables from .env"
-  set -a
-  source /home/ec2-user/app1/config/.env
-  set +a
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
 else
-  echo "❌ .env file not found at /home/ec2-user/app1/config/.env"
+  echo "❌ .env file not found at $ENV_FILE"
   exit 1
 fi
+
 
 export CONFIG_BASE="/home/ec2-user/app1/config"
 export CONFIG_PATH="$CONFIG_BASE/application.properties"
