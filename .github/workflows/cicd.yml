@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Set environment variables
+      - name: Set environment vars based on branch
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
           BRANCH_NAME=${GITHUB_REF##*/}
@@ -31,9 +31,10 @@ jobs:
           elif [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ENV=prod" >> $GITHUB_ENV
           else
-            echo "❌ Unknown branch"
+            echo "❌ Unknown branch $BRANCH_NAME"
             exit 1
           fi
+
           echo "TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
           echo "REPO_NAME=specranking-backend-${BRANCH_NAME}" >> $GITHUB_ENV
 
@@ -43,10 +44,10 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build JAR with Gradle
+      - name: Build Spring Boot JAR
         run: ./gradlew clean build -x test
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -56,46 +57,18 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and Push Docker image
+      - name: Build and push Docker image
         run: |
           IMAGE="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPO_NAME }}:${{ env.TAG }}"
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
-      - name: Export secrets as env vars
-        run: |
-          echo "SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
-          echo "SPRING_JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
-          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}" >> $GITHUB_ENV
-          echo "FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}" >> $GITHUB_ENV
-          echo "AI_SERVER_URL=${{ secrets.AI_SERVER_URL }}" >> $GITHUB_ENV
-          echo "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> $GITHUB_ENV
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-
-      # - name: Inject variables into start.sh
-      #   run: |
-
-      #     envsubst < scripts/start.sh > scripts/start.sh.tmp && mv scripts/start.sh.tmp scripts/start.sh
-      #     chmod +x scripts/start.sh
-      #     chmod +x scripts/stop.sh
-
-      
-      - name: Set execute permission on scripts
-        run: |
-          chmod +x scripts/start.sh
-          chmod +x scripts/stop.sh
-
-      - name: Package deploy bundle
+      - name: Package deployment bundle
         run: |
           mkdir -p artifacts
-          zip -r artifacts/backend-deploy.zip appspec.yml scripts/start.sh scripts/stop.sh
+          zip -r artifacts/backend-deploy.zip appspec.yml scripts/ config/
 
-      - name: Upload to S3
+      - name: Upload bundle to S3
         run: |
           aws s3 cp artifacts/backend-deploy.zip s3://${{ env.S3_BUCKET }}/${{ env.ENV }}/backend-deploy-${{ env.TAG }}.zip
 
@@ -106,10 +79,10 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
           approvers: donghyeon
           minimum-approvals: 1
-          issue-title: "Approve backend deploy to ${{ env.ENV }}"
-          issue-body: "ECR Tag: ${{ env.TAG }}"
+          issue-title: "Approve deploy to ${{ env.ENV }}"
+          issue-body: "ECR Image: ${{ env.REPO_NAME }}:${{ env.TAG }}"
 
-      - name: Trigger CodeDeploy deployment
+      - name: Trigger CodeDeploy
         run: |
           aws deploy create-deployment \
             --application-name ${{ env.CODEDEPLOY_APP }} \
