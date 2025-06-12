@@ -1,13 +1,18 @@
 #!/bin/bash
 set -e
 
-export AWS_REGION="ap-northeast-2"
-export ACCOUNT_ID="115313776476"
-export ENV="${ENV:-dev}"
-export TAG="${TAG:-}"
-export REPO_NAME="specranking-backend-${ENV}"
+# Load .env file
+if [ -f "/home/ec2-user/app1/config/.env" ]; then
+  echo "🔐 Loading environment variables from .env"
+  set -a
+  source /home/ec2-user/app1/config/.env
+  set +a
+else
+  echo "❌ .env file not found at /home/ec2-user/app1/config/.env"
+  exit 1
+fi
 
-export CONFIG_BASE="/home/ec2-user/app1/config"  # TODO: 나중에 app 으로 변경
+export CONFIG_BASE="/home/ec2-user/app1/config"
 export CONFIG_PATH="$CONFIG_BASE/application.properties"
 export CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
 export LOG_FILE="/home/ec2-user/backend.log"
@@ -16,7 +21,6 @@ echo "🧪 초기 설정 확인"
 echo "CONFIG_BASE = $CONFIG_BASE"
 echo "CONFIG_TEMPLATE_PATH = $CONFIG_TEMPLATE_PATH"
 
-# 최신 태그 자동 조회
 if [[ -z "$TAG" ]]; then
   export TAG=$(aws ecr describe-images \
     --repository-name "$REPO_NAME" \
