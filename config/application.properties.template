@@ -6,23 +6,39 @@ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=false
-
 server.port=8080
-
 spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize, s3
+
 spring.jwt.secret=${SPRING_JWT_SECRET}
 
+spring.security.oauth2.client.registration.kakao.client-name=kakao
 spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID}
 spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET}
-spring.security.oauth2.client.registration.kakao.redirect-uri=${BACKEND_BASE_URL}/login/oauth2/code/kakao
+spring.security.oauth2.client.registration.kakao.redirect-uri=${BACKEND_BASE_URL}/login/oauth2/oauth
+spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post
+
+spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize
 spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
+spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
+spring.security.oauth2.client.provider.kakao.user-name-attribute=id
 
 spring.cloud.aws.s3.enabled=true
+spring.cloud.aws.stack.auto=false
 cloud.aws.s3.bucket=${AWS_S3_BUCKET}
 cloud.aws.region.static=${AWS_REGION}
 cloud.aws.credentials.access-key=${AWS_ACCESS_KEY_ID}
 cloud.aws.credentials.secret-key=${AWS_SECRET_ACCESS_KEY}
 
+logging.level.reactor.netty.resources.PooledConnectionProvider=DEBUG
+logging.level.reactor.netty.http.client=DEBUG
+logging.level.org.springframework.security.oauth2.client=DEBUG
+logging.level.org.springframework.web.client.RestTemplate=DEBUG
+
+mock.login.user=false
+
 backend.base-url=${BACKEND_BASE_URL}
 frontend.base-url=${FRONTEND_BASE_URL}
+frontend.redirect-url=${FRONTEND_BASE_URL}/oauth-redirect
+spring.graphql.cors.allowed-origins=${FRONTEND_BASE_URL}
 ai.server.url=${AI_SERVER_URL}
