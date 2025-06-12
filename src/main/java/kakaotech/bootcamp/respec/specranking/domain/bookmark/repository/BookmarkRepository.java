@@ -1,6 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.bookmark.repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import kakaotech.bootcamp.respec.specranking.domain.bookmark.entity.Bookmark;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +17,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     Long countBySpecId(@Param("specId") Long specId);
 
     boolean existsBySpecIdAndUserId(Long specId, Long userId);
+
+    Optional<Bookmark> findBySpecIdAndUserId(Long specId, Long userId);
 }

@@ -39,6 +39,7 @@ public class BookmarkListResponse {
     @Data
     public static class SpecInfo {
         private Long id;
+        private Long userId;
         private String nickname;
         private String profileImageUrl;
         private Double score;
@@ -51,10 +52,11 @@ public class BookmarkListResponse {
         private Long commentsCount;
         private Long bookmarksCount;
 
-        public SpecInfo(Long id, String nickname, String profileImageUrl, Double score,
+        public SpecInfo(Long id, Long userId, String nickname, String profileImageUrl, Double score,
                         Long totalRank, Long totalUserCount, Long jobFieldRank, Long jobFieldUserCount,
                         JobField jobField, Boolean isBookmarked, Long commentsCount, Long bookmarksCount) {
             this.id = id;
+            this.userId = userId;
             this.nickname = nickname;
             this.profileImageUrl = profileImageUrl;
             this.score = score;
