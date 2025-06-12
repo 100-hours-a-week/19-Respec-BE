@@ -7,7 +7,7 @@ export ENV="${ENV:-dev}"
 export TAG="${TAG:-}"
 export REPO_NAME="specranking-backend-${ENV}"
 
-export CONFIG_BASE="/home/ec2-user/app1/config" # 나중에 app 으로 바꾸세요
+export CONFIG_BASE="/home/ec2-user/app1/config"  # TODO: 나중에 app 으로 변경
 export CONFIG_PATH="$CONFIG_BASE/application.properties"
 export CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
 export LOG_FILE="/home/ec2-user/backend.log"
@@ -29,34 +29,14 @@ fi
 export DOCKER_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 echo "🔗 최종 이미지: $DOCKER_IMAGE"
 
-echo "📄 application.properties 템플릿 생성 중..."
+echo "📄 application.properties 치환 생성 중..."
 sudo mkdir -p "$CONFIG_BASE"
 sudo chown -R ec2-user:ec2-user "$CONFIG_BASE"
 
-cat <<'EOF' > "$CONFIG_TEMPLATE_PATH"
-spring.datasource.url=${SPRING_DATASOURCE_URL}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.format_sql=false
-server.port=8080
-spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize, s3
-spring.jwt.secret=${SPRING_JWT_SECRET}
-spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID}
-spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET}
-spring.security.oauth2.client.registration.kakao.redirect-uri=${BACKEND_BASE_URL}/login/oauth2/code/kakao
-spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token
-spring.cloud.aws.s3.enabled=true
-cloud.aws.s3.bucket=${AWS_S3_BUCKET}
-cloud.aws.region.static=${AWS_REGION}
-cloud.aws.credentials.access-key=${AWS_ACCESS_KEY_ID}
-cloud.aws.credentials.secret-key=${AWS_SECRET_ACCESS_KEY}
-backend.base-url=${BACKEND_BASE_URL}
-frontend.base-url=${FRONTEND_BASE_URL}
-ai.server.url=${AI_SERVER_URL}
-EOF
+if [ ! -f "$CONFIG_TEMPLATE_PATH" ]; then
+  echo "❌ ERROR: application.properties.template 파일이 존재하지 않습니다: $CONFIG_TEMPLATE_PATH"
+  exit 1
+fi
 
 echo "🔁 환경변수 치환 중..."
 envsubst < "$CONFIG_TEMPLATE_PATH" > "$CONFIG_PATH"
@@ -76,4 +56,4 @@ docker run -d \
   -v "$CONFIG_BASE":"$CONFIG_BASE" \
   --name backend "$DOCKER_IMAGE"
 
-echo "🚀 백엔드 컨테이너 시작 완료 $DOCKER_IMAGE"
+echo "🚀 백엔드 컨테이너 시작 완료: $DOCKER_IMAGE"
