@@ -12,6 +12,10 @@ CONFIG_PATH="$CONFIG_BASE/application.properties"
 CONFIG_TEMPLATE_PATH="$CONFIG_BASE/application.properties.template"
 LOG_FILE="/home/ec2-user/backend.log"
 
+
+echo "DEBUG: CONFIG_BASE is '$CONFIG_BASE'"
+echo "DEBUG: CONFIG_TEMPLATE_PATH is '$CONFIG_TEMPLATE_PATH'"
+
 # 최신 태그 조회
 if [[ -z "$TAG" ]]; then
   TAG=$(aws ecr describe-images \
@@ -22,7 +26,7 @@ if [[ -z "$TAG" ]]; then
   echo "📦 최신 ECR 태그: $TAG"
 fi
 
-IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+DOCKER_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
 
 echo "✅ ENV=$ENV"
 echo "✅ REPO_NAME=$REPO_NAME"
@@ -30,8 +34,8 @@ echo "✅ TAG=$TAG"
 echo "Account_ID $ACCOUNT_ID AWS_REGION $AWS_REGION REPO_NAME $REPO_NAME TAG $TAG"
 
 echo "📌 RAW: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
-IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
-echo "🔗 IMAGE=$IMAGE"
+DOCKER_IMAGE="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${TAG}"
+echo "🔗 DOCKER_IMAGE=$DOCKER_IMAGE"
 
 
 
@@ -54,10 +58,10 @@ aws ecr get-login-password --region "$AWS_REGION" \
 
 docker stop backend || true
 docker rm backend || true
-docker pull "$IMAGE"
+docker pull "$DOCKER_IMAGE"
 
 docker run -d \
   -e SPRING_CONFIG_LOCATION=file:$CONFIG_PATH \
   -p 8080:8080 \
   -v "$CONFIG_BASE":"$CONFIG_BASE" \
-  --name backend "$IMAGE"
+  --name backend "$DOCKER_IMAGE"
