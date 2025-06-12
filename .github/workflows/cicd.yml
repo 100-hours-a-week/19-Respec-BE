@@ -96,7 +96,7 @@ jobs:
           minimum-approvals: 1
           issue-title: "Approve deploy to ${{ env.ENV }}"
           issue-body: "ECR Image: ${{ env.REPO_NAME }}:${{ env.TAG }}"
-
+ 
       - name: Trigger CodeDeploy
         run: |
           aws deploy create-deployment \
