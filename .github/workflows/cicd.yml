@@ -63,6 +63,12 @@ jobs:
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
+      - name: 🔍 base64-encoded JWT_SECRET
+        run: |
+          echo "${{ secrets.JWT_SECRET }}" | base64
+      
+
+
       - name: Generate .env file 
         run: |
           mkdir -p config
@@ -76,6 +82,12 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=\"${{ secrets.AWS_ACCESS_KEY_ID }}\"" >> config/.env
           echo "AWS_SECRET_ACCESS_KEY=\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\"" >> config/.env
           echo "AWS_REGION=\"${{ env.AWS_REGION }}\"" >> config/.env
+
+
+      - name: show .env content
+        run: cat config/.env
+
+
 
 
       - name: Package deployment bundle
