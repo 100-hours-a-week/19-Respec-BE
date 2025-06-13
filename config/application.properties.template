@@ -42,3 +42,4 @@ frontend.base-url=${FRONTEND_BASE_URL}
 frontend.redirect-url=${FRONTEND_BASE_URL}/oauth-redirect
 spring.graphql.cors.allowed-origins=${FRONTEND_BASE_URL}
 ai.server.url=${AI_SERVER_URL}
+ai.server.url.path=${AI_SERVER_URL_PATH}
