@@ -49,4 +49,5 @@ jobs:
           docker push "$IMAGE"
 
       - name: Output image info
-        run: echo "✅ Image pushed: ${{ env.REPO_NAME }}:${{ env.TAG }}"
+        run: |
+          echo "Image pushed: ${{ env.REPO_NAME }}:${{ env.TAG }}"
