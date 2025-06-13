@@ -1,16 +1,20 @@
+# connect DB
 spring.datasource.url=${SPRING_DATASOURCE_URL}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
+# JPA setting
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=false
 server.port=8080
 spring.profiles.active=auth, ai, no-spec-initialize, no-user-initialize, s3
 
+# encryption key
 spring.jwt.secret=${SPRING_JWT_SECRET}
 
+# OAuth2 설정
 spring.security.oauth2.client.registration.kakao.client-name=kakao
 spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID}
 spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET}
@@ -23,23 +27,26 @@ spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/o
 spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me
 spring.security.oauth2.client.provider.kakao.user-name-attribute=id
 
-spring.cloud.aws.s3.enabled=true
+# AWS S3 설정
+spring.cloud.aws.s3.enabled=false
 spring.cloud.aws.stack.auto=false
-cloud.aws.s3.bucket=${AWS_S3_BUCKET}
-cloud.aws.region.static=${AWS_REGION}
 cloud.aws.credentials.access-key=${AWS_ACCESS_KEY_ID}
 cloud.aws.credentials.secret-key=${AWS_SECRET_ACCESS_KEY}
+cloud.aws.s3.bucket=${AWS_S3_BUCKET}
+cloud.aws.region.static=${AWS_REGION}
 
-logging.level.reactor.netty.resources.PooledConnectionProvider=DEBUG
-logging.level.reactor.netty.http.client=DEBUG
+# 로그 레벨
 logging.level.org.springframework.security.oauth2.client=DEBUG
 logging.level.org.springframework.web.client.RestTemplate=DEBUG
 
 mock.login.user=false
 
+# URL 설정
 backend.base-url=${BACKEND_BASE_URL}
 frontend.base-url=${FRONTEND_BASE_URL}
 frontend.redirect-url=${FRONTEND_BASE_URL}/oauth-redirect
 spring.graphql.cors.allowed-origins=${FRONTEND_BASE_URL}
+
+# AI 서버
 ai.server.url=${AI_SERVER_URL}
 ai.server.url.path=${AI_SERVER_URL_PATH}
