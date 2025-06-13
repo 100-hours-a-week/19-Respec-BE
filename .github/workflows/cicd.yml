@@ -78,6 +78,8 @@ jobs:
           echo "BACKEND_BASE_URL=\"${{ secrets.BACKEND_BASE_URL }}\"" >> config/.env
           echo "FRONTEND_BASE_URL=\"${{ secrets.FRONTEND_BASE_URL }}\"" >> config/.env
           echo "AI_SERVER_URL=\"${{ secrets.AI_SERVER_URL }}\"" >> config/.env
+          echo "AI_SERVER_URL_PATH=\"${{ secrets.AI_SERVER_URL_PATH }}\"" >> config/.env
+
           echo "AWS_S3_BUCKET=\"${{ secrets.AWS_S3_BUCKET }}\"" >> config/.env
           echo "AWS_ACCESS_KEY_ID=\"${{ secrets.AWS_ACCESS_KEY_ID }}\"" >> config/.env
           echo "AWS_SECRET_ACCESS_KEY=\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\"" >> config/.env
