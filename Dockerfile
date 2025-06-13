@@ -1,5 +1,10 @@
-- name: Build and push Docker image
-  run: |
-    IMAGE="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPO_NAME }}:${{ env.TAG }}"
-    docker build -t "$IMAGE" .
-    docker push "$IMAGE"
+# ✅ Dockerfile (환경변수 기반 실행, 설정파일 포함하지 않음)
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+COPY build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
