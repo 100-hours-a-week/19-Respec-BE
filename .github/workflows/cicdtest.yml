@@ -8,6 +8,7 @@ env:
   AWS_REGION: ap-northeast-2
   ACCOUNT_ID: 115313776476
   REPO_NAME: specranking-backend-main
+  TAG: prod
 
 jobs:
   push-image:
