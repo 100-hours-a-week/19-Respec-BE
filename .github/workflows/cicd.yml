@@ -70,9 +70,9 @@ jobs:
           # 민감 정보 로그 노출 방지
           set +x
           {
-            printf 'SPRING_DATASOURCE_URL="%s"\n' "${{ secrets.SPRING_DATASOURCE_URL }}"
-            printf 'SPRING_DATASOURCE_USERNAME="%s"\n' "${{ secrets.SPRING_DATASOURCE_USERNAME }}"
-            printf 'SPRING_DATASOURCE_PASSWORD="%s"\n' "${{ secrets.SPRING_DATASOURCE_PASSWORD }}"  # 💡 특수문자 포함 가능
+            printf 'SPRING_DATASOURCE_URL="%s"\n' "${{ secrets.DB_URL }}"
+            printf 'SPRING_DATASOURCE_USERNAME="%s"\n' "${{ secrets.DB_USERNAME }}"
+            printf 'SPRING_DATASOURCE_PASSWORD="%s"\n' "${{ secrets.DB_PASSWORD }}"  # 💡 특수문자 포함 가능
       
             printf 'SPRING_JWT_SECRET="%s"\n' "${{ secrets.SPRING_JWT_SECRET }}"
       
