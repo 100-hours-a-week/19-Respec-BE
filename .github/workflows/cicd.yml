@@ -69,28 +69,28 @@ jobs:
       
           # 민감 정보 로그 노출 방지
           set +x
-          {
-            printf 'SPRING_DATASOURCE_URL="%s"\n' "${{ secrets.DB_URL }}"
-            printf 'SPRING_DATASOURCE_USERNAME="%s"\n' "${{ secrets.DB_USERNAME }}"
-            printf 'SPRING_DATASOURCE_PASSWORD="%s"\n' "${{ secrets.DB_PASSWORD }}"  # 💡 특수문자 포함 가능
-      
-            printf 'SPRING_JWT_SECRET="%s"\n' "${{ secrets.JWT_SECRET }}"
-      
-            printf 'KAKAO_CLIENT_ID="%s"\n' "${{ secrets.KAKAO_CLIENT_ID }}"
-            printf 'KAKAO_CLIENT_SECRET="%s"\n' "${{ secrets.KAKAO_CLIENT_SECRET }}"
-      
-            printf 'BACKEND_BASE_URL="%s"\n' "${{ secrets.BACKEND_BASE_URL }}"
-            printf 'FRONTEND_BASE_URL="%s"\n' "${{ secrets.FRONTEND_BASE_URL }}"
-      
-            printf 'AI_SERVER_URL="%s"\n' "${{ secrets.AI_SERVER_URL }}"
-            printf 'AI_SERVER_URL_PATH="%s"\n' "${{ secrets.AI_SERVER_URL_PATH }}"
-      
-            printf 'AWS_S3_BUCKET="%s"\n' "${{ secrets.AWS_S3_BUCKET }}"
-            printf 'AWS_ACCESS_KEY_ID="%s"\n' "${{ secrets.AWS_ACCESS_KEY_ID }}"
-            printf 'AWS_SECRET_ACCESS_KEY="%s"\n' "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-            printf 'AWS_REGION="%s"\n' "${{ env.AWS_REGION }}"
-          } > config/.env
-          set -x
+          cat <<EOF > config/.env
+            SPRING_DATASOURCE_URL="${{ secrets.DB_URL }}"
+            SPRING_DATASOURCE_USERNAME="${{ secrets.DB_USERNAME }}"
+            SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASSWORD }}"
+            
+            SPRING_JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            
+            KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}"
+            KAKAO_CLIENT_SECRET="${{ secrets.KAKAO_CLIENT_SECRET }}"
+            
+            BACKEND_BASE_URL="${{ secrets.BACKEND_BASE_URL }}"
+            FRONTEND_BASE_URL="${{ secrets.FRONTEND_BASE_URL }}"
+            
+            AI_SERVER_URL="${{ secrets.AI_SERVER_URL }}"
+            AI_SERVER_URL_PATH="${{ secrets.AI_SERVER_URL_PATH }}"
+            
+            AWS_S3_BUCKET="${{ secrets.AWS_S3_BUCKET }}"
+            AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            AWS_REGION="${{ env.AWS_REGION }}"
+            EOF
+            set -x
       
 
 
