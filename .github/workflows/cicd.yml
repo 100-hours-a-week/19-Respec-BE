@@ -74,7 +74,7 @@ jobs:
             printf 'SPRING_DATASOURCE_USERNAME="%s"\n' "${{ secrets.DB_USERNAME }}"
             printf 'SPRING_DATASOURCE_PASSWORD="%s"\n' "${{ secrets.DB_PASSWORD }}"  # 💡 특수문자 포함 가능
       
-            printf 'SPRING_JWT_SECRET="%s"\n' "${{ secrets.SPRING_JWT_SECRET }}"
+            printf 'SPRING_JWT_SECRET="%s"\n' "${{ secrets.JWT_SECRET }}"
       
             printf 'KAKAO_CLIENT_ID="%s"\n' "${{ secrets.KAKAO_CLIENT_ID }}"
             printf 'KAKAO_CLIENT_SECRET="%s"\n' "${{ secrets.KAKAO_CLIENT_SECRET }}"
