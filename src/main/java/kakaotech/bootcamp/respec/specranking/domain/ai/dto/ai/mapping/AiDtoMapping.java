@@ -1,17 +1,18 @@
-package kakaotech.bootcamp.respec.specranking.domain.ai.dto.mapping;
+package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.mapping;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.EducationDetail;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.LanguageSkill;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest.WorkExperience;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest.EducationDetail;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest.LanguageSkill;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest.WorkExperience;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostResumeResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.web.response.WebPostResumeResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 
 public class AiDtoMapping {
 
-    public static AiPostSpecRequest convertToAiRequest(PostSpecRequest request, String userNickname,
-                                                       String portfolioUrl) {
+    public static AiPostSpecRequest convertToSpecAnalysisRequest(PostSpecRequest request, String userNickname) {
         AiPostSpecRequest aiRequest = new AiPostSpecRequest();
 
         aiRequest.setNickname(userNickname);
@@ -22,7 +23,6 @@ public class AiDtoMapping {
         mappingCertifications(request, aiRequest);
         mappingLanguageSkills(request, aiRequest);
         mappingActivities(request, aiRequest);
-        aiRequest.setPortfolioURL(portfolioUrl);
 
         return aiRequest;
     }
@@ -91,5 +91,58 @@ public class AiDtoMapping {
                 .collect(Collectors.toList());
         aiRequest.setActivities(activities);
     }
-    
+
+    public static WebPostResumeResponse.ResumeAnalysisResult convertToResumeAnalysisResponse(
+            AiPostResumeResponse response) {
+        WebPostResumeResponse.FinalEducation finalEducation =
+                new WebPostResumeResponse.FinalEducation(response.getInstitute(), response.getFinalStatus());
+
+        List<WebPostResumeResponse.EducationDetails> educationDetails =
+                response.getEducationDetails().stream()
+                        .map(e -> new WebPostResumeResponse.EducationDetails(
+                                e.getSchoolName(),
+                                e.getDegree(),
+                                e.getMajor(),
+                                e.getGpa(),
+                                e.getMaxGpa()
+                        )).toList();
+
+        List<WebPostResumeResponse.WorkExperience> workExperiences =
+                response.getWorkExperiences().stream()
+                        .map(w -> new WebPostResumeResponse.WorkExperience(
+                                w.getCompanyName(),
+                                w.getPosition(),
+                                w.getPeriod()
+                        )).toList();
+
+        List<WebPostResumeResponse.Certification> certifications =
+                response.getCertificates().stream()
+                        .map(name -> new WebPostResumeResponse.Certification(name))
+                        .toList();
+
+        List<WebPostResumeResponse.LanguageSkill> languageSkills =
+                response.getLanguageSkills().stream()
+                        .map(l -> new WebPostResumeResponse.LanguageSkill(
+                                l.getLanguageTest(),
+                                l.getScore()
+                        )).toList();
+
+        List<WebPostResumeResponse.Activity> activities =
+                response.getActivities().stream()
+                        .map(a -> new WebPostResumeResponse.Activity(
+                                a.getName(),
+                                a.getRole(),
+                                a.getAward()
+                        )).toList();
+
+        return new WebPostResumeResponse.ResumeAnalysisResult(
+                finalEducation,
+                educationDetails,
+                workExperiences,
+                certifications,
+                languageSkills,
+                activities,
+                response.getJobField()
+        );
+    }
 }

@@ -12,7 +12,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.SpecStatus;

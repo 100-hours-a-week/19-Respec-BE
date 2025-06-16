@@ -26,7 +26,6 @@ public class SpecDetailResponse {
         private List<Activity> activities;
         private JobField jobField;
         private Rankings rankings;
-        private String portfolioUrl;
         private String assessment;
     }
 

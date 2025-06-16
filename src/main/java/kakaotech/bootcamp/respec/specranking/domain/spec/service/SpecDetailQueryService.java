@@ -17,8 +17,6 @@ import kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.Educa
 import kakaotech.bootcamp.respec.specranking.domain.educationdetail.repository.EducationDetailRepository;
 import kakaotech.bootcamp.respec.specranking.domain.languageskill.entity.LanguageSkill;
 import kakaotech.bootcamp.respec.specranking.domain.languageskill.repository.LanguageSkillRepository;
-import kakaotech.bootcamp.respec.specranking.domain.portfolio.entity.Portfolio;
-import kakaotech.bootcamp.respec.specranking.domain.portfolio.repository.PortfolioRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.Details;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.EducationDetails;
@@ -45,7 +43,6 @@ public class SpecDetailQueryService {
     private final CertificationRepository certificationRepository;
     private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
-    private final PortfolioRepository portfolioRepository;
 
     public SpecDetailResponse getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
@@ -91,13 +88,6 @@ public class SpecDetailQueryService {
         List<ScoreDetail> categories = getScoreDteails(spec);
         rankings.setCategories(categories);
         response.setRankings(rankings);
-
-        Optional<Portfolio> portfolio = portfolioRepository.findBySpecId(specId);
-        if (portfolio.isPresent()) {
-            response.setPortfolioUrl(portfolio.get().getOriginName());
-        } else {
-            response.setPortfolioUrl("");
-        }
 
         response.setAssessment(spec.getAssessment());
 

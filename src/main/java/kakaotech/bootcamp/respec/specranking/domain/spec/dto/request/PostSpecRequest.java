@@ -39,8 +39,6 @@ public class PostSpecRequest {
     private List<Activity> activities = new ArrayList<>();
     @NotNull(message = "희망 직무 분야는 필수입니다")
     private JobField jobField;
-    @NotNull(message = "유저에게 포트폴리오가 보이는지 여부를 입력해야 합니다.")
-    private Boolean isVisiblePortfolioToUser;
 
     @Data
     public static class FinalEducation {

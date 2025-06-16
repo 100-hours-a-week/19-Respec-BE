@@ -111,7 +111,8 @@ public class InitializeSpec implements CommandLineRunner {
                 activityNetworkingScore,
                 certificationScore,
                 englishSkillScore,
-                totalScore
+                totalScore,
+                "AI 스펙 결과"
         );
 
         Spec savedSpec = specRepository.save(spec);
