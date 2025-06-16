@@ -52,10 +52,8 @@ public class SpecDetailQueryService {
                 .orElseThrow(() -> new IllegalArgumentException("Spec not found"));
 
         Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
-        Long loginUserId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
-
-        if (!spec.getUser().getId().equals(loginUserId)) {
-            throw new IllegalArgumentException("자신의 스펙 정보만 조회 가능합니다.");
+        if (!userIdOpt.isPresent()) {
+            throw new IllegalArgumentException("로그인이 필요한 서비스입니다.");
         }
 
         SpecDetailResponse.SpecDetailData response = new SpecDetailResponse.SpecDetailData();
