@@ -1,16 +1,17 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.dto.produce;
 
+import kakaotech.bootcamp.respec.specranking.domain.common.type.ChatStatus;
 import lombok.Getter;
 
 @Getter
 public class ChatProduceDto {
     private String idempotentKey;
-    private String senderId;
-    private String receiverId;
+    private Long senderId;
+    private Long receiverId;
     private String content;
-    private String status;
+    private ChatStatus status;
 
-    public ChatProduceDto(String idempotentKey, String senderId, String receiverId, String content, String status) {
+    public ChatProduceDto(String idempotentKey, Long senderId, Long receiverId, String content, ChatStatus status) {
         this.idempotentKey = idempotentKey;
         this.senderId = senderId;
         this.receiverId = receiverId;

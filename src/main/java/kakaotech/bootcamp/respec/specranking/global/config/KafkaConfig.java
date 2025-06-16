@@ -10,7 +10,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
@@ -19,11 +18,16 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 @Configuration
-@Profile("!local")
 public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @Value("${spring.kafka.chat.topic.partitions}")
+    private int partitions_cnt;
+
+    @Value("${spring.kafka.chat.topic.replicas}")
+    private short replicas_cnt;
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
@@ -48,12 +52,9 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic chatTopic() {
-        final int PARTITION_CNT = 3;
-        final int REPLICAS_CNT = 3;
-
         return TopicBuilder.name("chat")
-                .partitions(PARTITION_CNT)
-                .replicas(REPLICAS_CNT)
+                .partitions(partitions_cnt)
+                .replicas(replicas_cnt)
                 .build();
     }
 

@@ -20,17 +20,13 @@ public class EC2IPService implements IPService {
     }
 
     private String fetchMetadata(String path) {
-        try {
-            return ec2MetadataWebClient
-                    .get()
-                    .uri("/" + path)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(3))
-                    .block();
-        } catch (Exception e) {
-            return "error";
-        }
+        return ec2MetadataWebClient
+                .get()
+                .uri("/" + path)
+                .retrieve()
+                .bodyToMono(String.class)
+                .timeout(Duration.ofSeconds(3))
+                .block();
     }
 
     private int getPrivatePort() {
