@@ -16,10 +16,7 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.UserStatus;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.store.service.ImageFileStore;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateRequest;
-import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.*;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
@@ -99,41 +96,17 @@ public class UserService {
         return createUserResponseDto(user);
     }
 
-    // 사용자 정보 조회
-    public Map<String, Object> getUserInfo(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+    public UserDetailResponse getUserInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
 
-        // 사용자 정보 생성
-        UserResponseDto userDto = createUserResponseDto(user);
-
-        // 사용자 정보 Map 구성
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("id", userDto.getId());
-        userMap.put("nickname", userDto.getNickname());
-        userMap.put("profileImageUrl", userDto.getProfileImageUrl());
-        userMap.put("createdAt", userDto.getCreatedAt());
-
-        // 활성화된 스펙 조회
         Optional<Spec> activeSpecOpt = specRepository.findByUserIdAndStatus(user.getId(), SpecStatus.ACTIVE);
+        Spec activeSpec = activeSpecOpt.orElse(null);
 
-        Map<String, Object> specMap = new HashMap<>();
-        if (activeSpecOpt.isPresent()) {
-            Spec spec = activeSpecOpt.get();
-            specMap.put("hasActiveSpec", true);
-            specMap.put("activeSpec", spec.getId());
-            userMap.put("jobField", spec.getJobField().getValue());
-        } else {
-            specMap.put("hasActiveSpec", false);
-            specMap.put("activeSpec", null);
-            userMap.put("jobField", null);
-        }
+        UserDetailResponse.UserDetail userDetail = UserDetailResponse.createUserDetail(user, activeSpec);
 
-        userMap.put("spec", specMap);
-
-        return userMap;
+        return UserDetailResponse.success(userDetail);
     }
-
 
     // 회원 탈퇴
     public void deleteUser(Long id) {
