@@ -31,14 +31,12 @@ public class WebsocketHandshakeInterceptor implements HandshakeInterceptor {
         }
 
         HttpServletRequest httpServletRequest = servletRequest.getServletRequest();
+        String token = httpServletRequest.getParameter("token");
 
-        String authHeader = httpServletRequest.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (token == null || token.isBlank()) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return false;
         }
-
-        String token = authHeader.substring(7);
 
         if (jwtUtil.isExpired(token)) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
