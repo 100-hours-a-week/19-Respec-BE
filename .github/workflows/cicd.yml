@@ -29,6 +29,7 @@ jobs:
           echo "${{ secrets.PRIVATE_SSH_KEY }}" > private.pem
           chmod 600 private.pem
 
+          # 로컬에서 빌드한 JAR을 Bastion에 보냄
           scp \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
@@ -42,6 +43,8 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             -i private.pem ec2-user@${{ secrets.DEV_BASTION_HOST }} \
             "
-              scp -i ~/master.pem -o StrictHostKeyChecking=no build/libs/*.jar ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
+              # Bastion → Private EC2: Bastion 홈에 복사된 JAR만 전송
+              scp -i ~/master.pem -o StrictHostKeyChecking=no *.jar ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
+              # Private EC2에서 deploy 스크립트 실행
               ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'bash deploy-mainserver.sh'
             "
