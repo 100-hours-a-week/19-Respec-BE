@@ -12,11 +12,13 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -38,9 +40,13 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                         Authentication authentication) throws IOException {
 
         CustomOAuth2User userInfo = (CustomOAuth2User) authentication.getPrincipal();
+        log.info("OAuth2 로그인 성공 - LoginId: {}", userInfo.getLoginId());
+
         Optional<User> optUser = userRepository.findByLoginId(userInfo.getLoginId());
 
         if (optUser.isPresent()) {
+            log.info("기존 사용자 로그인 - UserId: {}", optUser.get().getId());
+
             // 기존 사용자 - JWT 발급
             User user = optUser.get();
             AuthTokenRequestDto requestDto = new AuthTokenRequestDto(user.getId(), user.getLoginId());
@@ -51,6 +57,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         } else {
             // 신규 사용자 - tempLoginId 쿠키 설정
             String tmpLoginId = userInfo.getProvider() + "_" + userInfo.getProviderId();
+            log.info("신규 사용자 - TempLoginId 발급: {}", tmpLoginId);
+
             CookieUtils.addCookie(response, TEMP_LOGIN_ID, tmpLoginId, (int) (TEMP_LOGIN_ID_EXP / 1000));
         }
 
