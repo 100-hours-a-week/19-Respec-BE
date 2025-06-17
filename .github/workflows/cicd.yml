@@ -1,4 +1,4 @@
-name: Deploy Spring Boot (No deploy.sh in ZIP)
+name: Deploy Spring Boot (No ZIP, JAR only)
 
 on:
   push:
@@ -24,13 +24,7 @@ jobs:
           chmod +x gradlew
           ./gradlew build -x test
 
-      - name: Make ZIP (specranking-dev-mainserver.zip)
-        run: |
-          mkdir specranking-dev-mainserver
-          cp -r build specranking-dev-mainserver/
-          zip -r specranking-dev-mainserver.zip specranking-dev-mainserver
-
-      - name: Copy ZIP to Bastion only
+      - name: Copy JAR to Bastion only
         run: |
           echo "${{ secrets.PRIVATE_SSH_KEY }}" > private.pem
           chmod 600 private.pem
@@ -38,7 +32,7 @@ jobs:
           scp \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            -i private.pem specranking-dev-mainserver.zip \
+            -i private.pem build/libs/*.jar \
             ec2-user@${{ secrets.DEV_BASTION_HOST }}:/home/ec2-user/
 
       - name: Bastion runs deploy to Private EC2
@@ -48,6 +42,6 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             -i private.pem ec2-user@${{ secrets.DEV_BASTION_HOST }} \
             "
-              scp -i ~/master.pem -o StrictHostKeyChecking=no specranking-dev-mainserver.zip ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
-              ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'unzip -o specranking-dev-mainserver.zip && bash deploy-mainserver.sh'
+              scp -i ~/master.pem -o StrictHostKeyChecking=no build/libs/*.jar ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
+              ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'bash deploy-mainserver.sh'
             "
