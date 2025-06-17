@@ -1,4 +1,4 @@
-name: Deploy Spring Boot (Fat JAR)
+name: Deploy Spring Boot (Jar Only)
 
 on:
   push:
@@ -19,16 +19,17 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Gradle BootJar Build (Skip Tests)
+      - name: Gradle Build (Skip Tests)
         run: |
           chmod +x gradlew
-          ./gradlew clean bootJar -x test
+          ./gradlew build -x test
 
-      - name: Copy JAR to Bastion only
+      - name: Copy JAR to Bastion
         run: |
           echo "${{ secrets.PRIVATE_SSH_KEY }}" > private.pem
           chmod 600 private.pem
 
+          # Actions → Bastion 전송
           scp \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
@@ -42,6 +43,10 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             -i private.pem ec2-user@${{ secrets.DEV_BASTION_HOST }} \
             "
-              scp -i ~/master.pem -o StrictHostKeyChecking=no build/libs/*.jar ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
+              # Bastion → Private : Bastion 홈에 복사된 JAR만 이동
+              LATEST_JAR=\$(ls -t *.jar | head -n1)
+              echo '[INFO] Bastion will copy: '\$LATEST_JAR
+              scp -i ~/master.pem -o StrictHostKeyChecking=no \$LATEST_JAR ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/
+              # Private에서 deploy-mainserver.sh 실행
               ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'bash deploy-mainserver.sh'
             "
