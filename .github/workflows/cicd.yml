@@ -1,4 +1,4 @@
-name: Deploy Spring Boot (Jar Only)
+name: Deploy Spring Boot Fat Jar
 
 on:
   push:
@@ -10,43 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up JDK 21
+      - name: Setup JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Gradle Build (Skip Tests)
+      - name: Build Fat Jar
         run: |
           chmod +x gradlew
-          ./gradlew build -x test
+          ./gradlew clean bootJar
 
-      - name: Copy JAR to Bastion
+      - name: SCP Fat Jar to Bastion
         run: |
           echo "${{ secrets.PRIVATE_SSH_KEY }}" > private.pem
           chmod 600 private.pem
+          
+          JAR_NAME=$(ls build/libs | grep 'SNAPSHOT.jar' | grep -v plain)
+          echo "Uploading $JAR_NAME"
+          
+          scp -o StrictHostKeyChecking=no -i private.pem build/libs/$JAR_NAME ec2-user@${{ secrets.DEV_BASTION_HOST }}:/home/ec2-user/
 
-          # Actions → Bastion 전송
-          scp \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            -i private.pem build/libs/*.jar \
-            ec2-user@${{ secrets.DEV_BASTION_HOST }}:/home/ec2-user/
-
-      - name: Bastion runs deploy to Private EC2
+      - name: SSH Bastion and Deploy
         run: |
-          ssh \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            -i private.pem ec2-user@${{ secrets.DEV_BASTION_HOST }} \
-            "
-              # Bastion → Private : Bastion 홈에 복사된 JAR만 이동
-              LATEST_JAR=\$(ls -t *.jar | head -n1)
-              echo '[INFO] Bastion will copy: '\$LATEST_JAR
-              scp -i ~/master.pem -o StrictHostKeyChecking=no \$LATEST_JAR ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/
-              # Private에서 deploy-mainserver.sh 실행
-              ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'bash deploy-mainserver.sh'
-            "
+          ssh -o StrictHostKeyChecking=no -i private.pem ec2-user@${{ secrets.DEV_BASTION_HOST }} "
+            JAR_NAME=\$(ls /home/ec2-user | grep 'SNAPSHOT.jar' | grep -v plain)
+            scp -i ~/master.pem -o StrictHostKeyChecking=no \$JAR_NAME ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
+            ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'bash ~/deploy-mainserver.sh'
+          "
