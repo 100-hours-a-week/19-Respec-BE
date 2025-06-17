@@ -38,7 +38,7 @@ jobs:
           scp \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            -i private.pem specranking-dev-chatconsumer.zip \
+            -i private.pem specranking-dev-mainserver.zip \
             ec2-user@${{ secrets.DEV_BASTION_HOST }}:/home/ec2-user/
 
       - name: Bastion runs deploy to Private EC2
