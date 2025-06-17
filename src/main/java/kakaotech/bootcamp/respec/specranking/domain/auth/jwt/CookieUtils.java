@@ -24,7 +24,7 @@ public class CookieUtils {
 
             // Secure, HttpOnly, SameSite=None, Domain 명시
             String cookieString = String.format(
-                    "%s=%s; Max-Age=%d; Path=/; Domain=dev.specranking.net; Secure; HttpOnly; SameSite=None",
+                    "%s=%s; Max-Age=%d; Path=/; Domain=dev.specranking.net; Secure; SameSite=None",
                     name, encodedValue, maxAge
             );
 
@@ -37,7 +37,7 @@ public class CookieUtils {
     public static void deleteCookie(HttpServletResponse response, String name) {
         // 삭제 시에도 동일한 도메인, Secure, SameSite 설정 필요
         String cookieString = String.format(
-                "%s=; Max-Age=0; Path=/; Domain=dev.specranking.net; Secure; HttpOnly; SameSite=None",
+                "%s=; Max-Age=0; Path=/; Domain=dev.specranking.net; Secure; SameSite=None",
                 name
         );
         response.addHeader("Set-Cookie", cookieString);
