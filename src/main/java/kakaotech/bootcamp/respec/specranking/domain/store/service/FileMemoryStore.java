@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
-@Profile("!portfolio-s3")
+@Profile("!resumeS3")
 public class FileMemoryStore implements FileStore {
     private final List<String> uploadedFiles = new ArrayList<>();
 

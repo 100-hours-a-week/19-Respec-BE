@@ -3,19 +3,17 @@ package kakaotech.bootcamp.respec.specranking.domain.store.config;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 @Configuration
 @RequiredArgsConstructor
-@Profile("s3")
+@Profile("imageS3")
 public class S3DefaultImageConfig {
 
     private final AmazonS3Client amazonS3Client;
