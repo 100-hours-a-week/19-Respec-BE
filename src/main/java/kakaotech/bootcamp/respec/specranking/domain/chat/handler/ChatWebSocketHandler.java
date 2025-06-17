@@ -15,7 +15,7 @@ import kakaotech.bootcamp.respec.specranking.domain.chat.dto.request.SocketChatS
 import kakaotech.bootcamp.respec.specranking.global.util.IPService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -30,7 +30,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final Map<Long, WebSocketSession> userSessionMap = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, ChatProduceDto> chatMessageKafkaTemplate;
-    private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private final Validator validator;
     private final IPService ipService;
@@ -79,6 +79,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     public WebSocketSession getSessionByUserId(Long userId) {
         return userSessionMap.get(userId);
+    }
+
+    public void removeSessionByUserId(Long userId) {
+        userSessionMap.remove(userId);
     }
 
     private String generateKeyForSequence(Long senderId, Long receiverId) {

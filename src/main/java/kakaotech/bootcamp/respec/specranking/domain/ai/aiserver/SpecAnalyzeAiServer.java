@@ -1,7 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.aiserver;
 
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostResumeRequest;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostResumeResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostSpecResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,23 +21,43 @@ public class SpecAnalyzeAiServer implements AiServer {
 
     private final WebClient aiServerWebClient;
 
-    @Value("${ai.server.url.path}")
-    private String urlPath;
+    @Value("${ai.server.url.spec.path}")
+    private String specPath;
+
+    @Value("${ai.server.url.resume.path}")
+    private String resumePath;
 
     @Override
     public AiPostSpecResponse analyzeSpec(AiPostSpecRequest request) {
         return aiServerWebClient.post()
-                .uri(urlPath)
+                .uri(specPath)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError,
                         res -> res.bodyToMono(String.class)
-                                .doOnNext(body -> log.error("AI {} body ▶ {}", res.statusCode(), body))
+                                .doOnNext(body -> log.error("spec AI {} body ▶ {}", res.statusCode(), body))
                                 .map(body -> new IllegalStateException(
-                                        "AI server error (" + res.statusCode() + "): " + body))
+                                        "spec AI server error (" + res.statusCode() + "): " + body))
                 )
                 .bodyToMono(AiPostSpecResponse.class)
+                .block();
+    }
+
+    @Override
+    public AiPostResumeResponse analyzeResume(AiPostResumeRequest aiPostResumeRequest) {
+        return aiServerWebClient.post()
+                .uri(resumePath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(aiPostResumeRequest)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError,
+                        res -> res.bodyToMono(String.class)
+                                .doOnNext(body -> log.error("resume AI {} body ▶ {}", res.statusCode(), body))
+                                .map(body -> new IllegalStateException(
+                                        "resume AI server error (" + res.statusCode() + "): " + body))
+                )
+                .bodyToMono(AiPostResumeResponse.class)
                 .block();
     }
 }

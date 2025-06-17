@@ -1,8 +1,18 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.aiserver;
 
+import java.util.List;
 import java.util.Random;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.request.AiPostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.domain.ai.dto.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostResumeRequest;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostResumeResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostResumeResponse.EducationDetail;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +25,11 @@ public class MockAiServer implements AiServer {
     @Override
     public AiPostSpecResponse analyzeSpec(AiPostSpecRequest aiPostSpecRequest) {
         return createMockAiResponse(aiPostSpecRequest);
+    }
+
+    @Override
+    public AiPostResumeResponse analyzeResume(AiPostResumeRequest aiPostResumeRequest) {
+        return createMockResumeResponse();
     }
 
     private AiPostSpecResponse createMockAiResponse(AiPostSpecRequest aiPostSpecRequest) {
@@ -30,6 +45,7 @@ public class MockAiServer implements AiServer {
         Double avgScore = calculateAverageScoreWithBasicField(response);
         Double totalScore = adjustTotalScore(avgScore);
         response.setTotalScore(totalScore);
+        response.setAssessment("스펙에 관한 AI 평가 내용이 들어갑니다.");
         return response;
     }
 
@@ -60,5 +76,45 @@ public class MockAiServer implements AiServer {
 
     private Double guaranteeBetweenLowestAndHighest(Double adjusted) {
         return Math.min(Math.max(adjusted, MIN_SCORE), MAX_SCORE);
+    }
+
+    private AiPostResumeResponse createMockResumeResponse() {
+        List<EducationDetail> educationDetails = List.of(
+                new AiPostResumeResponse.EducationDetail("카카오테크캠퍼스", Degree.BACHELOR, "소프트웨어공학과", 3.8, 4.5),
+                new AiPostResumeResponse.EducationDetail("서울대학교", Degree.MASTER, "컴퓨터공학과", 4.2, 4.5)
+        );
+
+        List<AiPostResumeResponse.WorkExperience> workExperiences = List.of(
+                new AiPostResumeResponse.WorkExperience("카카오", Position.CEO, 24),
+                new AiPostResumeResponse.WorkExperience("네이버", Position.INTERN, 18)
+        );
+
+        List<String> certificates = List.of(
+                "정보처리기사",
+                "SQLD",
+                "AWS Solutions Architect"
+        );
+
+        List<AiPostResumeResponse.LanguageSkill> languageSkills = List.of(
+                new AiPostResumeResponse.LanguageSkill(LanguageTest.FLEX_CHINESE, "850"),
+                new AiPostResumeResponse.LanguageSkill(LanguageTest.FLEX_FRENCH, "IH")
+        );
+
+        List<AiPostResumeResponse.Activity> activities = List.of(
+                new AiPostResumeResponse.Activity("프로그래밍 동아리", "회장", "대상"),
+                new AiPostResumeResponse.Activity("해커톤", "팀장", "금상"),
+                new AiPostResumeResponse.Activity("오픈소스 기여", "개발자", "")
+        );
+
+        return new AiPostResumeResponse(
+                Institute.UNIVERSITY,
+                FinalStatus.COMPLETED,
+                JobField.CONSTRUCTION,
+                educationDetails,
+                workExperiences,
+                certificates,
+                languageSkills,
+                activities
+        );
     }
 }
