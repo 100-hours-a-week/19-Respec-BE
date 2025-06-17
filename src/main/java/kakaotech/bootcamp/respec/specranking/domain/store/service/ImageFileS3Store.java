@@ -2,6 +2,10 @@ package kakaotech.bootcamp.respec.specranking.domain.store.service;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import kakaotech.bootcamp.respec.specranking.domain.store.config.S3DefaultImageConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,14 +13,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
 @Component
 @RequiredArgsConstructor
-@Profile("s3")
+@Profile("imageS3")
 public class ImageFileS3Store implements ImageFileStore {
 
     private final AmazonS3Client amazonS3Client;
