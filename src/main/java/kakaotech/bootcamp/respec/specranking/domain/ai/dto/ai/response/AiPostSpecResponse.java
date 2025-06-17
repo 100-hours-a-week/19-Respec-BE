@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.ai.dto.response;
+package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -25,4 +25,7 @@ public class AiPostSpecResponse {
 
     @JsonProperty("totalScore")
     private Double totalScore = 0.0;
+
+    @JsonProperty("assessment")
+    private String assessment = "";
 }

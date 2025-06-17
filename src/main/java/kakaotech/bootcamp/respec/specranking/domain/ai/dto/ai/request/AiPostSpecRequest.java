@@ -1,6 +1,5 @@
-package kakaotech.bootcamp.respec.specranking.domain.ai.dto.request;
+package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +37,6 @@ public class AiPostSpecRequest {
     private List<LanguageSkill> languageSkills = new ArrayList<>();
 
     private List<Activity> activities = new ArrayList<>();
-
-    @JsonIgnore
-    @JsonProperty("filelink")
-    private String portfolioURL;
 
     @Data
     public static class EducationDetail {
