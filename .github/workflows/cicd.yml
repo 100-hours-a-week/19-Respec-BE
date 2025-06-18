@@ -1,43 +1,62 @@
-name: Deploy Spring Boot Fat Jar
+name: Backend ECR Push Only
 
 on:
   push:
-    branches:
-      - dev
+    branches: [dev, stage, main]
+
+env:
+  AWS_REGION: ap-northeast-2
+  ACCOUNT_ID: 115313776476
 
 jobs:
-  build-and-deploy:
+  push-to-ecr:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup JDK 21
+      - name: Set environment variables
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          BRANCH_NAME=${GITHUB_REF##*/}
+
+          if [[ "$BRANCH_NAME" == "dev" ]]; then
+            echo "ENV=dev" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == "stage" ]]; then
+            echo "ENV=stage" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          else
+            echo "❌ Unknown branch"
+            exit 1
+          fi
+
+          echo "TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "REPO_NAME=specranking-backend-${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build Fat Jar
-        run: |
-          chmod +x gradlew
-          ./gradlew clean bootJar
+      - name: Build JAR with Gradle
+        run: ./gradlew clean build -x test
 
-      - name: SCP Fat Jar to Bastion
-        run: |
-          echo "${{ secrets.PRIVATE_SSH_KEY }}" > private.pem
-          chmod 600 private.pem
-          
-          JAR_NAME=$(ls build/libs | grep 'SNAPSHOT.jar' | grep -v plain)
-          echo "Uploading $JAR_NAME"
-          
-          scp -o StrictHostKeyChecking=no -i private.pem build/libs/$JAR_NAME ec2-user@${{ secrets.DEV_BASTION_HOST }}:/home/ec2-user/
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: SSH Bastion and Deploy
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker image to ECR
         run: |
-          ssh -o StrictHostKeyChecking=no -i private.pem ec2-user@${{ secrets.DEV_BASTION_HOST }} "
-            JAR_NAME=\$(ls /home/ec2-user | grep 'SNAPSHOT.jar' | grep -v plain)
-            scp -i ~/master.pem -o StrictHostKeyChecking=no \$JAR_NAME ec2-user@${{ secrets.DEV_PRIVATE_HOST }}:/home/ec2-user/ && \
-            ssh -i ~/master.pem ec2-user@${{ secrets.DEV_PRIVATE_HOST }} 'bash ~/deploy-mainserver.sh'
-          "
+          IMAGE="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPO_NAME }}:${{ env.TAG }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
