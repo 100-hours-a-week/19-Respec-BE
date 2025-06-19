@@ -80,13 +80,13 @@ public class MockAiServer implements AiServer {
 
     private AiPostResumeResponse createMockResumeResponse() {
         List<EducationDetail> educationDetails = List.of(
-                new AiPostResumeResponse.EducationDetail("카카오테크캠퍼스", Degree.BACHELOR, "소프트웨어공학과", 3.8, 4.5),
-                new AiPostResumeResponse.EducationDetail("서울대학교", Degree.MASTER, "컴퓨터공학과", 4.2, 4.5)
+                new AiPostResumeResponse.EducationDetail("카카오테크캠퍼스", Degree.BACHELOR.getValue(), "소프트웨어공학과", 3.8, 4.5),
+                new AiPostResumeResponse.EducationDetail("서울대학교", Degree.MASTER.getValue(), "컴퓨터공학과", 4.2, 4.5)
         );
 
         List<AiPostResumeResponse.WorkExperience> workExperiences = List.of(
-                new AiPostResumeResponse.WorkExperience("카카오", Position.CEO, 24),
-                new AiPostResumeResponse.WorkExperience("네이버", Position.INTERN, 18)
+                new AiPostResumeResponse.WorkExperience("카카오", Position.CEO.getValue(), 24),
+                new AiPostResumeResponse.WorkExperience("네이버", Position.INTERN.getValue(), 18)
         );
 
         List<String> certificates = List.of(
@@ -96,8 +96,8 @@ public class MockAiServer implements AiServer {
         );
 
         List<AiPostResumeResponse.LanguageSkill> languageSkills = List.of(
-                new AiPostResumeResponse.LanguageSkill(LanguageTest.FLEX_CHINESE, "850"),
-                new AiPostResumeResponse.LanguageSkill(LanguageTest.FLEX_FRENCH, "IH")
+                new AiPostResumeResponse.LanguageSkill(LanguageTest.FLEX_CHINESE.getValue(), "850"),
+                new AiPostResumeResponse.LanguageSkill(LanguageTest.FLEX_FRENCH.getValue(), "IH")
         );
 
         List<AiPostResumeResponse.Activity> activities = List.of(
@@ -107,9 +107,9 @@ public class MockAiServer implements AiServer {
         );
 
         return new AiPostResumeResponse(
-                Institute.UNIVERSITY,
-                FinalStatus.COMPLETED,
-                JobField.CONSTRUCTION,
+                Institute.UNIVERSITY.getValue(),
+                FinalStatus.COMPLETED.getValue(),
+                JobField.CONSTRUCTION.getValue(),
                 educationDetails,
                 workExperiences,
                 certificates,
