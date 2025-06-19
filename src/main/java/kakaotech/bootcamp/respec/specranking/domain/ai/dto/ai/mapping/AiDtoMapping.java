@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.mapping;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest;
@@ -8,6 +9,13 @@ import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpec
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostSpecRequest.WorkExperience;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostResumeResponse;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.web.response.WebPostResumeResponse;
+import kakaotech.bootcamp.respec.specranking.domain.ai.dto.web.response.WebPostResumeResponse.Certification;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
+import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecRequest;
 
 public class AiDtoMapping {
@@ -94,38 +102,55 @@ public class AiDtoMapping {
 
     public static WebPostResumeResponse.ResumeAnalysisResult convertToResumeAnalysisResponse(
             AiPostResumeResponse response) {
+
+        Institute institute = safeConvertToEnum(response.getInstitute(), Institute.class, Institute.HIGH_SCHOOL);
+        FinalStatus finalStatus = safeConvertToEnum(response.getFinalStatus(), FinalStatus.class,
+                FinalStatus.GRADUATED);
+        JobField jobField = safeConvertToEnum(response.getJobField(), JobField.class, JobField.TOTAL);
+
         WebPostResumeResponse.FinalEducation finalEducation =
-                new WebPostResumeResponse.FinalEducation(response.getInstitute(), response.getFinalStatus());
+                new WebPostResumeResponse.FinalEducation(institute, finalStatus);
 
         List<WebPostResumeResponse.EducationDetails> educationDetails =
                 response.getEducationDetails().stream()
-                        .map(e -> new WebPostResumeResponse.EducationDetails(
-                                e.getSchoolName(),
-                                e.getDegree(),
-                                e.getMajor(),
-                                e.getGpa(),
-                                e.getMaxGpa()
-                        )).toList();
+                        .map(e -> {
+                            Degree degree = safeConvertToEnum(e.getDegree(), Degree.class, Degree.BACHELOR);
+                            return new WebPostResumeResponse.EducationDetails(
+                                    e.getSchoolName(),
+                                    degree,
+                                    e.getMajor(),
+                                    e.getGpa(),
+                                    e.getMaxGpa()
+                            );
+                        }).toList();
 
         List<WebPostResumeResponse.WorkExperience> workExperiences =
                 response.getWorkExperiences().stream()
-                        .map(w -> new WebPostResumeResponse.WorkExperience(
-                                w.getCompanyName(),
-                                w.getPosition(),
-                                w.getPeriod()
-                        )).toList();
+                        .map(w -> {
+                            Position position = safeConvertToEnum(w.getPosition(), Position.class,
+                                    Position.FULL_TIME_EMPLOYEE);
+                            return new WebPostResumeResponse.WorkExperience(
+                                    w.getCompanyName(),
+                                    position,
+                                    w.getPeriod()
+                            );
+                        }).toList();
 
         List<WebPostResumeResponse.Certification> certifications =
                 response.getCertificates().stream()
-                        .map(name -> new WebPostResumeResponse.Certification(name))
+                        .map(Certification::new)
                         .toList();
 
         List<WebPostResumeResponse.LanguageSkill> languageSkills =
                 response.getLanguageSkills().stream()
-                        .map(l -> new WebPostResumeResponse.LanguageSkill(
-                                l.getLanguageTest(),
-                                l.getScore()
-                        )).toList();
+                        .map(l -> {
+                            LanguageTest languageTest = safeConvertToEnum(l.getLanguageTest(), LanguageTest.class,
+                                    LanguageTest.TOEIC_ENGLISH);
+                            return new WebPostResumeResponse.LanguageSkill(
+                                    languageTest,
+                                    l.getScore()
+                            );
+                        }).toList();
 
         List<WebPostResumeResponse.Activity> activities =
                 response.getActivities().stream()
@@ -142,7 +167,31 @@ public class AiDtoMapping {
                 certifications,
                 languageSkills,
                 activities,
-                response.getJobField()
+                jobField
         );
+    }
+
+
+    private static <T extends Enum<T>> T safeConvertToEnum(String value, Class<T> enumClass, T defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+
+        try {
+            return Arrays.stream(enumClass.getEnumConstants())
+                    .filter(enumConstant -> {
+                        try {
+                            String enumValue = (String) enumConstant.getClass().getMethod("getValue")
+                                    .invoke(enumConstant);
+                            return enumValue.equals(value);
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .findFirst()
+                    .orElse(defaultValue);
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }
