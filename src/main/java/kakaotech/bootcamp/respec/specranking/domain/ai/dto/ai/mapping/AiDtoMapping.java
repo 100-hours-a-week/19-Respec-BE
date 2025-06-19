@@ -103,10 +103,10 @@ public class AiDtoMapping {
     public static WebPostResumeResponse.ResumeAnalysisResult convertToResumeAnalysisResponse(
             AiPostResumeResponse response) {
 
-        Institute institute = safeConvertToEnum(response.getInstitute(), Institute.class, Institute.HIGH_SCHOOL);
+        Institute institute = safeConvertToEnum(response.getInstitute(), Institute.class, Institute.UNIVERSITY);
         FinalStatus finalStatus = safeConvertToEnum(response.getFinalStatus(), FinalStatus.class,
                 FinalStatus.GRADUATED);
-        JobField jobField = safeConvertToEnum(response.getJobField(), JobField.class, JobField.TOTAL);
+        JobField jobField = safeConvertToEnum(response.getJobField(), JobField.class, JobField.INTERNET_IT);
 
         WebPostResumeResponse.FinalEducation finalEducation =
                 new WebPostResumeResponse.FinalEducation(institute, finalStatus);
@@ -128,7 +128,7 @@ public class AiDtoMapping {
                 response.getWorkExperiences().stream()
                         .map(w -> {
                             Position position = safeConvertToEnum(w.getPosition(), Position.class,
-                                    Position.FULL_TIME_EMPLOYEE);
+                                    Position.INTERN);
                             return new WebPostResumeResponse.WorkExperience(
                                     w.getCompanyName(),
                                     position,
