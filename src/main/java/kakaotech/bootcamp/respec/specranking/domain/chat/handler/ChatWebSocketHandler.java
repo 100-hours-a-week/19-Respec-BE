@@ -38,6 +38,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String privateAddress = ipService.loadEC2PrivateAddress();
+        log.info("Connected to EC2 with private address {}", privateAddress);
 
         Long userId = (Long) session.getAttributes().get("userId");
 
