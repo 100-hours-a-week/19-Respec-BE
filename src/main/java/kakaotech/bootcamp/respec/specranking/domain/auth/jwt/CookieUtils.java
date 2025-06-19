@@ -20,7 +20,7 @@ public class CookieUtils {
         static final boolean IS_HTTP_ONLY = false;
         static final String DEFAULT_PATH = "/";
         static final String SAME_SITE_CROSS_DOMAIN = IS_LOCAL ? "Lax" : "None";
-        static final String DOMAIN = IS_LOCAL ? "localhost" : ".dev.specranking.net";
+        static final String DOMAIN = IS_LOCAL ? "localhost" : ".specranking.net";
     }
 
     public static Optional<Cookie> getCookie(HttpServletRequest request, String cookieName) {
