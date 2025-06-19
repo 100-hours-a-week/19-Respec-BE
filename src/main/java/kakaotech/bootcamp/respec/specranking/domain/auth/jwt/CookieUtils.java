@@ -14,11 +14,13 @@ import java.util.Optional;
 public class CookieUtils {
 
     private static final class CookieConfig {
-        static final boolean IS_SECURE = true;
+        static final boolean IS_LOCAL = false;
+
+        static final boolean IS_SECURE = !IS_LOCAL;
         static final boolean IS_HTTP_ONLY = false;
         static final String DEFAULT_PATH = "/";
-        static final String SAME_SITE_CROSS_DOMAIN = "None";
-        static final String DOMAIN = "dev.specranking.net";
+        static final String SAME_SITE_CROSS_DOMAIN = IS_LOCAL ? "Lax" : "None";
+        static final String DOMAIN = IS_LOCAL ? "localhost" : ".dev.specranking.net";
     }
 
     public static Optional<Cookie> getCookie(HttpServletRequest request, String cookieName) {
