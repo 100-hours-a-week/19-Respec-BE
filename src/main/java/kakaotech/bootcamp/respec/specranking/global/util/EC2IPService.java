@@ -16,13 +16,27 @@ public class EC2IPService implements IPService {
     private final ServletWebServerApplicationContext webServerContext;
 
     public String loadEC2PrivateAddress() {
-        return fetchMetadata("local-ipv4") + ":" + getPrivatePort();
+        return fetchPrivateIPWithIMDSv2() + ":" + getPrivatePort();
     }
 
-    private String fetchMetadata(String path) {
+    private String fetchPrivateIPWithIMDSv2() {
+        String token = fetchIMDSToken();
+
         return ec2MetadataWebClient
                 .get()
-                .uri("/" + path)
+                .uri("/local-ipv4")
+                .header("X-aws-ec2-metadata-token", token)
+                .retrieve()
+                .bodyToMono(String.class)
+                .timeout(Duration.ofSeconds(3))
+                .block();
+    }
+
+    private String fetchIMDSToken() {
+        return ec2MetadataWebClient
+                .put()
+                .uri("http://169.254.169.254/latest/api/token")
+                .header("X-aws-ec2-metadata-token-ttl-seconds", "21600")
                 .retrieve()
                 .bodyToMono(String.class)
                 .timeout(Duration.ofSeconds(3))
