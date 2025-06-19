@@ -24,7 +24,7 @@ public class EC2IPService implements IPService {
 
         return ec2MetadataWebClient
                 .get()
-                .uri("/local-ipv4")
+                .uri("http://169.254.169.254/latest/meta-data/local-ipv4")
                 .header("X-aws-ec2-metadata-token", token)
                 .retrieve()
                 .bodyToMono(String.class)
