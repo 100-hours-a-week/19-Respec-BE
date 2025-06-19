@@ -4,7 +4,7 @@ import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.mapping.AiDtoMappi
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request.AiPostResumeRequest;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response.AiPostResumeResponse;
 import kakaotech.bootcamp.respec.specranking.domain.ai.dto.web.response.WebPostResumeResponse.ResumeAnalysisResult;
-import kakaotech.bootcamp.respec.specranking.domain.store.service.FileStore;
+import kakaotech.bootcamp.respec.specranking.domain.store.service.ResumeStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ResumeService {
 
-    private final FileStore fileStore;
+    private final ResumeStore resumeStore;
     private final AiService aiService;
 
     public ResumeAnalysisResult analysisResume(MultipartFile resume) {
@@ -21,7 +21,7 @@ public class ResumeService {
             throw new IllegalArgumentException("resume not found");
         }
 
-        String resumeUrl = fileStore.upload(resume);
+        String resumeUrl = resumeStore.upload(resume);
 
         AiPostResumeRequest aiPostResumeRequest = new AiPostResumeRequest(resumeUrl);
         AiPostResumeResponse aiPostResumeResponse = aiService.analyzeResume(aiPostResumeRequest);
