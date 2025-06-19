@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @Profile("!resumeS3")
-public class FileMemoryStore implements FileStore {
+public class ResumeMemoryStore implements ResumeStore {
     private final List<String> uploadedFiles = new ArrayList<>();
 
     @Override
@@ -18,9 +18,8 @@ public class FileMemoryStore implements FileStore {
 
         String originalFilename = multipartFile.getOriginalFilename();
         String storeFileName = createStoreFileName(originalFilename);
-
         uploadedFiles.add(storeFileName);
-        return "mock:url:portfolio:example.com/" + storeFileName;
+        return "mock:url:resume:example.com/" + storeFileName;
     }
 
     @Override

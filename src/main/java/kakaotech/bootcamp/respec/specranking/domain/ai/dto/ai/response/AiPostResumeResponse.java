@@ -2,12 +2,6 @@ package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -15,13 +9,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AiPostResumeResponse {
     @JsonProperty("final_edu")
-    private final Institute institute;
+    private final String institute;
 
     @JsonProperty("final_status")
-    private final FinalStatus finalStatus;
+    private final String finalStatus;
 
     @JsonProperty("desired_job")
-    private final JobField jobField;
+    private final String jobField;
 
     @JsonProperty("universities")
     private final List<EducationDetail> educationDetails;
@@ -42,7 +36,7 @@ public class AiPostResumeResponse {
         @JsonProperty("school_name")
         private final String schoolName;
 
-        private final Degree degree;
+        private final String degree;
 
         private final String major;
 
@@ -59,7 +53,7 @@ public class AiPostResumeResponse {
         @JsonProperty("company")
         private final String companyName;
         @JsonProperty("role")
-        private final Position position;
+        private final String position;
         @JsonProperty("work_month")
         private final Integer period;
     }
@@ -68,7 +62,7 @@ public class AiPostResumeResponse {
     @RequiredArgsConstructor
     public static class LanguageSkill {
         @JsonProperty("test")
-        private final LanguageTest languageTest;
+        private final String languageTest;
 
         @JsonProperty("score_or_grade")
         private final String score;

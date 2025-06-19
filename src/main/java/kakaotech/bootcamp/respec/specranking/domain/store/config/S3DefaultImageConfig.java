@@ -18,7 +18,7 @@ public class S3DefaultImageConfig {
 
     private final AmazonS3Client amazonS3Client;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.s3.user.profile.bucket}")
     private String bucket;
 
     private static final String DEFAULT_IMAGE_KEY = "specranking_default_image.png";

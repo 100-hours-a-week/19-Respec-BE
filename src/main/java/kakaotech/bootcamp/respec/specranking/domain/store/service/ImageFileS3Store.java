@@ -21,7 +21,7 @@ public class ImageFileS3Store implements ImageFileStore {
     private final AmazonS3Client amazonS3Client;
     private final S3DefaultImageConfig defaultImageConfig;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.s3.user.profile.bucket}")
     private String bucket;
 
     // 허용된 이미지 타입

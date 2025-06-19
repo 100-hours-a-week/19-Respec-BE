@@ -13,11 +13,11 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 @RequiredArgsConstructor
 @Profile("resumeS3")
-public class FileS3Store implements FileStore {
+public class ResumeS3Store implements ResumeStore {
 
     private final AmazonS3Client amazonS3Client;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.s3.resume.bucket}")
     private String bucket;
 
     @Override
