@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class AiPostResumeRequest {
-    @JsonProperty("fileUrl")
+    @JsonProperty("filelink")
     private final String resumeS3Url;
 }
