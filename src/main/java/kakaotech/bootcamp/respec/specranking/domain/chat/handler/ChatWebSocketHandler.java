@@ -78,6 +78,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         redisTemplate.delete("chat:user:" + userId);
     }
 
+    public Map<Long, WebSocketSession> getUserSessionMap() {
+        return userSessionMap;
+    }
+
     public WebSocketSession getSessionByUserId(Long userId) {
         return userSessionMap.get(userId);
     }

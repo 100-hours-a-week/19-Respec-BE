@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -33,13 +34,6 @@ public class ChatService {
             return;
         }
 
-        if (!session.isOpen()) {
-            redisTemplate.delete("chat:user:" + receiverId);
-            chatWebSocketHandler.removeSessionByUserId(receiverId);
-            notificationService.createChatNotificationIfNotExists(receiverId);
-            return;
-        }
-
         ChatRelayResponse messageToClient = ChatRelayResponse.builder()
                 .senderId(chatRelayDto.getSenderId())
                 .receiverId(chatRelayDto.getReceiverId())
@@ -48,6 +42,16 @@ public class ChatService {
 
         String messageJson = objectMapper.writeValueAsString(messageToClient);
 
-        session.sendMessage(new TextMessage(messageJson));
+        try {
+            session.sendMessage(new TextMessage(messageJson));
+        } catch (IOException | IllegalStateException e) {
+            if (session.isOpen()) {
+                session.close(CloseStatus.SESSION_NOT_RELIABLE);
+            }
+            redisTemplate.delete("chat:user:" + receiverId);
+            chatWebSocketHandler.removeSessionByUserId(receiverId);
+            notificationService.createChatNotificationIfNotExists(receiverId);
+        }
+
     }
 }
