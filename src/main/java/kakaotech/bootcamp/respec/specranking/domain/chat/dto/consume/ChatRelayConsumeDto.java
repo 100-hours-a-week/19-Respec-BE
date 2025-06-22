@@ -1,8 +1,13 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.dto.consume;
 
-public record ChatRelayConsumeDto(
-        Long senderId,
-        Long receiverId,
-        String content
-) {
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class ChatRelayConsumeDto {
+    private Long senderId;
+    private Long receiverId;
+    private String content;
+
 }

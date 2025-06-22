@@ -25,7 +25,7 @@ public class ChatService {
     private final NotificationService notificationService;
 
     public void sendMessageToUser(ChatRelayConsumeDto chatRelayDto) throws IOException {
-        Long receiverId = chatRelayDto.receiverId();
+        Long receiverId = chatRelayDto.getReceiverId();
 
         WebSocketSession session = chatWebSocketHandler.getSessionByUserId(receiverId);
 
@@ -34,11 +34,11 @@ public class ChatService {
             return;
         }
 
-        ChatRelayResponse messageToClient = new ChatRelayResponse(
-                chatRelayDto.senderId(),
-                chatRelayDto.receiverId(),
-                chatRelayDto.content()
-        );
+        ChatRelayResponse messageToClient = ChatRelayResponse.builder()
+                .senderId(chatRelayDto.getSenderId())
+                .receiverId(chatRelayDto.getReceiverId())
+                .content(chatRelayDto.getContent())
+                .build();
 
         String messageJson = objectMapper.writeValueAsString(messageToClient);
 

@@ -132,8 +132,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void processMessage(SocketChatSendRequest incomingMessage, Long senderId) {
-        Long receiverId = incomingMessage.receiverId();
-        String content = incomingMessage.content();
+        Long receiverId = incomingMessage.getReceiverId();
+        String content = incomingMessage.getContent();
         String idempotentKey = UUID.randomUUID().toString();
 
         ChatProduceDto chatProduceDto = new ChatProduceDto(idempotentKey, senderId, receiverId, content, SENT);
