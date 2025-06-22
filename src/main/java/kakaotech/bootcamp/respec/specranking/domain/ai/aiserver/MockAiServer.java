@@ -35,7 +35,7 @@ public class MockAiServer implements AiServer {
     private AiPostSpecResponse createMockAiResponse(AiPostSpecRequest aiPostSpecRequest) {
         AiPostSpecResponse response = new AiPostSpecResponse();
 
-        response.setNickname(aiPostSpecRequest.getNickname());
+        response.setNickname(aiPostSpecRequest.nickname());
         response.setEducationScore(generateRandomScore());
         response.setWorkExperienceScore(generateRandomScore());
         response.setCertificationScore(generateRandomScore());

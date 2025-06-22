@@ -2,31 +2,28 @@ package kakaotech.bootcamp.respec.specranking.domain.chatparticipation.dto.respo
 
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
-@Getter
-@Builder
-public class ChatParticipationListResponse {
-    private boolean isSuccess;
-    private String message;
-    private ChatParticipationListData data;
+public record ChatParticipationListResponse(
+        boolean isSuccess,
+        String message,
+        ChatParticipationListData data
+) {
 
-    @Getter
-    @Builder
-    public static class ChatParticipationListData {
-        private List<ChatRoomDto> chatRooms;
+    public record ChatParticipationListData(
+            List<ChatRoomDto> chatRooms
+    ) {
+        public ChatParticipationListData {
+            chatRooms = List.copyOf(chatRooms); // 불변 방어 복사
+        }
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class ChatRoomDto {
-        private Long roomId;
-        private Long partnerId;
-        private String partnerNickname;
-        private String partnerProfileImageUrl;
-        private String lastMessage;
-        private LocalDateTime lastMessageTime;
+    public record ChatRoomDto(
+            Long roomId,
+            Long partnerId,
+            String partnerNickname,
+            String partnerProfileImageUrl,
+            String lastMessage,
+            LocalDateTime lastMessageTime
+    ) {
     }
 }

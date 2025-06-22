@@ -1,78 +1,74 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.response;
 
+import static java.util.Objects.requireNonNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@Getter
-@RequiredArgsConstructor
-public class AiPostResumeResponse {
-    @JsonProperty("final_edu")
-    private final String institute;
+public record AiPostResumeResponse(
+        @JsonProperty("final_edu")
+        String institute,
 
-    @JsonProperty("final_status")
-    private final String finalStatus;
+        @JsonProperty("final_status")
+        String finalStatus,
 
-    @JsonProperty("desired_job")
-    private final String jobField;
+        @JsonProperty("desired_job")
+        String jobField,
 
-    @JsonProperty("universities")
-    private final List<EducationDetail> educationDetails;
+        @JsonProperty("universities")
+        List<EducationDetail> educationDetails,
 
-    @JsonProperty("careers")
-    private final List<WorkExperience> workExperiences;
+        @JsonProperty("careers")
+        List<WorkExperience> workExperiences,
 
-    private final List<String> certificates;
+        List<String> certificates,
 
-    @JsonProperty("languages")
-    private final List<LanguageSkill> languageSkills;
+        @JsonProperty("languages")
+        List<LanguageSkill> languageSkills,
 
-    private final List<Activity> activities;
-
-    @Getter
-    @RequiredArgsConstructor
-    public static class EducationDetail {
-        @JsonProperty("school_name")
-        private final String schoolName;
-
-        private final String degree;
-
-        private final String major;
-
-        private final Double gpa;
-
-        @JsonProperty("gpa_max")
-        private final Double maxGpa;
-
+        List<Activity> activities
+) {
+    public AiPostResumeResponse {
+        educationDetails = List.copyOf(requireNonNull(educationDetails));
+        workExperiences = List.copyOf(requireNonNull(workExperiences));
+        certificates = List.copyOf(requireNonNull(certificates));
+        languageSkills = List.copyOf(requireNonNull(languageSkills));
+        activities = List.copyOf(requireNonNull(activities));
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class WorkExperience {
-        @JsonProperty("company")
-        private final String companyName;
-        @JsonProperty("role")
-        private final String position;
-        @JsonProperty("work_month")
-        private final Integer period;
+    public record EducationDetail(
+            @JsonProperty("school_name")
+            String schoolName,
+            String degree,
+            String major,
+            Double gpa,
+            @JsonProperty("gpa_max")
+            Double maxGpa
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class LanguageSkill {
-        @JsonProperty("test")
-        private final String languageTest;
-
-        @JsonProperty("score_or_grade")
-        private final String score;
+    public record WorkExperience(
+            @JsonProperty("company")
+            String companyName,
+            @JsonProperty("role")
+            String position,
+            @JsonProperty("work_month")
+            Integer period
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class Activity {
-        private final String name;
-        private final String role;
-        private final String award;
+    public record LanguageSkill(
+            @JsonProperty("test")
+            String languageTest,
+            @JsonProperty("score_or_grade")
+            String score
+    ) {
+    }
+
+    public record Activity(
+            String name,
+            String role,
+            String award
+    ) {
     }
 }

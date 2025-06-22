@@ -66,20 +66,13 @@ public class SpecQueryService {
             Long totalUserCount = userRepository.countUsersHavingSpec();
             Long usersCountByJobField = specRepository.countByJobField(specJobField);
 
-            RankingResponse.RankingItem item = new RankingResponse.RankingItem();
-            item.setUserId(user.getId());
-            item.setNickname(user.getNickname());
-            item.setProfileImageUrl(user.getUserProfileUrl());
-            item.setSpecId(spec.getId());
-            item.setJobField(specJobField);
-            item.setScore(totalAnalysisScore);
-            item.setTotalRank(totalRank);
-            item.setTotalUsersCount(totalUserCount);
-            item.setRankByJobField(jobFieldRank);
-            item.setUsersCountByJobField(usersCountByJobField);
-            item.setIsBookmarked(bookmarkedSpecIds.contains(spec.getId()));
-            item.setCommentsCount(commentsCount);
-            item.setBookmarksCount(bookmarksCount);
+            RankingResponse.RankingItem item = new RankingResponse.RankingItem(
+                    user.getId(), user.getNickname(),
+                    user.getUserProfileUrl(), spec.getId(),
+                    totalAnalysisScore, totalRank, totalUserCount,
+                    specJobField, jobFieldRank, usersCountByJobField,
+                    bookmarkedSpecIds.contains(spec.getId()),
+                    commentsCount, bookmarksCount);
 
             rankingItems.add(item);
         }
@@ -107,7 +100,7 @@ public class SpecQueryService {
         if (userId.isPresent()) {
             bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(userId.get());
         }
-        
+
         List<SearchResponse.SearchResult> searchResults = new ArrayList<>();
 
         for (Spec spec : specs) {
@@ -124,20 +117,21 @@ public class SpecQueryService {
             Long totalUserCount = userRepository.countUsersHavingSpec();
             Long totalUsersCountByJobField = specRepository.countByJobField(jobField);
 
-            SearchResponse.SearchResult item = new SearchResponse.SearchResult();
-            item.setUserId(user.getId());
-            item.setNickname(user.getNickname());
-            item.setProfileImageUrl(user.getUserProfileUrl());
-            item.setSpecId(spec.getId());
-            item.setJobField(jobField);
-            item.setScore(averageScore);
-            item.setTotalRank(currentRank);
-            item.setTotalUsersCount(totalUserCount);
-            item.setRankByJobField(jobFieldRank);
-            item.setTotalUsersCountByJobField(totalUsersCountByJobField);
-            item.setIsBookmarked(bookmarkedSpecIds.contains(spec.getId()));
-            item.setCommentsCount(commentsCount);
-            item.setBookmarksCount(bookmarksCount);
+            SearchResponse.SearchResult item = new SearchResponse.SearchResult(
+                    user.getId(),
+                    user.getNickname(),
+                    user.getUserProfileUrl(),
+                    spec.getId(),
+                    averageScore,
+                    currentRank,
+                    totalUserCount,
+                    jobField,
+                    jobFieldRank,
+                    totalUsersCountByJobField,
+                    bookmarkedSpecIds.contains(spec.getId()),
+                    commentsCount,
+                    bookmarksCount
+            );
 
             searchResults.add(item);
         }

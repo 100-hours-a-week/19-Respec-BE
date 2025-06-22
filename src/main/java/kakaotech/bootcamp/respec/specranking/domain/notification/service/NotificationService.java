@@ -44,11 +44,7 @@ public class NotificationService {
 
         NotificationStatusData data = new NotificationStatusData(hasUnreadChat, hasUnreadComment);
 
-        return NotificationStatusResponse.builder()
-                .isSuccess(true)
-                .message("알림 상태 조회 성공")
-                .data(data)
-                .build();
+        return new NotificationStatusResponse(true, "알림 상태 조회 성공", data);
     }
 
     public void deleteChatNotifications() {

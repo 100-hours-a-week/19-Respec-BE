@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.dto.web.response;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
@@ -7,71 +9,67 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@Getter
-@RequiredArgsConstructor
-public class WebPostResumeResponse {
-    private final Boolean isSuccess;
-    private final String message;
-    private final ResumeAnalysisResult data;
-
-    @Getter
-    @RequiredArgsConstructor
-    public static class ResumeAnalysisResult {
-        private final FinalEducation finalEducation;
-        private final List<EducationDetails> educationDetails;
-        private final List<WorkExperience> workExperiences;
-        private final List<Certification> certifications;
-        private final List<LanguageSkill> languageSkills;
-        private final List<Activity> activities;
-        private final JobField jobField;
+public record WebPostResumeResponse(
+        Boolean isSuccess,
+        String message,
+        ResumeAnalysisResult data
+) {
+    public record ResumeAnalysisResult(
+            FinalEducation finalEducation,
+            List<EducationDetails> educationDetails,
+            List<WorkExperience> workExperiences,
+            List<Certification> certifications,
+            List<LanguageSkill> languageSkills,
+            List<Activity> activities,
+            JobField jobField
+    ) {
+        public ResumeAnalysisResult {
+            educationDetails = List.copyOf(requireNonNull(educationDetails));
+            workExperiences = List.copyOf(requireNonNull(workExperiences));
+            certifications = List.copyOf(requireNonNull(certifications));
+            languageSkills = List.copyOf(requireNonNull(languageSkills));
+            activities = List.copyOf(requireNonNull(activities));
+        }
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class FinalEducation {
-        private final Institute institute;
-        private final FinalStatus finalStatus;
+    public record FinalEducation(
+            Institute institute,
+            FinalStatus finalStatus
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class EducationDetails {
-        private final String schoolName;
-        private final Degree degree;
-        private final String major;
-        private final Double gpa;
-        private final Double maxGpa;
+    public record EducationDetails(
+            String schoolName,
+            Degree degree,
+            String major,
+            Double gpa,
+            Double maxGpa
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class WorkExperience {
-        private final String company;
-        private final Position position;
-        private final Integer period;
+    public record WorkExperience(
+            String company,
+            Position position,
+            Integer period
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class Certification {
-        private final String name;
+    public record Certification(
+            String name
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class LanguageSkill {
-        private final LanguageTest name;
-        private final String score;
+    public record LanguageSkill(
+            LanguageTest name,
+            String score
+    ) {
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class Activity {
-        private final String name;
-        private final String role;
-        private final String award;
+    public record Activity(
+            String name,
+            String role,
+            String award
+    ) {
     }
 }

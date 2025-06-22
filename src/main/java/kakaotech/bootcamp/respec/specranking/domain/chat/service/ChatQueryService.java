@@ -60,18 +60,9 @@ public class ChatQueryService {
                 ))
                 .collect(Collectors.toList());
 
-        ChatListData data = ChatListData.builder()
-                .partnerId(partnerId)
-                .messages(messageDtos)
-                .hasNext(hasNext)
-                .nextCursor(nextCursor)
-                .build();
+        ChatListData data = new ChatListData(partnerId, messageDtos, hasNext, nextCursor);
 
-        return ChatListResponse.builder()
-                .isSuccess(true)
-                .message("채팅 목록 조회 성공")
-                .data(data)
-                .build();
+        return new ChatListResponse(true, "채팅 목록 조회 성공", data);
     }
 
     private String encodeCursor(Long id) {

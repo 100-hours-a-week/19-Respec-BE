@@ -66,14 +66,8 @@ public class ChatParticipationService {
                 })
                 .collect(Collectors.toList());
 
-        ChatParticipationListData data = ChatParticipationListData.builder()
-                .chatRooms(chatroomDtos)
-                .build();
+        ChatParticipationListData data = new ChatParticipationListData(chatroomDtos);
 
-        return ChatParticipationListResponse.builder()
-                .isSuccess(true)
-                .message("채팅방 목록 조회 성공")
-                .data(data)
-                .build();
+        return new ChatParticipationListResponse(true, "채팅방 목록 조회 성공", data);
     }
 }
