@@ -92,7 +92,7 @@ public class SpecService {
     }
 
     private void saveSpecWithChaining(PostSpecRequest request, AiPostSpecResponse aiPostSpecResponse, User user) {
-        Spec newSpec = Spec.createFromAiResponse(user, request.getJobField(), aiPostSpecResponse);
+        Spec newSpec = Spec.createFromAiResponse(user, request.jobField(), aiPostSpecResponse);
         Spec savedNewSpec = specRepository.save(newSpec);
 
         saveEducation(savedNewSpec, request);
@@ -103,24 +103,24 @@ public class SpecService {
     }
 
     private void saveEducation(Spec spec, PostSpecRequest request) {
-        if (isNotEmpty(request.getFinalEducation())) {
-            FinalStatus status = request.getFinalEducation().getStatus();
-            Institute institute = request.getFinalEducation().getInstitute();
+        if (isNotEmpty(request.finalEducation())) {
+            FinalStatus status = request.finalEducation().status();
+            Institute institute = request.finalEducation().institute();
 
             Education education = new Education(spec, institute, status);
             Education savedEducation = educationRepository.save(education);
 
-            if (isNotEmpty(request.getEducationDetails())) {
-                for (EducationDetail educationDetailDto : request.getEducationDetails()) {
-                    Degree degree = educationDetailDto.getDegree();
+            if (isNotEmpty(request.educationDetails())) {
+                for (EducationDetail educationDetailDto : request.educationDetails()) {
+                    Degree degree = educationDetailDto.degree();
 
                     kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail educationDetail = new kakaotech.bootcamp.respec.specranking.domain.educationdetail.entity.EducationDetail(
                             savedEducation,
-                            educationDetailDto.getSchoolName(),
+                            educationDetailDto.schoolName(),
                             degree,
-                            educationDetailDto.getMajor(),
-                            educationDetailDto.getGpa(),
-                            educationDetailDto.getMaxGpa()
+                            educationDetailDto.major(),
+                            educationDetailDto.gpa(),
+                            educationDetailDto.maxGpa()
                     );
 
                     educationDetailRepository.save(educationDetail);
@@ -130,15 +130,15 @@ public class SpecService {
     }
 
     private void saveWorkExperience(Spec spec, PostSpecRequest request) {
-        if (isNotEmpty(request.getWorkExperiences())) {
-            for (PostSpecRequest.WorkExperience workExp : request.getWorkExperiences()) {
-                Position position = workExp.getPosition();
+        if (isNotEmpty(request.workExperiences())) {
+            for (PostSpecRequest.WorkExperience workExp : request.workExperiences()) {
+                Position position = workExp.position();
 
                 WorkExperience workExperience = new WorkExperience(
                         spec,
-                        workExp.getCompanyName(),
+                        workExp.companyName(),
                         position,
-                        workExp.getPeriod()
+                        workExp.period()
                 );
 
                 workExperienceRepository.save(workExperience);
@@ -147,11 +147,11 @@ public class SpecService {
     }
 
     private void saveCertifications(Spec spec, PostSpecRequest request) {
-        if (isNotEmpty(request.getCertifications())) {
-            for (PostSpecRequest.Certification certificationDto : request.getCertifications()) {
+        if (isNotEmpty(request.certifications())) {
+            for (PostSpecRequest.Certification certificationDto : request.certifications()) {
                 Certification certification = new Certification(
                         spec,
-                        certificationDto.getName()
+                        certificationDto.name()
                 );
                 certificationRepository.save(certification);
             }
@@ -159,12 +159,12 @@ public class SpecService {
     }
 
     private void saveLanguageSkills(Spec spec, PostSpecRequest request) {
-        if (isNotEmpty(request.getLanguageSkills())) {
-            for (PostSpecRequest.LanguageSkill languageSkillDto : request.getLanguageSkills()) {
+        if (isNotEmpty(request.languageSkills())) {
+            for (PostSpecRequest.LanguageSkill languageSkillDto : request.languageSkills()) {
                 LanguageSkill languageSkill = new LanguageSkill(
                         spec,
-                        languageSkillDto.getLanguageTest(),
-                        languageSkillDto.getScore()
+                        languageSkillDto.languageTest(),
+                        languageSkillDto.score()
                 );
                 languageSkillRepository.save(languageSkill);
             }
@@ -172,13 +172,13 @@ public class SpecService {
     }
 
     private void saveActivities(Spec spec, PostSpecRequest request) {
-        if (isNotEmpty(request.getActivities())) {
-            for (PostSpecRequest.Activity activityDto : request.getActivities()) {
+        if (isNotEmpty(request.activities())) {
+            for (PostSpecRequest.Activity activityDto : request.activities()) {
                 ActivityNetworking activity = new ActivityNetworking(
                         spec,
-                        activityDto.getName(),
-                        activityDto.getRole(),
-                        activityDto.getAward()
+                        activityDto.name(),
+                        activityDto.role(),
+                        activityDto.award()
                 );
                 activityNetworkingRepository.save(activity);
             }

@@ -8,91 +8,94 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.ScoreCategoryDetail;
-import lombok.Data;
 
-@Data
-public class SpecDetailResponse {
-    private Boolean isSuccess;
-    private String message;
-    private SpecDetailData specDetailData;
+public record SpecDetailResponse(
+        Boolean isSuccess,
+        String message,
+        SpecDetailData specDetailData
+) {
 
-    @Data
-    public static class SpecDetailData {
-        private FinalEducation finalEducation;
-        private List<EducationDetails> educationDetails;
-        private List<WorkExperience> workExperiences;
-        private List<Certification> certifications;
-        private List<LanguageSkill> languageSkills;
-        private List<Activity> activities;
-        private JobField jobField;
-        private Rankings rankings;
-        private String assessment;
+    public record SpecDetailData(
+            FinalEducation finalEducation,
+            List<EducationDetails> educationDetails,
+            List<WorkExperience> workExperiences,
+            List<Certification> certifications,
+            List<LanguageSkill> languageSkills,
+            List<Activity> activities,
+            JobField jobField,
+            Rankings rankings,
+            String assessment
+    ) {
+        public SpecDetailData {
+            educationDetails = List.copyOf(educationDetails);
+            workExperiences = List.copyOf(workExperiences);
+            certifications = List.copyOf(certifications);
+            languageSkills = List.copyOf(languageSkills);
+            activities = List.copyOf(activities);
+        }
     }
 
-    @Data
-    public static class FinalEducation {
-        private Institute institute;
-        private FinalStatus finalStatus;
+    public record FinalEducation(
+            Institute institute,
+            FinalStatus finalStatus
+    ) {
     }
 
-    @Data
-    public static class EducationDetails {
-        private String schoolName;
-        private Degree degree;
-        private String major;
-        private Double gpa;
-        private Double maxGpa;
+    public record EducationDetails(
+            String schoolName,
+            Degree degree,
+            String major,
+            Double gpa,
+            Double maxGpa
+    ) {
     }
 
-    @Data
-    public static class WorkExperience {
-        private String company;
-        private Position position;
-        private Integer period;
+    public record WorkExperience(
+            String company,
+            Position position,
+            Integer period
+    ) {
     }
 
-    @Data
-    public static class Certification {
-        private String name;
+    public record Certification(
+            String name
+    ) {
     }
 
-    @Data
-    public static class LanguageSkill {
-        private LanguageTest name;
-        private String score;
+    public record LanguageSkill(
+            LanguageTest name,
+            String score
+    ) {
     }
 
-    @Data
-    public static class Activity {
-        private String name;
-        private String role;
-        private String award;
+    public record Activity(
+            String name,
+            String role,
+            String award
+    ) {
     }
 
-    @Data
-    public static class Rankings {
-        private Details details;
-        private List<ScoreDetail> categories;
+    public record Rankings(
+            Details details,
+            List<ScoreDetail> categories
+    ) {
+        public Rankings {
+            categories = List.copyOf(categories);
+        }
     }
 
-    @Data
-    public static class Details {
-        private Double score;
-        private Long jobFieldRank;
-        private Long jobFieldUserCount;
-        private Long TotalRank;
-        private Long TotalUserCount;
+    public record Details(
+            Double score,
+            Long jobFieldRank,
+            Long jobFieldUserCount,
+            Long TotalRank,
+            Long TotalUserCount
+    ) {
     }
 
-    @Data
-    public static class ScoreDetail {
-        private ScoreCategoryDetail name;
-        private Double score;
-    }
-
-    public SpecDetailResponse(Boolean isSuccess, String message, SpecDetailData specDetailData) {
-        this.isSuccess = isSuccess;
-        this.message = message;
-        this.specDetailData = specDetailData;
+    public record ScoreDetail(
+            ScoreCategoryDetail name,
+            Double score
+    ) {
     }
 }

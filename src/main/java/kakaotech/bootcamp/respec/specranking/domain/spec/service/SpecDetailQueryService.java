@@ -21,7 +21,6 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetail
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.Details;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.EducationDetails;
 import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.ScoreDetail;
-import kakaotech.bootcamp.respec.specranking.domain.spec.dto.response.SpecDetailResponse.SpecDetailData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
@@ -53,8 +52,6 @@ public class SpecDetailQueryService {
             throw new IllegalArgumentException("로그인이 필요한 서비스입니다.");
         }
 
-        SpecDetailResponse.SpecDetailData response = new SpecDetailResponse.SpecDetailData();
-
         Education education = educationRepository.findBySpecId(specId);
         List<WorkExperience> workExperiences = workExperienceRepository.findBySpecId(specId);
         List<Certification> certifications = certificationRepository.findBySpecId(specId);
@@ -62,40 +59,32 @@ public class SpecDetailQueryService {
         List<ActivityNetworking> activities = activityNetworkingRepository.findBySpecId(specId);
         JobField jobField = spec.getJobField();
 
-        mappingEducation(education, response);
-        mappingEducationDetails(education, response);
-        mappingWorkExperience(workExperiences, response);
-        mappingCertification(certifications, response);
-        mappingLanguageSkill(languages, response);
-        mappingActivities(activities, response);
-        response.setJobField(jobField);
-
-        SpecDetailResponse.Rankings rankings = new SpecDetailResponse.Rankings();
-
         Long activeSpecCount = specRepository.countByStatus(ACTIVE);
         Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, specId);
         Long jobFieldRank = specRepository.findAbsoluteRankByJobField(jobField, specId);
         Long jobFieldUserCount = specRepository.countByJobField(jobField);
 
-        Details details = new Details();
-        details.setJobFieldRank(jobFieldRank);
-        details.setJobFieldUserCount(jobFieldUserCount);
-        details.setScore(spec.getTotalAnalysisScore());
-        details.setTotalUserCount(activeSpecCount);
-        details.setTotalRank(totalRank);
-        rankings.setDetails(details);
+        Details details = new Details(spec.getTotalAnalysisScore(), jobFieldRank, jobFieldUserCount, totalRank,
+                activeSpecCount);
 
-        List<ScoreDetail> categories = getScoreDteails(spec);
-        rankings.setCategories(categories);
-        response.setRankings(rankings);
+        List<ScoreDetail> categories = getScoreDetails(spec);
+        SpecDetailResponse.Rankings rankings = new SpecDetailResponse.Rankings(details, categories);
 
-        response.setAssessment(spec.getAssessment());
+        SpecDetailResponse.SpecDetailData response = new SpecDetailResponse.SpecDetailData(
+                mappingEducation(education),
+                mappingEducationDetails(education),
+                mappingWorkExperience(workExperiences),
+                mappingCertification(certifications),
+                mappingLanguageSkill(languages),
+                mappingActivities(activities),
+                jobField, rankings, spec.getAssessment()
+        );
 
         return new SpecDetailResponse(true, "세부 스펙 조회 성공!", response);
 
     }
 
-    private List<ScoreDetail> getScoreDteails(Spec spec) {
+    private List<ScoreDetail> getScoreDetails(Spec spec) {
         List<ScoreDetail> categories = new ArrayList<>();
         categories.add(createCategory(ScoreCategoryDetail.EDUCATION_SCORE, spec.getEducationScore()));
         categories.add(createCategory(ScoreCategoryDetail.WORK_EXPERIENCE, spec.getWorkExperienceScore()));
@@ -105,86 +94,76 @@ public class SpecDetailQueryService {
         return categories;
     }
 
-    private static void mappingActivities(List<ActivityNetworking> activities, SpecDetailData response) {
+    private static List<SpecDetailResponse.Activity> mappingActivities(List<ActivityNetworking> activities) {
         List<SpecDetailResponse.Activity> activityList = new ArrayList<>();
 
         for (ActivityNetworking act : activities) {
-            SpecDetailResponse.Activity a = new SpecDetailResponse.Activity();
-            a.setName(act.getActivityName());
-            a.setRole(act.getPosition());
-            a.setAward(act.getAward() != null && !act.getAward().isEmpty() ? act.getAward() : null);
+            SpecDetailResponse.Activity a = new SpecDetailResponse.Activity(act.getActivityName(), act.getPosition(),
+                    act.getAward() != null && !act.getAward().isEmpty() ? act.getAward() : null);
             activityList.add(a);
         }
-        response.setActivities(activityList);
+        return activityList;
     }
 
-    private static void mappingLanguageSkill(List<LanguageSkill> languages, SpecDetailData response) {
+    private static List<SpecDetailResponse.LanguageSkill> mappingLanguageSkill(List<LanguageSkill> languages) {
         List<SpecDetailResponse.LanguageSkill> langList = new ArrayList<>();
 
         for (LanguageSkill lang : languages) {
-            SpecDetailResponse.LanguageSkill l = new SpecDetailResponse.LanguageSkill();
-            l.setName(lang.getLanguageTest());
-            l.setScore(lang.getScore());
+            SpecDetailResponse.LanguageSkill l = new SpecDetailResponse.LanguageSkill(lang.getLanguageTest(),
+                    lang.getScore());
             langList.add(l);
         }
-        response.setLanguageSkills(langList);
+        return langList;
     }
 
-    private static void mappingCertification(List<Certification> certifications, SpecDetailData response) {
+    private static List<SpecDetailResponse.Certification> mappingCertification(List<Certification> certifications) {
         List<SpecDetailResponse.Certification> certList = new ArrayList<>();
 
         for (Certification cert : certifications) {
-            SpecDetailResponse.Certification c = new SpecDetailResponse.Certification();
-            c.setName(cert.getCertificationName());
+            SpecDetailResponse.Certification c = new SpecDetailResponse.Certification(cert.getCertificationName());
             certList.add(c);
         }
-        response.setCertifications(certList);
+
+        return certList;
     }
 
-    private static void mappingWorkExperience(List<WorkExperience> workExperiences, SpecDetailData response) {
+    private static List<SpecDetailResponse.WorkExperience> mappingWorkExperience(List<WorkExperience> workExperiences) {
         List<SpecDetailResponse.WorkExperience> workList = new ArrayList<>();
 
         for (WorkExperience we : workExperiences) {
-            SpecDetailResponse.WorkExperience work = new SpecDetailResponse.WorkExperience();
-            work.setCompany(we.getCompanyName());
-            work.setPosition(we.getPosition());
-            work.setPeriod(we.getWorkMonth());
+            SpecDetailResponse.WorkExperience work = new SpecDetailResponse.WorkExperience(we.getCompanyName(),
+                    we.getPosition(), we.getWorkMonth());
             workList.add(work);
         }
-        response.setWorkExperiences(workList);
+
+        return workList;
     }
 
-    private void mappingEducationDetails(Education education, SpecDetailData response) {
+    private List<EducationDetails> mappingEducationDetails(Education education) {
         if (education != null) {
             List<EducationDetail> educationDetails = educationDetailRepository.findByEducationId(education.getId());
             List<EducationDetails> educationDetailsList = new ArrayList<>();
 
             for (EducationDetail ed : educationDetails) {
-                EducationDetails edu = new EducationDetails();
-                edu.setSchoolName(ed.getSchoolName());
-                edu.setDegree(ed.getDegree());
-                edu.setMajor(ed.getMajor());
-                edu.setGpa(ed.getGpa());
-                edu.setMaxGpa(ed.getMaxGpa());
+                EducationDetails edu = new EducationDetails(ed.getSchoolName(), ed.getDegree(), ed.getMajor(),
+                        ed.getGpa(), ed.getMaxGpa());
                 educationDetailsList.add(edu);
             }
-            response.setEducationDetails(educationDetailsList);
+            return educationDetailsList;
         }
+        return null;
     }
 
-    private static void mappingEducation(Education education, SpecDetailData data) {
+    private static SpecDetailResponse.FinalEducation mappingEducation(Education education) {
         if (education != null) {
-            SpecDetailResponse.FinalEducation finalEducation = new SpecDetailResponse.FinalEducation();
-            finalEducation.setInstitute(education.getInstitute());
-            finalEducation.setFinalStatus(education.getStatus());
-            data.setFinalEducation(finalEducation);
+            return new SpecDetailResponse.FinalEducation(
+                    education.getInstitute(),
+                    education.getStatus());
         }
+        return null;
     }
 
     private ScoreDetail createCategory(ScoreCategoryDetail name, Double score) {
-        ScoreDetail scoreDetail = new ScoreDetail();
-        scoreDetail.setName(name);
-        scoreDetail.setScore(score);
-        return scoreDetail;
+        return new ScoreDetail(name, score);
     }
 }
