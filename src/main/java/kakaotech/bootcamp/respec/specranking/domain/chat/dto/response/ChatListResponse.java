@@ -1,32 +1,25 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.dto.response;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
-@Getter
-@Builder
-public class ChatListResponse {
-    private boolean isSuccess;
-    private String message;
-    private ChatListData data;
-
-    @Getter
-    @Builder
-    public static class ChatListData {
-        private Long partnerId;
-        private List<ChatMessageDto> messages;
-        private boolean hasNext;
-        private String nextCursor;
+public record ChatListResponse(
+        boolean isSuccess,
+        String message,
+        ChatListData data
+) {
+    public record ChatListData(
+            Long partnerId,
+            List<ChatMessageDto> messages,
+            boolean hasNext,
+            String nextCursor
+    ) {
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class ChatMessageDto {
-        private Long messageId;
-        private Long senderId;
-        private String content;
-        private String createdAt;
+    public record ChatMessageDto(
+            Long messageId,
+            Long senderId,
+            String content,
+            String createdAt
+    ) {
     }
 }
