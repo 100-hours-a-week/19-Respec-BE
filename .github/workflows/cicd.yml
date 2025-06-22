@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Backend Code
         uses: actions/checkout@v3
 
-      - name: Set environment variables
+      - name: Set Environment Variables
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
           BRANCH_NAME=${GITHUB_REF##*/}
@@ -28,7 +28,7 @@ jobs:
           elif [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ENV=prod" >> $GITHUB_ENV
           else
-            echo "❌ Unknown branch"
+            echo "❌ Unknown branch: $BRANCH_NAME"
             exit 1
           fi
 
@@ -57,20 +57,26 @@ jobs:
       - name: Build and Push Docker image to ECR
         run: |
           IMAGE="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPO_NAME }}:${{ env.TAG }}"
-          docker build  --no-cache -t "$IMAGE" .
+          docker build --no-cache -t "$IMAGE" .
           docker push "$IMAGE"
+
+      - name: Checkout Infra Repository
+        uses: actions/checkout@v3
+        with:
+          repository: 100-hours-a-week/19-Respec-Infra
+          token: ${{ secrets.GH_INFRA_PAT }}
+          path: infra
 
       - name: Update Helm values.yaml with new tag
         run: |
-          FILE_PATH=helm/backend-main/values/dev.yaml
+          FILE_PATH=infra/helm/backend-main/values/dev.yaml
           sed -i "s|^\( *tag:\).*|\1 ${TAG}|" "$FILE_PATH"
 
-      - name: Commit updated values.yaml
+      - name: Commit and Push Updated values.yaml
         run: |
+          cd infra
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add helm/backend-main/values/dev.yaml
-          git commit -m "CI: Update backend image tag to $TAG"
-          git push origin ${{ github.ref_name }}
-
-
+          git commit -m "CI: Update backend image tag to $TAG" || echo "No changes to commit"
+          git push origin prod
