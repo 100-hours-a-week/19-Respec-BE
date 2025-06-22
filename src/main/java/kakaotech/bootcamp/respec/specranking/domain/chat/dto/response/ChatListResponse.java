@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ChatListResponse {
-    private boolean isSuccess;
+    private Boolean isSuccess;
     private String message;
     private ChatListData data;
 
@@ -17,7 +17,7 @@ public class ChatListResponse {
     public static class ChatListData {
         private Long partnerId;
         private List<ChatMessageDto> messages;
-        private boolean hasNext;
+        private Boolean hasNext;
         private String nextCursor;
     }
 
