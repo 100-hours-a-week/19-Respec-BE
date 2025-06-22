@@ -21,143 +21,130 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.dto.request.PostSpecReq
 public class AiDtoMapping {
 
     public static AiPostSpecRequest convertToSpecAnalysisRequest(PostSpecRequest request, String userNickname) {
-        AiPostSpecRequest aiRequest = new AiPostSpecRequest();
-
-        aiRequest.setNickname(userNickname);
-        mappingFinalEducation(request, aiRequest);
-        aiRequest.setJobField(request.getJobField());
-        mappingEducationDetails(request, aiRequest);
-        mappingWorkExperiences(request, aiRequest);
-        mappingCertifications(request, aiRequest);
-        mappingLanguageSkills(request, aiRequest);
-        mappingActivities(request, aiRequest);
+        AiPostSpecRequest aiRequest = new AiPostSpecRequest(userNickname,
+                request.finalEducation().institute(), request.finalEducation().status(),
+                request.jobField(),
+                mappingEducationDetails(request),
+                mappingWorkExperiences(request),
+                mappingCertifications(request),
+                mappingLanguageSkills(request),
+                mappingActivities(request)
+        );
 
         return aiRequest;
     }
 
-    private static void mappingFinalEducation(PostSpecRequest request, AiPostSpecRequest aiRequest) {
-        aiRequest.setInstitute(request.getFinalEducation().getInstitute());
-        aiRequest.setFinalStatus(request.getFinalEducation().getStatus());
-    }
-
-    private static void mappingEducationDetails(PostSpecRequest request, AiPostSpecRequest aiRequest) {
-        List<EducationDetail> universities = request.getEducationDetails().stream()
+    private static List<EducationDetail> mappingEducationDetails(PostSpecRequest request) {
+        List<EducationDetail> universities = request.educationDetails().stream()
                 .map(edu -> {
-                    EducationDetail educationDetail = new EducationDetail();
-                    educationDetail.setSchoolName(edu.getSchoolName());
-                    educationDetail.setDegree(edu.getDegree());
-                    educationDetail.setMajor(edu.getMajor());
-                    educationDetail.setGpa(edu.getGpa());
-                    educationDetail.setMaxGpa(edu.getMaxGpa());
+                    EducationDetail educationDetail = new EducationDetail(
+                            edu.schoolName(),
+                            edu.degree(),
+                            edu.major(),
+                            edu.gpa(),
+                            edu.maxGpa()
+                    );
                     return educationDetail;
                 })
                 .collect(Collectors.toList());
-        aiRequest.setEducationDetails(universities);
+
+        return universities;
     }
 
-    private static void mappingWorkExperiences(PostSpecRequest request, AiPostSpecRequest aiRequest) {
-        List<WorkExperience> workExperiences = request.getWorkExperiences().stream()
+    private static List<WorkExperience> mappingWorkExperiences(PostSpecRequest request) {
+        List<WorkExperience> workExperiences = request.workExperiences().stream()
                 .map(work -> {
-                    WorkExperience workExperience = new WorkExperience();
-                    workExperience.setCompanyName(work.getCompanyName());
-                    workExperience.setPosition(work.getPosition());
-                    workExperience.setPeriod(work.getPeriod());
-                    return workExperience;
+                    return new WorkExperience(work.companyName(), work.position(), work.period());
                 })
                 .collect(Collectors.toList());
-        aiRequest.setWorkExperiences(workExperiences);
+        return workExperiences;
     }
 
-    private static void mappingCertifications(PostSpecRequest request, AiPostSpecRequest aiRequest) {
-        List<String> certificates = request.getCertifications().stream()
-                .map(cert -> cert.getName())
+    private static List<String> mappingCertifications(PostSpecRequest request) {
+        List<String> certificates = request.certifications().stream()
+                .map(cert -> cert.name())
                 .collect(Collectors.toList());
-        aiRequest.setCertificates(certificates);
+        return certificates;
     }
 
-    private static void mappingLanguageSkills(PostSpecRequest request, AiPostSpecRequest aiRequest) {
-        List<LanguageSkill> languageSkills = request.getLanguageSkills().stream()
+    private static List<LanguageSkill> mappingLanguageSkills(PostSpecRequest request) {
+        List<LanguageSkill> languageSkills = request.languageSkills().stream()
                 .map(lang -> {
-                    LanguageSkill languageSkill = new LanguageSkill();
-                    languageSkill.setLanguageTest(lang.getLanguageTest());
-                    languageSkill.setScore(lang.getScore());
-                    return languageSkill;
+                    return new LanguageSkill(lang.languageTest(), lang.score());
                 })
                 .collect(Collectors.toList());
-        aiRequest.setLanguageSkills(languageSkills);
+        return languageSkills;
     }
 
-    private static void mappingActivities(PostSpecRequest request, AiPostSpecRequest aiRequest) {
-        List<AiPostSpecRequest.Activity> activities = request.getActivities().stream()
+    private static List<AiPostSpecRequest.Activity> mappingActivities(PostSpecRequest request) {
+        List<AiPostSpecRequest.Activity> activities = request.activities().stream()
                 .map(act -> {
-                    AiPostSpecRequest.Activity activity = new AiPostSpecRequest.Activity();
-                    activity.setName(act.getName());
-                    activity.setRole(act.getRole());
-                    activity.setAward(act.getAward());
-                    return activity;
+                    return new AiPostSpecRequest.Activity(
+                            act.name(), act.role(), act.award()
+                    );
                 })
                 .collect(Collectors.toList());
-        aiRequest.setActivities(activities);
+        return activities;
     }
 
     public static WebPostResumeResponse.ResumeAnalysisResult convertToResumeAnalysisResponse(
             AiPostResumeResponse response) {
 
-        Institute institute = safeConvertToEnum(response.getInstitute(), Institute.class, Institute.UNIVERSITY);
-        FinalStatus finalStatus = safeConvertToEnum(response.getFinalStatus(), FinalStatus.class,
+        Institute institute = safeConvertToEnum(response.institute(), Institute.class, Institute.UNIVERSITY);
+        FinalStatus finalStatus = safeConvertToEnum(response.finalStatus(), FinalStatus.class,
                 FinalStatus.GRADUATED);
-        JobField jobField = safeConvertToEnum(response.getJobField(), JobField.class, JobField.INTERNET_IT);
+        JobField jobField = safeConvertToEnum(response.jobField(), JobField.class, JobField.INTERNET_IT);
 
         WebPostResumeResponse.FinalEducation finalEducation =
                 new WebPostResumeResponse.FinalEducation(institute, finalStatus);
 
         List<WebPostResumeResponse.EducationDetails> educationDetails =
-                response.getEducationDetails().stream()
+                response.educationDetails().stream()
                         .map(e -> {
-                            Degree degree = safeConvertToEnum(e.getDegree(), Degree.class, Degree.BACHELOR);
+                            Degree degree = safeConvertToEnum(e.degree(), Degree.class, Degree.BACHELOR);
                             return new WebPostResumeResponse.EducationDetails(
-                                    e.getSchoolName(),
+                                    e.schoolName(),
                                     degree,
-                                    e.getMajor(),
-                                    e.getGpa(),
-                                    e.getMaxGpa()
+                                    e.major(),
+                                    e.gpa(),
+                                    e.maxGpa()
                             );
                         }).toList();
 
         List<WebPostResumeResponse.WorkExperience> workExperiences =
-                response.getWorkExperiences().stream()
+                response.workExperiences().stream()
                         .map(w -> {
-                            Position position = safeConvertToEnum(w.getPosition(), Position.class,
+                            Position position = safeConvertToEnum(w.position(), Position.class,
                                     Position.INTERN);
                             return new WebPostResumeResponse.WorkExperience(
-                                    w.getCompanyName(),
+                                    w.companyName(),
                                     position,
-                                    w.getPeriod()
+                                    w.period()
                             );
                         }).toList();
 
         List<WebPostResumeResponse.Certification> certifications =
-                response.getCertificates().stream()
+                response.certificates().stream()
                         .map(Certification::new)
                         .toList();
 
         List<WebPostResumeResponse.LanguageSkill> languageSkills =
-                response.getLanguageSkills().stream()
+                response.languageSkills().stream()
                         .map(l -> {
-                            LanguageTest languageTest = safeConvertToEnum(l.getLanguageTest(), LanguageTest.class,
+                            LanguageTest languageTest = safeConvertToEnum(l.languageTest(), LanguageTest.class,
                                     LanguageTest.TOEIC_ENGLISH);
                             return new WebPostResumeResponse.LanguageSkill(
                                     languageTest,
-                                    l.getScore()
+                                    l.score()
                             );
                         }).toList();
 
         List<WebPostResumeResponse.Activity> activities =
-                response.getActivities().stream()
+                response.activities().stream()
                         .map(a -> new WebPostResumeResponse.Activity(
-                                a.getName(),
-                                a.getRole(),
-                                a.getAward()
+                                a.name(),
+                                a.role(),
+                                a.award()
                         )).toList();
 
         return new WebPostResumeResponse.ResumeAnalysisResult(

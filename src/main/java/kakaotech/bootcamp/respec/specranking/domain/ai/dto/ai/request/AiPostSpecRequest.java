@@ -1,7 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.ai.dto.ai.request;
 
+import static java.util.Objects.requireNonNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.FinalStatus;
@@ -9,73 +10,73 @@ import kakaotech.bootcamp.respec.specranking.domain.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.LanguageTest;
 import kakaotech.bootcamp.respec.specranking.domain.common.type.Position;
-import lombok.Data;
 
-@Data
-public class AiPostSpecRequest {
+public record AiPostSpecRequest(
+        String nickname,
 
-    private String nickname;
+        @JsonProperty("final_edu")
+        Institute institute,
 
-    @JsonProperty("final_edu")
-    private Institute institute;
+        @JsonProperty("final_status")
+        FinalStatus finalStatus,
 
-    @JsonProperty("final_status")
-    private FinalStatus finalStatus;
+        @JsonProperty("desired_job")
+        JobField jobField,
 
-    @JsonProperty("desired_job")
-    private JobField jobField;
+        @JsonProperty("universities")
+        List<EducationDetail> educationDetails,
 
-    @JsonProperty("universities")
-    private List<EducationDetail> educationDetails = new ArrayList<>();
+        @JsonProperty("careers")
+        List<WorkExperience> workExperiences,
 
-    @JsonProperty("careers")
-    private List<WorkExperience> workExperiences = new ArrayList<>();
+        List<String> certificates,
 
-    private List<String> certificates = new ArrayList<>();
+        @JsonProperty("languages")
+        List<LanguageSkill> languageSkills,
 
-    @JsonProperty("languages")
-    private List<LanguageSkill> languageSkills = new ArrayList<>();
-
-    private List<Activity> activities = new ArrayList<>();
-
-    @Data
-    public static class EducationDetail {
-        @JsonProperty("school_name")
-        private String schoolName;
-
-        private Degree degree;
-
-        private String major;
-
-        private Double gpa;
-
-        @JsonProperty("gpa_max")
-        private Double maxGpa;
+        List<Activity> activities
+) {
+    public AiPostSpecRequest {
+        educationDetails = List.copyOf(requireNonNull(educationDetails));
+        workExperiences = List.copyOf(requireNonNull(workExperiences));
+        certificates = List.copyOf(requireNonNull(certificates));
+        languageSkills = List.copyOf(requireNonNull(languageSkills));
+        activities = List.copyOf(requireNonNull(activities));
     }
 
-    @Data
-    public static class WorkExperience {
-        @JsonProperty("company")
-        private String companyName;
-        @JsonProperty("role")
-        private Position position;
-        @JsonProperty("work_month")
-        private Integer period;
+    public record EducationDetail(
+            @JsonProperty("school_name")
+            String schoolName,
+            Degree degree,
+            String major,
+            Double gpa,
+            @JsonProperty("gpa_max")
+            Double maxGpa
+    ) {
     }
 
-    @Data
-    public static class LanguageSkill {
-        @JsonProperty("test")
-        private LanguageTest languageTest;
-
-        @JsonProperty("score_or_grade")
-        private String score;
+    public record WorkExperience(
+            @JsonProperty("company")
+            String companyName,
+            @JsonProperty("role")
+            Position position,
+            @JsonProperty("work_month")
+            Integer period
+    ) {
     }
 
-    @Data
-    public static class Activity {
-        private String name;
-        private String role;
-        private String award;
+    public record LanguageSkill(
+            @JsonProperty("test")
+            LanguageTest languageTest,
+            @JsonProperty("score_or_grade")
+            String score
+    ) {
+    }
+
+    public record Activity(
+            String name,
+            String role,
+            String award
+    ) {
     }
 }
