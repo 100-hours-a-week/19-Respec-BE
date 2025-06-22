@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.dto.consume.ChatRelayConsumeDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.dto.response.ChatRelayResponse;
-import kakaotech.bootcamp.respec.specranking.domain.chat.handler.ChatWebSocketHandler;
+import kakaotech.bootcamp.respec.specranking.domain.chat.manager.WebSocketSessionManager;
 import kakaotech.bootcamp.respec.specranking.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,7 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 @RequiredArgsConstructor
 public class ChatService {
 
-    private final ChatWebSocketHandler chatWebSocketHandler;
+    private final WebSocketSessionManager webSocketSessionManager;
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, Object> redisTemplate;
     private final NotificationService notificationService;
@@ -27,7 +27,7 @@ public class ChatService {
     public void sendMessageToUser(ChatRelayConsumeDto chatRelayDto) throws IOException {
         Long receiverId = chatRelayDto.getReceiverId();
 
-        WebSocketSession session = chatWebSocketHandler.getSessionByUserId(receiverId);
+        WebSocketSession session = webSocketSessionManager.getSessionByUserId(receiverId);
 
         if (session == null) {
             notificationService.createChatNotificationIfNotExists(receiverId);
@@ -49,7 +49,7 @@ public class ChatService {
                 session.close(CloseStatus.SESSION_NOT_RELIABLE);
             }
             redisTemplate.delete("chat:user:" + receiverId);
-            chatWebSocketHandler.removeSessionByUserId(receiverId);
+            webSocketSessionManager.removeSessionByUserId(receiverId);
             notificationService.createChatNotificationIfNotExists(receiverId);
         }
 

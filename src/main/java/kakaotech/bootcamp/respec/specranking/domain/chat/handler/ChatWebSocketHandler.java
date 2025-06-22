@@ -6,12 +6,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import kakaotech.bootcamp.respec.specranking.domain.chat.dto.produce.ChatProduceDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.dto.request.SocketChatSendRequest;
+import kakaotech.bootcamp.respec.specranking.domain.chat.manager.WebSocketSessionManager;
 import kakaotech.bootcamp.respec.specranking.global.util.IPService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Slf4j
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
-    private final Map<Long, WebSocketSession> userSessionMap = new ConcurrentHashMap<>();
+    private final WebSocketSessionManager webSocketSessionManager;
     private final KafkaTemplate<String, ChatProduceDto> chatMessageKafkaTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -38,12 +37,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String privateAddress = ipService.loadEC2PrivateAddress();
-        log.info("Connected to EC2 with private address {}", privateAddress);
 
         Long userId = (Long) session.getAttributes().get("userId");
 
         redisTemplate.opsForValue().set("chat:user:" + userId, privateAddress);
-        userSessionMap.put(userId, session);
+        webSocketSessionManager.addSession(userId, session);
     }
 
     @Override
@@ -74,20 +72,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         Long userId = (Long) session.getAttributes().get("userId");
-        userSessionMap.remove(userId);
+        webSocketSessionManager.removeSession(userId);
         redisTemplate.delete("chat:user:" + userId);
-    }
-
-    public Map<Long, WebSocketSession> getUserSessionMap() {
-        return userSessionMap;
-    }
-
-    public WebSocketSession getSessionByUserId(Long userId) {
-        return userSessionMap.get(userId);
-    }
-
-    public void removeSessionByUserId(Long userId) {
-        userSessionMap.remove(userId);
     }
 
     private String generateKeyForSequence(Long senderId, Long receiverId) {

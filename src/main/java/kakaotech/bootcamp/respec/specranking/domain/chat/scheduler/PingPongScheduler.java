@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import kakaotech.bootcamp.respec.specranking.domain.chat.handler.ChatWebSocketHandler;
+import kakaotech.bootcamp.respec.specranking.domain.chat.manager.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,11 +16,12 @@ import org.springframework.web.socket.WebSocketSession;
 @RequiredArgsConstructor
 public class PingPongScheduler {
 
+    private final WebSocketSessionManager webSocketSessionManager;
     private final ChatWebSocketHandler chatWebSocketHandler;
 
     @Scheduled(fixedRate = 30_000)
     public void sendPingToAllSessions() throws Exception {
-        Map<Long, WebSocketSession> userSessionMap = chatWebSocketHandler.getUserSessionMap();
+        Map<Long, WebSocketSession> userSessionMap = webSocketSessionManager.getUserSessionMap();
 
         for (Map.Entry<Long, WebSocketSession> entry : userSessionMap.entrySet()) {
             WebSocketSession session = entry.getValue();
