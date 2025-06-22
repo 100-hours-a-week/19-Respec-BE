@@ -1,20 +1,14 @@
 package kakaotech.bootcamp.respec.specranking.domain.notification.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+public record NotificationStatusResponse(
+        boolean isSuccess,
+        String message,
+        NotificationStatusData data
+) {
 
-@Getter
-@Builder
-public class NotificationStatusResponse {
-    private boolean isSuccess;
-    private String message;
-    private NotificationStatusData data;
-
-    @Getter
-    @AllArgsConstructor
-    public static class NotificationStatusData {
-        private boolean hasUnreadChat;
-        private boolean hasUnreadComment;
+    public record NotificationStatusData(
+            boolean hasUnreadChat,
+            boolean hasUnreadComment
+    ) {
     }
 }
