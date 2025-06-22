@@ -60,3 +60,17 @@ jobs:
           docker build  --no-cache -t "$IMAGE" .
           docker push "$IMAGE"
 
+      - name: Update Helm values.yaml with new tag
+        run: |
+          FILE_PATH=helm/backend-main/values/dev.yaml
+          sed -i "s|^\( *tag:\).*|\1 ${TAG}|" "$FILE_PATH"
+
+      - name: Commit updated values.yaml
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add helm/backend-main/values/dev.yaml
+          git commit -m "CI: Update backend image tag to $TAG"
+          git push origin ${{ github.ref_name }}
+
+
