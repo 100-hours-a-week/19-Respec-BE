@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.repository;
 
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
+import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

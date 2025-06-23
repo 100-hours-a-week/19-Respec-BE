@@ -3,12 +3,11 @@ package kakaotech.bootcamp.respec.specranking.domain.auth.jwt;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-
-import java.util.Arrays;
-import java.util.Optional;
 
 @Slf4j
 public class CookieUtils {
@@ -24,7 +23,9 @@ public class CookieUtils {
     }
 
     public static Optional<Cookie> getCookie(HttpServletRequest request, String cookieName) {
-        if (request.getCookies() == null) return Optional.empty();
+        if (request.getCookies() == null) {
+            return Optional.empty();
+        }
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> cookieName.equals(cookie.getName()))
                 .findFirst();
@@ -33,13 +34,13 @@ public class CookieUtils {
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         try {
             ResponseCookie cookie = ResponseCookie.from(name, value)
-                            .domain(CookieConfig.DOMAIN)
-                            .path(CookieConfig.DEFAULT_PATH)
-                            .maxAge(maxAge)
-                            .secure(CookieConfig.IS_SECURE)
-                            .httpOnly(CookieConfig.IS_HTTP_ONLY)
-                            .sameSite(CookieConfig.SAME_SITE_CROSS_DOMAIN)
-                            .build();
+                    .domain(CookieConfig.DOMAIN)
+                    .path(CookieConfig.DEFAULT_PATH)
+                    .maxAge(maxAge)
+                    .secure(CookieConfig.IS_SECURE)
+                    .httpOnly(CookieConfig.IS_HTTP_ONLY)
+                    .sameSite(CookieConfig.SAME_SITE_CROSS_DOMAIN)
+                    .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
             log.info("쿠키 설정 완료 - Name: {}, Value 길이: {}, MaxAge: {}초", name, value.length(), maxAge);

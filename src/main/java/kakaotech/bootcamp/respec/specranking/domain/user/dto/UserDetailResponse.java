@@ -1,10 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.dto;
 
-import kakaotech.bootcamp.respec.specranking.domain.spec.entity.Spec;
+import java.time.LocalDateTime;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 public class UserDetailResponse {

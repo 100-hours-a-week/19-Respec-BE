@@ -10,7 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.NotificationTargetType;
+import kakaotech.bootcamp.respec.specranking.global.common.type.NotificationTargetType;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import lombok.AccessLevel;
 import lombok.Getter;
