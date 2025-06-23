@@ -1,6 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.entity;
 
-import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
+import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

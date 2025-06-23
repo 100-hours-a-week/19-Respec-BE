@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.notification.service;
 
-import static kakaotech.bootcamp.respec.specranking.domain.common.type.NotificationTargetType.CHAT;
-import static kakaotech.bootcamp.respec.specranking.domain.common.type.NotificationTargetType.SOCIAL;
+import static kakaotech.bootcamp.respec.specranking.global.common.type.NotificationTargetType.CHAT;
+import static kakaotech.bootcamp.respec.specranking.global.common.type.NotificationTargetType.SOCIAL;
 
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.notification.dto.response.NotificationStatusResponse;

@@ -6,7 +6,7 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.dto.OAuth2Response;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider;
+import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static kakaotech.bootcamp.respec.specranking.domain.common.type.OAuthProvider.kakao;
+import static kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider.kakao;
 
 @Service
 @RequiredArgsConstructor
