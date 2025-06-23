@@ -88,8 +88,8 @@ public record SpecDetailResponse(
             Double score,
             Long jobFieldRank,
             Long jobFieldUserCount,
-            Long TotalRank,
-            Long TotalUserCount
+            Long totalRank,
+            Long totalUserCount
     ) {
     }
 
