@@ -46,6 +46,7 @@ public class SpecAnalyzeAiServer implements AiServer {
 
     @Override
     public AiPostResumeResponse analyzeResume(AiPostResumeRequest aiPostResumeRequest) {
+        log.info("analyzeResume {}", aiPostResumeRequest);
         return aiServerWebClient.post()
                 .uri(resumePath)
                 .contentType(MediaType.APPLICATION_JSON)
