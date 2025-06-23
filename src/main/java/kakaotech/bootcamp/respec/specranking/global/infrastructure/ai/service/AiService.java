@@ -1,10 +1,10 @@
 package kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.service;
 
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.aiserver.AiServer;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.request.AiPostResumeRequest;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.request.AiPostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.response.AiPostResumeResponse;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostResumeRequest;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostSpecRequest;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostResumeResponse;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostSpecResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

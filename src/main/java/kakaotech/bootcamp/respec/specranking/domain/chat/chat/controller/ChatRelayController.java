@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.controller;
 
 import java.io.IOException;
-import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.consume.ChatRelayConsumeDto;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.ChatRelayRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.service.ChatService;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class ChatRelayController {
     private final ChatService chatService;
 
     @PostMapping("/relay")
-    public SimpleResponseDto relayMessage(@RequestBody ChatRelayConsumeDto chatRelayDto) throws IOException {
+    public SimpleResponseDto relayMessage(@RequestBody ChatRelayRequestDto chatRelayDto) throws IOException {
         chatService.sendMessageToUser(chatRelayDto);
         return new SimpleResponseDto(true, "relay 요청 성공");
     }

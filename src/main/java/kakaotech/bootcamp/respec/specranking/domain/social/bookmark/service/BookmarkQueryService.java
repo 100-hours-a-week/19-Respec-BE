@@ -10,8 +10,8 @@ import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.entity.Bookm
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepositoryCustomImpl;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.entity.Spec;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;

@@ -10,7 +10,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.global.common.entity.BaseTimeEntity;
 import lombok.AccessLevel;

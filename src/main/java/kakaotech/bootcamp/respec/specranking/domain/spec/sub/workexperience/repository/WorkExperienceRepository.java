@@ -1,9 +1,0 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.sub.workexperience.repository;
-
-import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.workexperience.entity.WorkExperience;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface WorkExperienceRepository extends JpaRepository<WorkExperience, Long> {
-    List<WorkExperience> findBySpecId(Long specId);
-}

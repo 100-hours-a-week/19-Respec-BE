@@ -1,6 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.repository;
 
-import static kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.entity.QSpec.spec;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser.user;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;

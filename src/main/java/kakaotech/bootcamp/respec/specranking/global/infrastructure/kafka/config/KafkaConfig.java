@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.config
 
 import java.util.HashMap;
 import java.util.Map;
-import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.produce.ChatProduceDto;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.dto.ChatProduceDto;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;

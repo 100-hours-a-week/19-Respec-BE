@@ -8,11 +8,11 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.Institute;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.global.common.type.LanguageTest;
 import kakaotech.bootcamp.respec.specranking.global.common.type.Position;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.request.AiPostResumeRequest;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.request.AiPostSpecRequest;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.response.AiPostResumeResponse;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.response.AiPostResumeResponse.EducationDetail;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.ai.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostResumeRequest;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostSpecRequest;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostResumeResponse;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostResumeResponse.EducationDetail;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostSpecResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 

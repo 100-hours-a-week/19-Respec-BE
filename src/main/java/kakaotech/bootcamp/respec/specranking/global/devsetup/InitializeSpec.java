@@ -1,14 +1,14 @@
 package kakaotech.bootcamp.respec.specranking.global.devsetup;
 
 import java.util.List;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.entity.Spec;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.repository.SpecRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.education.entity.Education;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.education.repository.EducationRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.educationdetail.entity.EducationDetail;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.educationdetail.repository.EducationDetailRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.workexperience.entity.WorkExperience;
-import kakaotech.bootcamp.respec.specranking.domain.spec.sub.workexperience.repository.WorkExperienceRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.education.entity.Education;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.education.repository.EducationRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.educationdetail.entity.EducationDetail;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.educationdetail.repository.EducationDetailRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.workexperience.entity.WorkExperience;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.workexperience.repository.WorkExperienceRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.Degree;

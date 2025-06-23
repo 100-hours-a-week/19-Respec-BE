@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository;
 
 import static kakaotech.bootcamp.respec.specranking.domain.social.bookmark.entity.QBookmark.bookmark;
-import static kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.entity.QSpec.spec;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

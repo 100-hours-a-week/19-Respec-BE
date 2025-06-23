@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.social.comment.service;
 
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.CommentListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

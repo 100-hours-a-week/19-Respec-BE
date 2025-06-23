@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.dto;
 
 import java.time.LocalDateTime;
-import kakaotech.bootcamp.respec.specranking.domain.spec.main.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import lombok.Data;
 

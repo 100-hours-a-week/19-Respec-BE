@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.chat.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.consume.ChatRelayConsumeDto;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.ChatRelayRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.response.ChatRelayResponse;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.manager.WebSocketSessionManager;
 import kakaotech.bootcamp.respec.specranking.domain.notification.service.NotificationService;
@@ -24,7 +24,7 @@ public class ChatService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final NotificationService notificationService;
 
-    public void sendMessageToUser(ChatRelayConsumeDto chatRelayDto) throws IOException {
+    public void sendMessageToUser(ChatRelayRequestDto chatRelayDto) throws IOException {
         Long receiverId = chatRelayDto.receiverId();
 
         WebSocketSession session = webSocketSessionManager.getSessionByUserId(receiverId);
