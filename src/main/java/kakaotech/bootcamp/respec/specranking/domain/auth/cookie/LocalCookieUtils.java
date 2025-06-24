@@ -3,15 +3,14 @@ package kakaotech.bootcamp.respec.specranking.domain.auth.cookie;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-@Slf4j
 @Component
 @Profile("local")
 public class LocalCookieUtils implements CookieUtils {
@@ -26,20 +25,45 @@ public class LocalCookieUtils implements CookieUtils {
 
     @Override
     public Optional<Cookie> getCookie(HttpServletRequest request, String cookieName) {
-        if (request.getCookies() == null) return Optional.empty();
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return Optional.empty();
 
-        return Arrays.stream(request.getCookies())
+        return Arrays.stream(cookies)
                 .filter(cookie -> cookieName.equals(cookie.getName()))
                 .findFirst();
     }
 
     @Override
     public void addCookie(HttpServletResponse response, String cookieName, String cookieValue, int maxAge) {
-        try {
-            ResponseCookie cookie = ResponseCookie.from(cookieName, cookieValue).maxAge(maxAge).build();
-        } catch (Exception e) {
-            log.error("쿠키 설정 실패 - Name: {}, Value 길이: {}", cookieName, cookieValue.length(), e);
-            throw new
-        }
+        ResponseCookie newCookie = createResponseCookie(cookieName, cookieValue, maxAge);
+        response.addHeader(HttpHeaders.SET_COOKIE, newCookie.toString());
+    }
+
+    @Override
+    public void deleteCookie(HttpServletResponse response, String cookieName) {
+        ResponseCookie deleteCookie = deleteResponseCookie(cookieName);
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+    }
+
+    public ResponseCookie createResponseCookie(String cookieName, String cookieValue, int maxAge) {
+        return ResponseCookie.from(cookieName, cookieValue)
+                .domain(CookieConfig.DOMAIN)
+                .path(CookieConfig.DEFAULT_PATH)
+                .maxAge(maxAge)
+                .secure(CookieConfig.IS_SECURE)
+                .httpOnly(CookieConfig.IS_HTTP_ONLY)
+                .sameSite(CookieConfig.SAME_SITE_CROSS_DOMAIN)
+                .build();
+    }
+
+    public ResponseCookie deleteResponseCookie(String cookieName) {
+        return ResponseCookie.from(cookieName, "")
+                .domain(CookieConfig.DOMAIN)
+                .path(CookieConfig.DEFAULT_PATH)
+                .maxAge(0)
+                .secure(CookieConfig.IS_SECURE)
+                .httpOnly(CookieConfig.IS_HTTP_ONLY)
+                .sameSite(CookieConfig.SAME_SITE_CROSS_DOMAIN)
+                .build();
     }
 }

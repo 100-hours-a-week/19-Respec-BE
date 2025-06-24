@@ -1,32 +1,28 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
 import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
-import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.*;
 import kakaotech.bootcamp.respec.specranking.domain.user.service.UserService;
-import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
+import kakaotech.bootcamp.respec.specranking.global.exception.DuplicateNicknameException;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,6 +31,7 @@ public class UserController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final CookieUtils cookieUtils;
 
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png"
@@ -72,13 +69,13 @@ public class UserController {
             UserSignupRequestDto signupRequestDto = new UserSignupRequestDto(loginId, nickname, null);
             UserResponseDto user = userService.signup(signupRequestDto, profileImage);
 
-            CookieUtils.deleteCookie(response, TEMP_LOGIN_ID);
+            cookieUtils.deleteCookie(response, TEMP_LOGIN_ID);
 
             AuthTokenRequestDto requestDto = new AuthTokenRequestDto(user.getId(), signupRequestDto.getLoginId());
             AuthTokenResponseDto responseDto = authService.issueToken(requestDto, false);
             authService.convertTokenToResponse(responseDto, response);
 
-            CookieUtils.addCookie(response, ACCESS, responseDto.accessToken(), (int) (ACCESS_EXP / 1000));
+            cookieUtils.addCookie(response, ACCESS, responseDto.accessToken(), (int) (ACCESS_EXP / 1000));
 
             return UserSignupResponseDto.success(user);
         } catch (DuplicateNicknameException e) {

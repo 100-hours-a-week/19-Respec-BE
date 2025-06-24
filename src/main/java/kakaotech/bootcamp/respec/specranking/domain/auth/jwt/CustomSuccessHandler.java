@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
+import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.CustomOAuth2User;
@@ -33,6 +34,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final AuthService authService;
     private final UserRepository userRepository;
+    private final CookieUtils cookieUtils;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -53,13 +55,13 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             AuthTokenResponseDto responseDto = authService.issueToken(requestDto, false);
             authService.convertTokenToResponse(responseDto, response);
 
-            CookieUtils.addCookie(response, ACCESS, responseDto.accessToken(), (int) (ACCESS_EXP / 1000));
+            cookieUtils.addCookie(response, ACCESS, responseDto.accessToken(), (int) (ACCESS_EXP / 1000));
         } else {
             // 신규 사용자 - tempLoginId 쿠키 설정
             String tmpLoginId = userInfo.getProvider() + "_" + userInfo.getProviderId();
             log.info("신규 사용자 - TempLoginId 발급: {}", tmpLoginId);
 
-            CookieUtils.addCookie(response, TEMP_LOGIN_ID, tmpLoginId, (int) (TEMP_LOGIN_ID_EXP / 1000));
+            cookieUtils.addCookie(response, TEMP_LOGIN_ID, tmpLoginId, (int) (TEMP_LOGIN_ID_EXP / 1000));
         }
 
         getRedirectStrategy().sendRedirect(request, response, frontendRedirectUrl);
