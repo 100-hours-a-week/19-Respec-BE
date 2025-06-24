@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.user.util;
+package kakaotech.bootcamp.respec.specranking.global.exception;
 
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import org.springframework.http.HttpStatus;
