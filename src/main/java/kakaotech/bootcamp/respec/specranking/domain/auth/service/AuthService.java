@@ -4,11 +4,11 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.RefreshTokenCreateDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.RefreshToken;
-import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.RefreshTokenRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private final JWTUtil jwtUtil;
+    private final CookieUtils cookieUtils;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -49,7 +50,7 @@ public class AuthService {
     }
 
     public void reissueTokens(HttpServletRequest request, HttpServletResponse response) {
-        String refresh = CookieUtils.getCookie(request, REFRESH)
+        String refresh = cookieUtils.getCookie(request, REFRESH)
                 .map(Cookie::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("refresh 토큰이 없습니다."));
 
@@ -66,7 +67,7 @@ public class AuthService {
 
     public void convertTokenToResponse(AuthTokenResponseDto dto, HttpServletResponse response) {
         response.setHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + dto.accessToken());
-        CookieUtils.addCookie(response, REFRESH, dto.refreshToken(), (int) (REFRESH_EXP / 1000));
+        cookieUtils.addCookie(response, REFRESH, dto.refreshToken(), (int) (REFRESH_EXP / 1000));
     }
 
     public void deleteByExpirationBefore(LocalDateTime currentTime) {

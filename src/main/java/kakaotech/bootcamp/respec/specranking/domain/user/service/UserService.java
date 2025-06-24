@@ -14,7 +14,7 @@ import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateRequest;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
-import kakaotech.bootcamp.respec.specranking.domain.user.util.DuplicateNicknameException;
+import kakaotech.bootcamp.respec.specranking.global.exception.DuplicateNicknameException;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
