@@ -43,8 +43,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
         return ResponseEntity
-                .status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(new ErrorResponse(false, e.getMessage()));
+                .status(ErrorCode.FILE_SIZE_EXCEEDED.getHttpStatus())
+                .body(ErrorResponse.of(ErrorCode.FILE_SIZE_EXCEEDED));
     }
 
     @ExceptionHandler(IllegalStateException.class)

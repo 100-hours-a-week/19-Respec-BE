@@ -22,18 +22,30 @@ public class BookmarkRepositoryCustomImpl implements BookmarkRepositoryCustom {
 
     @Override
     public List<Bookmark> findBookmarksByUserIdWithCursor(Long userId, Long cursorId, int limit) {
-        if (cursorId == null) {
-            return queryFactory
-                    .selectFrom(bookmark)
-                    .where(
-                            bookmark.user.id.eq(userId),
-                            spec.status.eq(SpecStatus.ACTIVE)
-                    )
-                    .orderBy(bookmark.id.desc())
-                    .limit(limit)
-                    .fetch();
+        if (isFirstPage(cursorId)) {
+            return findBookmarksFromFirstPage(userId, limit);
         }
 
+        return findBookmarksFromCursor(userId, cursorId, limit);
+    }
+
+    private boolean isFirstPage(Long cursorId) {
+        return cursorId == null || cursorId.equals(Long.MAX_VALUE);
+    }
+
+    private List<Bookmark> findBookmarksFromFirstPage(Long userId, int limit) {
+        return queryFactory
+                .selectFrom(bookmark)
+                .where(
+                        bookmark.user.id.eq(userId),
+                        spec.status.eq(SpecStatus.ACTIVE)
+                )
+                .orderBy(bookmark.id.desc())
+                .limit(limit)
+                .fetch();
+    }
+
+    private List<Bookmark> findBookmarksFromCursor(Long userId, Long cursorId, int limit) {
         return queryFactory
                 .selectFrom(bookmark)
                 .where(
