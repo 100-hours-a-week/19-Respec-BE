@@ -1,6 +1,5 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.bookmark.service;
 
-import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.entity.Bookmark;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
@@ -8,6 +7,8 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRep
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
+import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
+import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,47 +23,68 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
 
     public Long createBookmark(Long specId) {
-        Optional<Long> optUserId = UserUtils.getCurrentUserId();
-        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+        Long currentUserId = getCurrentUserIdOrThrow();
+        User currentUser = findUserById(currentUserId);
+        Spec targetSpec = findSpecById(specId);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+        validateNotSelfBookmark(targetSpec, currentUserId);
+        validateBookmarkNotExists(specId, currentUserId);
 
-        Spec spec = specRepository.findById(specId)
-                .orElseThrow(() -> new IllegalArgumentException("스펙을 찾을 수 없습니다. ID: " + specId));
+        Bookmark bookmark = new Bookmark(targetSpec, currentUser);
 
-        validateSelfBookmark(spec, userId);
-        validateDuplicateBookmark(specId, userId);
-
-        Bookmark bookmark = new Bookmark(spec, user);
-        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
-
-        return savedBookmark.getId();
+        return bookmarkRepository.save(bookmark).getId();
     }
 
     public void deleteBookmark(Long specId) {
-        Optional<Long> optUserId = UserUtils.getCurrentUserId();
-        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
-        userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+        Long currentUserId = getCurrentUserIdOrThrow();
+        validateUserExists(currentUserId);
+        validateSpecExists(specId);
 
-        specRepository.findById(specId).orElseThrow(() -> new IllegalArgumentException("스펙을 찾을 수 없습니다. ID: " + specId));
-
-        Bookmark bookmark = bookmarkRepository.findBySpecIdAndUserId(specId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 즐겨찾기를 찾을 수 없습니다. 이미 삭제되었거나 존재하지 않습니다."));
-
+        Bookmark bookmark = findBookmarkBySpecIdAndUserId(specId, currentUserId);
         bookmarkRepository.delete(bookmark);
     }
 
-    private void validateSelfBookmark(Spec spec, Long userId) {
-        if (spec.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("자신의 스펙은 즐겨찾기할 수 없습니다.");
+    private Long getCurrentUserIdOrThrow() {
+        return UserUtils.getCurrentUserId()
+                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private Spec findSpecById(Long specId) {
+        return specRepository.findById(specId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SPEC_NOT_FOUND));
+    }
+
+    private void validateUserExists(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
     }
 
-    private void validateDuplicateBookmark(Long specId, Long userId) {
+    private void validateSpecExists(Long specId) {
+        if (!specRepository.existsById(specId)) {
+            throw new CustomException(ErrorCode.SPEC_NOT_FOUND);
+        }
+    }
+
+    private Bookmark findBookmarkBySpecIdAndUserId(Long specId, Long userId) {
+        return bookmarkRepository.findBySpecIdAndUserId(specId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKMARK_NOT_FOUND));
+    }
+
+    private void validateNotSelfBookmark(Spec spec, Long userId) {
+        if (spec.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.SELF_BOOKMARK_NOT_ALLOWED);
+        }
+    }
+
+    private void validateBookmarkNotExists(Long specId, Long userId) {
         if (bookmarkRepository.existsBySpecIdAndUserId(specId, userId)) {
-            throw new IllegalStateException("이미 즐겨찾기에 등록된 스펙입니다.");
+            throw new CustomException(ErrorCode.BOOKMARK_ALREADY_EXISTS);
         }
     }
 }
