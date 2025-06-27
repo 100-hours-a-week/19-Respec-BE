@@ -161,3 +161,7 @@ public class AiService {
 - **dev**: 개발 서버 환경
 - **stage**: 스테이징 환경
 - **prod**: 운영 환경
+  
+## 📚 추가 자료
+
+- **ChatConsumer 서비스**: [19-Respec-BE-Chatconsumer](https://github.com/100-hours-a-week/19-Respec-BE-Chatconsumer) - 채팅 메시지 처리 마이크로서비스
