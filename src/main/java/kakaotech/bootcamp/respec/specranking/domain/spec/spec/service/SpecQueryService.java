@@ -16,6 +16,7 @@ import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserReposito
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -139,6 +140,11 @@ public class SpecQueryService {
         return SearchResponse.success(keyword, searchResults, hasNext, nextCursor);
     }
 
+    @Cacheable(
+            value = "specMetadata",
+            key = "#jobField.name()",
+            unless = "#result == null"
+    )
     public Meta getMetaData(JobField jobField) {
         long totalUserCount = 0;
         Double averageScore = 0.0;
