@@ -18,6 +18,12 @@ public enum ErrorCode {
     BOOKMARK_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 즐겨찾기에 등록된 스펙입니다."),
     SELF_BOOKMARK_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자신의 스펙은 즐겨찾기할 수 없습니다."),
 
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글이거나 해당 스펙에 속하지 않는 댓글입니다."),
+    COMMENT_SPEC_MISMATCH(HttpStatus.BAD_REQUEST, "댓글이 해당 스펙에 속하지 않습니다."),
+    COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "댓글은 작성자 본인만 수정.삭제가 가능합니다."),
+    COMMENT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 댓글입니다."),
+    REPLY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "대댓글에는 답글을 작성할 수 없습니다. 최상위 댓글에만 답글을 작성해주세요."),
+
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기가 제한을 초과했습니다."),
 

@@ -27,6 +27,9 @@ import lombok.NoArgsConstructor;
         })
 public class Comment extends BaseTimeEntity {
 
+    private static final int ROOT_COMMENT_DEPTH = 0;
+    private static final int REPLY_DEPTH = 1;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED")
@@ -62,7 +65,35 @@ public class Comment extends BaseTimeEntity {
         this.depth = depth;
     }
 
+    public static Comment createRootComment(Spec spec, User writer, String content, int bundleNumber) {
+        return new Comment(spec, writer, null, content, bundleNumber, ROOT_COMMENT_DEPTH);
+    }
+
+    public static Comment createReply(Spec spec, User writer, Comment parentComment, String content) {
+        return new Comment(spec, writer, parentComment, content, parentComment.getBundle(), REPLY_DEPTH);
+    }
+
     public void updateContent(String newContent) {
         this.content = newContent;
+    }
+
+    public Long getParentCommentId() {
+        return this.parentComment != null ? this.parentComment.getId() : null;
+    }
+
+    public boolean isRootComment() {
+        return this.depth == ROOT_COMMENT_DEPTH;
+    }
+
+    public boolean isWrittenBy(User user) {
+        return this.writer.getId().equals(user.getId());
+    }
+
+    public boolean belongsToSpec(Spec spec) {
+        return this.spec.getId().equals(spec.getId());
+    }
+
+    public boolean isDeleted() {
+        return this.getDeletedAt() != null;
     }
 }

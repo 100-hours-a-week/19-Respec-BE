@@ -1,29 +1,27 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.comment.dto;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-@Data
-public class ReplyQueryDto {
-    private Long replyId;
-    private Long writerId;
-    private String content;
-    private String nickname;
-    private String profileImageUrl;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private Integer bundle;
+public record ReplyQueryDto (
+        Long replyId,
+        Long writerId,
+        String content,
+        String nickname,
+        String profileImageUrl,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        Integer bundle
+) {
+    public String getFormattedCreatedAt() {
+        return formatDateTime(createdAt);
+    }
 
-    public ReplyQueryDto(Long replyId, Long writerId, String content, String nickname,
-                         String profileImageUrl, LocalDateTime createdAt, LocalDateTime updatedAt, Integer bundle) {
-        this.replyId = replyId;
-        this.writerId = writerId;
-        this.content = content;
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.bundle = bundle;
+    public String getFormattedUpdatedAt() {
+        return formatDateTime(updatedAt);
+    }
+
+    private String formatDateTime(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null;
     }
 }
