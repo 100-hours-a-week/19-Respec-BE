@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.mapping.AiDtoMapping;
@@ -29,6 +30,7 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostSpecResponse;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.service.AiService;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.service.IdempotencyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SpecService {
 
+    private static final Duration IDEMPOTENCY_TTL = Duration.ofMinutes(3);
+
     private final AiService aiService;
+    private final IdempotencyService idempotencyService;
     private final UserRepository userRepository;
     private final SpecRepository specRepository;
     private final EducationRepository educationRepository;
@@ -49,39 +54,71 @@ public class SpecService {
     private final ActivityNetworkingRepository activityNetworkingRepository;
 
     public void createSpec(PostSpecRequest request) {
-        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
-        Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+        final String idempotentKey = request.idempotentKey();
+        System.out.println("[DEBUG] create idempotent key: " + idempotentKey);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
+        try {
+            if (!idempotencyService.setIfAbsent(idempotentKey, IDEMPOTENCY_TTL)) {
+                return;
+            }
 
-        validateMultipleSpec(userId);
+            Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
+            Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
-        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToSpecAnalysisRequest(request, user.getNickname());
-        AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
 
-        saveSpecWithChaining(request, aiPostSpecResponse, user);
+            validateMultipleSpec(userId);
+
+            AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToSpecAnalysisRequest(request,
+                    user.getNickname());
+            AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
+
+            saveSpecWithChaining(request, aiPostSpecResponse, user);
+
+        } catch (Exception e) {
+            if (idempotencyService.hasKey(idempotentKey)) {
+                idempotencyService.delete(idempotentKey);
+            }
+            throw e;
+        }
     }
 
     public void updateSpec(Long specId, PostSpecRequest request) {
-        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
-        Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+        final String idempotentKey = request.idempotentKey();
+        System.out.println("[DEBUG] update idempotent key: " + idempotentKey);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
+        try {
+            if (!idempotencyService.setIfAbsent(idempotentKey, IDEMPOTENCY_TTL)) {
+                return;
+            }
 
-        Spec spec = specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 수 없는 스펙입니다. ID: " + specId));
+            Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
+            Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
 
-        if (!spec.getUser().equals(user)) {
-            throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
+
+            Spec spec = specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
+                    .orElseThrow(() -> new IllegalArgumentException("수정할 수 없는 스펙입니다. ID: " + specId));
+
+            if (!spec.getUser().equals(user)) {
+                throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
+            }
+
+            AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToSpecAnalysisRequest(request,
+                    user.getNickname());
+            AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
+
+            spec.delete();
+            saveSpecWithChaining(request, aiPostSpecResponse, user);
+
+        } catch (Exception e) {
+            if (idempotencyService.hasKey(idempotentKey)) {
+                idempotencyService.delete(idempotentKey);
+            }
+            throw e;
         }
-
-        AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToSpecAnalysisRequest(request, user.getNickname());
-        AiPostSpecResponse aiPostSpecResponse = aiService.analyzeSpec(aiPostSpecRequest);
-
-        spec.delete();
-        saveSpecWithChaining(request, aiPostSpecResponse, user);
     }
 
     private void validateMultipleSpec(Long userId) {
