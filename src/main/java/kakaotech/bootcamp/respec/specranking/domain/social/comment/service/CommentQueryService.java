@@ -1,9 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.comment.service;
 
+import kakaotech.bootcamp.respec.specranking.domain.social.comment.constants.CommentMessages;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.CommentListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
-import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
+import kakaotech.bootcamp.respec.specranking.domain.social.comment.validator.CommentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,17 +16,34 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentQueryService {
 
     private final CommentRepository commentRepository;
-    private final SpecRepository specRepository;
+    private final CommentValidator commentValidator;
 
     public CommentListResponse getComments(Long specId, Pageable pageable) {
-        specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 비활성화된 스펙입니다. ID: " + specId));
+
+        commentValidator.validateSpecExists(specId);
 
         Page<CommentListResponse.CommentWithReplies> commentsPage = commentRepository.findCommentsWithReplies(specId,
                 pageable);
+        CommentListResponse.CommentListData commentListData = buildCommentListData(commentsPage);
 
-        CommentListResponse.CommentListData data = new CommentListResponse.CommentListData(commentsPage);
+        return CommentListResponse.success(CommentMessages.GET_COMMENT_LIST_SUCCESS, commentListData);
+    }
 
-        return new CommentListResponse(true, "댓글 및 대댓글 목록 조회 성공", data);
+    private CommentListResponse.CommentListData buildCommentListData(Page<CommentListResponse.CommentWithReplies> commentsPage) {
+        return new CommentListResponse.CommentListData(
+                commentsPage.getContent(),
+                buildPageInfo(commentsPage)
+        );
+    }
+
+    private CommentListResponse.PageInfo buildPageInfo(Page<CommentListResponse.CommentWithReplies> commentsPage) {
+        return new CommentListResponse.PageInfo(
+                commentsPage.getNumber(),
+                commentsPage.getSize(),
+                commentsPage.getTotalElements(),
+                commentsPage.getTotalPages(),
+                commentsPage.isFirst(),
+                commentsPage.isLast()
+        );
     }
 }

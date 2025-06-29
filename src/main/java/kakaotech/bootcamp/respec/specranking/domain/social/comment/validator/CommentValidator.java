@@ -2,13 +2,19 @@ package kakaotech.bootcamp.respec.specranking.domain.social.comment.validator;
 
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.entity.Comment;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
+import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
 import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CommentValidator {
+
+    private final SpecRepository specRepository;
 
     public void validateReplyCreation(Comment parentComment, Spec spec) {
         validateCommentBelongsToSpec(parentComment, spec);
@@ -24,6 +30,11 @@ public class CommentValidator {
         if (!comment.isWrittenBy(user)) {
             throw new CustomException(ErrorCode.COMMENT_ACCESS_DENIED);
         }
+    }
+
+    public void validateSpecExists(Long specId) {
+        specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
+                .orElseThrow(() -> new CustomException(ErrorCode.SPEC_NOT_FOUND));
     }
 
     private void validateCommentBelongsToSpec(Comment comment, Spec spec) {

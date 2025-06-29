@@ -68,7 +68,7 @@ public class CommentController {
 
     @GetMapping
     public CommentListResponse getComments(
-            @PathVariable Long specId,
+            @PathVariable @Positive(message = "스펙 ID는 양수여야 합니다.") Long specId,
             @PageableDefault(size = 5) Pageable pageable) {
         return commentQueryService.getComments(specId, pageable);
     }
