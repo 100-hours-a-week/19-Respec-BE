@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.bookmark.service;
 
+import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.constants.BookmarkMessages;
+import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.dto.BookmarkCreateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.entity.Bookmark;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
@@ -7,6 +9,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRep
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
 import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,53 +25,43 @@ public class BookmarkService {
     private final SpecRepository specRepository;
     private final BookmarkRepository bookmarkRepository;
 
-    public Long createBookmark(Long specId) {
-        Long currentUserId = getCurrentUserIdOrThrow();
-        User currentUser = findUserById(currentUserId);
+    public BookmarkCreateResponse createBookmark(Long specId) {
+        User currentUser = getCurrentUser();
         Spec targetSpec = findSpecById(specId);
 
-        validateNotSelfBookmark(targetSpec, currentUserId);
-        validateBookmarkNotExists(specId, currentUserId);
+        validateNotSelfBookmark(targetSpec, currentUser.getId());
+        validateBookmarkNotExists(specId, currentUser.getId());
 
         Bookmark bookmark = new Bookmark(targetSpec, currentUser);
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
 
-        return bookmarkRepository.save(bookmark).getId();
+        return BookmarkCreateResponse.success(
+                BookmarkMessages.BOOKMARK_CREATE_SUCCESS,
+                savedBookmark.getId()
+        );
     }
 
-    public void deleteBookmark(Long specId) {
-        Long currentUserId = getCurrentUserIdOrThrow();
-        validateUserExists(currentUserId);
-        validateSpecExists(specId);
+    public SimpleResponseDto deleteBookmark(Long specId) {
+        User currentUser = getCurrentUser();
+        Spec targetSpec = findSpecById(specId);
 
-        Bookmark bookmark = findBookmarkBySpecIdAndUserId(specId, currentUserId);
+        Bookmark bookmark = findBookmarkBySpecIdAndUserId(targetSpec.getId(), currentUser.getId());
         bookmarkRepository.delete(bookmark);
+
+        return SimpleResponseDto.success(BookmarkMessages.BOOKMARK_DELETE_SUCCESS);
     }
 
-    private Long getCurrentUserIdOrThrow() {
-        return UserUtils.getCurrentUserId()
+    private User getCurrentUser() {
+        Long currentUserId = UserUtils.getCurrentUserId()
                 .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
-    }
 
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findById(currentUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
     private Spec findSpecById(Long specId) {
         return specRepository.findById(specId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SPEC_NOT_FOUND));
-    }
-
-    private void validateUserExists(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-    }
-
-    private void validateSpecExists(Long specId) {
-        if (!specRepository.existsById(specId)) {
-            throw new CustomException(ErrorCode.SPEC_NOT_FOUND);
-        }
     }
 
     private Bookmark findBookmarkBySpecIdAndUserId(Long specId, Long userId) {

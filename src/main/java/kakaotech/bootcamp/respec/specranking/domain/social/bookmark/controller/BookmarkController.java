@@ -1,7 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.bookmark.controller;
 
 import jakarta.validation.constraints.Positive;
-import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.constants.BookmarkMessages;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.dto.BookmarkCreateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.dto.BookmarkListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.service.BookmarkQueryService;
@@ -36,8 +35,7 @@ public class BookmarkController {
             @PathVariable
             @Positive(message = "specId는 양수여야 합니다.")
             Long specId) {
-        Long bookmarkId = bookmarkService.createBookmark(specId);
-        return BookmarkCreateResponse.success(BookmarkMessages.BOOKMARK_CREATE_SUCCESS, bookmarkId);
+        return bookmarkService.createBookmark(specId);
     }
 
     @DeleteMapping("/specs/{specId}")
@@ -45,7 +43,6 @@ public class BookmarkController {
             @PathVariable
             @Positive(message = "specId는 양수여야 합니다.")
             Long specId) {
-        bookmarkService.deleteBookmark(specId);
-        return SimpleResponseDto.success(BookmarkMessages.BOOKMARK_DELETE_SUCCESS);
+        return bookmarkService.deleteBookmark(specId);
     }
 }

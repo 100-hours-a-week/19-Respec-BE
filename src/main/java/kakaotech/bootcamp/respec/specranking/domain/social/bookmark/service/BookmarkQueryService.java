@@ -31,11 +31,10 @@ public class BookmarkQueryService {
     private final UserRepository userRepository;
 
     public BookmarkListResponse getBookmarkList(String cursor, int limit) {
-        Long currentUserId = getCurrentUserIdOrThrow();
-        validateUserExists(currentUserId);
+        User user = getCurrentUser();
 
         Long decodedCursorId = decodeCursor(cursor);
-        List<Bookmark> bookmarks = bookmarkRepository.findBookmarksByUserIdWithCursor(currentUserId, decodedCursorId, limit + 1);
+        List<Bookmark> bookmarks = bookmarkRepository.findBookmarksByUserIdWithCursor(user.getId(), decodedCursorId, limit + 1);
 
         BookmarkPaginationResult paginationResult = createPagination(bookmarks, limit);
         List<BookmarkListResponse.BookmarkItem> bookmarkItems = buildBookmarkItems(paginationResult.bookmarks());
@@ -48,15 +47,12 @@ public class BookmarkQueryService {
         );
     }
 
-    private Long getCurrentUserIdOrThrow() {
-        return UserUtils.getCurrentUserId()
+    private User getCurrentUser() {
+        Long currentUserId = UserUtils.getCurrentUserId()
                 .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
-    }
 
-    private void validateUserExists(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
+        return userRepository.findById(currentUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
     private BookmarkPaginationResult createPagination(List<Bookmark> bookmarks, int limit) {
