@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.bookmark.dto;
 
 public record BookmarkCreateResponse (
-        Boolean isSuccess,
+        boolean isSuccess,
         String message,
         Long bookmarkId
 ) {

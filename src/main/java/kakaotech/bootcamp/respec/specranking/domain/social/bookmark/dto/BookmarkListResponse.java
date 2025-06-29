@@ -5,7 +5,7 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import java.util.List;
 
 public record BookmarkListResponse (
-        Boolean isSuccess,
+        boolean isSuccess,
         String message,
         BookmarkListData data
 ) {

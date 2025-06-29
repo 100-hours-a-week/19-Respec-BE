@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.social.comment.dto;
 
 public record CommentUpdateResponse (
-        Boolean isSuccess,
+        boolean isSuccess,
         String message,
         CommentUpdateData data
 ) {

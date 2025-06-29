@@ -3,7 +3,7 @@ package kakaotech.bootcamp.respec.specranking.domain.social.comment.dto;
 import java.util.List;
 
 public record CommentListResponse (
-        Boolean isSuccess,
+        boolean isSuccess,
         String message,
         CommentListData data
 ) {
