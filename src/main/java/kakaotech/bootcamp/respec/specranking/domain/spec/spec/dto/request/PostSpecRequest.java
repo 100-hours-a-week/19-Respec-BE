@@ -18,6 +18,9 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.LanguageTest;
 import kakaotech.bootcamp.respec.specranking.global.common.type.Position;
 
 public record PostSpecRequest(
+        @NotBlank(message = "멱등키는 필수입니다.")
+        @Valid String idempotentKey,
+
         @NotNull(message = "최종 학력 정보는 필수입니다")
         @Valid FinalEducation finalEducation,
 
