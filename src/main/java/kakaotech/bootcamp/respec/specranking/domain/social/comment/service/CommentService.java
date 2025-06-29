@@ -2,7 +2,6 @@ package kakaotech.bootcamp.respec.specranking.domain.social.comment.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.constants.CommentMessages;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.CommentPostResponse;
@@ -11,6 +10,7 @@ import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.CommentUp
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.ReplyPostResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.entity.Comment;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
+import kakaotech.bootcamp.respec.specranking.domain.social.comment.validator.CommentValidator;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -29,97 +29,69 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CommentService {
 
-    private static final int ROOT_COMMENT_DEPTH = 0;
-    private static final int REPLY_DEPTH = 1;
     private static final int INITIAL_BUNDLE_NUMBER = 1;
     private static final int INITIAL_REPLY_COUNT = 0;
 
     private final CommentRepository commentRepository;
     private final SpecRepository specRepository;
     private final UserRepository userRepository;
+    private final CommentValidator commentValidator;
 
     public CommentPostResponse createComment(Long specId, CommentRequest request) {
-        Long userId = getCurrentUserIdOrThrow();
-        User user = findUserById(userId);
+        User user = getCurrentUser();
         Spec targetSpec = findActiveSpecById(specId);
 
         int newBundleNumber = generateNewBundleNumber(specId);
 
-        Comment comment = new Comment(targetSpec, user, null, request.getContent(), newBundleNumber, ROOT_COMMENT_DEPTH);
+        Comment comment = Comment.createRootComment(targetSpec, user, request.content(), newBundleNumber);
         Comment savedComment = commentRepository.save(comment);
 
         return buildCommentPostResponse(savedComment, user);
     }
 
     public ReplyPostResponse createReply(Long specId, Long commentId, CommentRequest request) {
-        Long userId = getCurrentUserIdOrThrow();
-        User user = findUserById(userId);
+        User user = getCurrentUser();
         Spec targetSpec = findActiveSpecById(specId);
-        Comment parentComment = findParentComment(commentId);
+        Comment parentComment = findCommentByIdAndSpecId(commentId, specId);
 
-        validateCommentBelongsToSpec(parentComment, specId);
-        validateReplyDepth(parentComment);
+        commentValidator.validateReplyCreation(parentComment, targetSpec);
 
-        Comment reply = new Comment(targetSpec, user, parentComment, request.getContent(), parentComment.getBundle(), REPLY_DEPTH);
+        Comment reply = Comment.createReply(targetSpec, user, parentComment, request.content());
         Comment savedReply = commentRepository.save(reply);
 
         return buildReplyPostResponse(savedReply, user, parentComment);
     }
 
     public CommentUpdateResponse updateComment(Long specId, Long commentId, CommentRequest request) {
-        Optional<Long> optUserId = UserUtils.getCurrentUserId();
-        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+        User user = getCurrentUser();
+        Comment targetComment = findCommentByIdAndSpecId(commentId, specId);
 
-        Comment comment = commentRepository.findByIdAndSpecId(commentId, specId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글이거나 해당 스펙에 속하지 않는 댓글입니다. ID: " + commentId));
+        commentValidator.validateCommentOwner(targetComment, user);
 
-        User writer = comment.getWriter();
-        if (!writer.getId().equals(userId)) {
-            throw new IllegalArgumentException("댓글 수정은 작성자 본인만 가능합니다. ID: " + writer.getId());
-        }
+        targetComment.updateContent(request.content());
+        Comment updatedComment = commentRepository.save(targetComment);
 
-        comment.updateContent(request.getContent());
-        Comment updatedComment = commentRepository.save(comment);
-
-        String updatedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-
-        CommentUpdateResponse.CommentUpdateData updateData = new CommentUpdateResponse.CommentUpdateData(
-                updatedComment.getId(),
-                updatedComment.getContent(),
-                updatedAt
-        );
-
-        return new CommentUpdateResponse(true, "댓글 수정 성공", updateData);
+        return buildCommentUpdateResponse(updatedComment);
     }
 
     public SimpleResponseDto deleteComment(Long specId, Long commentId) {
-        Optional<Long> optUserId = UserUtils.getCurrentUserId();
-        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+        User currentUser = getCurrentUser();
+        Comment targetComment = findCommentByIdAndSpecId(commentId, specId);
 
-        Comment comment = commentRepository.findByIdAndSpecId(commentId, specId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글이거나 해당 스펙에 속하지 않는 댓글입니다. ID: " + commentId));
+        commentValidator.validateCommentDeletion(targetComment, currentUser);
 
-        if (!comment.getWriter().getId().equals(userId)) {
-            throw new IllegalArgumentException("댓글 삭제는 작성자 본인만 가능합니다.");
-        }
-        if (comment.getDeletedAt() != null) {
-            throw new IllegalStateException("이미 삭제된 댓글입니다.");
-        }
+        targetComment.delete();
+        commentRepository.save(targetComment);
 
-        comment.delete();
-        commentRepository.save(comment);
-
-        return new SimpleResponseDto(true, "댓글 삭제 성공");
+        return SimpleResponseDto.success(CommentMessages.COMMENT_DELETE_SUCCESS);
     }
 
-    private Long getCurrentUserIdOrThrow() {
-        return UserUtils.getCurrentUserId()
+    private User getCurrentUser() {
+        Long userId = UserUtils.getCurrentUserId()
                 .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
-    }
 
-    private User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
     private Spec findActiveSpecById(Long specId) {
@@ -127,26 +99,14 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SPEC_NOT_FOUND));
     }
 
-    private Comment findParentComment(Long commentId) {
-        return commentRepository.findById(commentId)
+    private Comment findCommentByIdAndSpecId(Long commentId, Long specId) {
+        return commentRepository.findByIdAndSpecId(commentId, specId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
     }
 
     private int generateNewBundleNumber(Long specId) {
         Integer maxBundle = commentRepository.findMaxBundleBySpecId(specId);
         return (maxBundle == null) ? INITIAL_BUNDLE_NUMBER : maxBundle + 1;
-    }
-
-    private void validateCommentBelongsToSpec(Comment comment, Long specId) {
-        if (!comment.getSpec().getId().equals(specId)) {
-            throw new CustomException(ErrorCode.COMMENT_SPEC_MISMATCH);
-        }
-    }
-
-    private void validateReplyDepth(Comment parentComment) {
-        if (parentComment.getDepth() != ROOT_COMMENT_DEPTH) {
-            throw new CustomException(ErrorCode.REPLY_DEPTH_EXCEEDED);
-        }
     }
 
     private CommentPostResponse buildCommentPostResponse(Comment comment, User user) {
@@ -156,7 +116,7 @@ public class CommentService {
                 user.getUserProfileUrl(),
                 comment.getContent(),
                 comment.getDepth(),
-                comment.getParentComment() != null ? comment.getParentComment().getId() : null,
+                comment.getParentCommentId(),
                 INITIAL_REPLY_COUNT
         );
 
@@ -174,5 +134,17 @@ public class CommentService {
         );
 
         return ReplyPostResponse.success(CommentMessages.REPLY_CREATE_SUCCESS, replyData);
+    }
+
+    private CommentUpdateResponse buildCommentUpdateResponse(Comment comment) {
+        String updatedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        CommentUpdateResponse.CommentUpdateData commentUpdateData = new CommentUpdateResponse.CommentUpdateData(
+                comment.getId(),
+                comment.getContent(),
+                updatedAt
+        );
+
+        return CommentUpdateResponse.success(CommentMessages.COMMENT_UPDATE_SUCCESS, commentUpdateData);
     }
 }

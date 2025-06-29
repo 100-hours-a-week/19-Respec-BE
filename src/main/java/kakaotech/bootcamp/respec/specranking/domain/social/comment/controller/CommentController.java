@@ -53,16 +53,16 @@ public class CommentController {
 
     @PatchMapping("/{commentId}")
     public CommentUpdateResponse updateComment(
-            @PathVariable Long specId,
-            @PathVariable Long commentId,
+            @PathVariable @Positive(message = "스펙 ID는 양수여야 합니다.") Long specId,
+            @PathVariable @Positive(message = "댓글 ID는 양수여야 합니다.") Long commentId,
             @RequestBody @Valid CommentRequest request) {
         return commentService.updateComment(specId, commentId, request);
     }
 
     @DeleteMapping("/{commentId}")
     public SimpleResponseDto deleteComment(
-            @PathVariable Long specId,
-            @PathVariable Long commentId) {
+            @PathVariable @Positive(message = "스펙 ID는 양수여야 합니다.") Long specId,
+            @PathVariable @Positive(message = "댓글 ID는 양수여야 합니다.") Long commentId) {
         return commentService.deleteComment(specId, commentId);
     }
 
