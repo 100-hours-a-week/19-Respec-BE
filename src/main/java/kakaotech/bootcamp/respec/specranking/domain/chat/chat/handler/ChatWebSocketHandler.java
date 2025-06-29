@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.SocketChatSendRequest;
@@ -40,7 +41,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         Long userId = (Long) session.getAttributes().get("userId");
 
-        redisTemplate.opsForValue().set("chat:user:" + userId, privateAddress);
+        redisTemplate.opsForValue().set("chat:user:" + userId, privateAddress, Duration.ofHours(24));
         webSocketSessionManager.addSession(userId, session);
     }
 
