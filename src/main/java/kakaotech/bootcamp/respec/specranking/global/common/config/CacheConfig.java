@@ -24,7 +24,6 @@ public class CacheConfig {
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
         cacheConfigurations.put("specMetadata", createCacheConfig(Duration.ofHours(2)));
-        cacheConfigurations.put("specDetails", createCacheConfig(Duration.ofMinutes(3)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(createCacheConfig(Duration.ofMinutes(30)))

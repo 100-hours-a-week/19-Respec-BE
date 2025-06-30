@@ -27,7 +27,6 @@ import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.global.common.type.ScoreCategoryDetail;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,9 +43,6 @@ public class SpecDetailQueryService {
     private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
 
-    @Cacheable(value = "specDetail",
-            key = "#specId",
-            unless = "#result == null")
     public SpecDetailResponse getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("Spec not found"));
