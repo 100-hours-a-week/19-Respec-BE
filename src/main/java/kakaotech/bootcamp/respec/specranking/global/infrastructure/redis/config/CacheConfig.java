@@ -24,7 +24,7 @@ public class CacheConfig {
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
         cacheConfigurations.put("specMetadata", createCacheConfig(Duration.ofMinutes(30)));
-        cacheConfigurations.put("specDetails", createCacheConfig(Duration.ofMinutes(3)));
+        cacheConfigurations.put("specDetails", createCacheConfigWithNullValues(Duration.ofMinutes(3)));
         cacheConfigurations.put("top10Rankings", createCacheConfig(Duration.ofSeconds(30)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
@@ -37,6 +37,15 @@ public class CacheConfig {
         return RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(ttl)
                 .disableCachingNullValues()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(new GenericJackson2JsonRedisSerializer()));
+    }
+
+    private RedisCacheConfiguration createCacheConfigWithNullValues(Duration ttl) {
+        return RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(ttl)
                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair

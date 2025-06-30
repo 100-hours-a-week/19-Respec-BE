@@ -45,8 +45,7 @@ public class SpecDetailQueryService {
     private final ActivityNetworkingRepository activityNetworkingRepository;
 
     @Cacheable(value = "specDetail",
-            key = "#specId",
-            unless = "#result == null")
+            key = "#specId")
     public SpecDetailResponse getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("Spec not found"));
