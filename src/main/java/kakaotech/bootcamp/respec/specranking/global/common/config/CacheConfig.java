@@ -25,6 +25,7 @@ public class CacheConfig {
 
         cacheConfigurations.put("specMetadata", createCacheConfig(Duration.ofHours(2)));
         cacheConfigurations.put("specDetails", createCacheConfig(Duration.ofMinutes(3)));
+        cacheConfigurations.put("top10Rankings", createCacheConfig(Duration.ofSeconds(30)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(createCacheConfig(Duration.ofMinutes(30)))
