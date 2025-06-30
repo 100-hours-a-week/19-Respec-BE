@@ -30,6 +30,7 @@ public class SpecQueryService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
 
+    @Cacheable(value = "top10Rankings", key = "#jobField", condition = "#cursor == null")
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
         Long cursorId = decodeCursor(cursor);
 
