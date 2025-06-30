@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.global.common.config;
+package kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.config;
 
 import java.time.Duration;
 import java.util.HashMap;
