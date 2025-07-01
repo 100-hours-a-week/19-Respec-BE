@@ -13,16 +13,12 @@ import kakaotech.bootcamp.respec.specranking.global.common.entity.BaseTimeEntity
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserStatus;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(
         name = "users",
         indexes = {
