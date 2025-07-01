@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache;
 
 import java.time.Duration;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.dbquery.SpecDbQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecDbQueryService;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

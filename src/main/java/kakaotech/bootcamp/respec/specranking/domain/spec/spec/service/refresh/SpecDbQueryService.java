@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.dbquery;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh;
 
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
