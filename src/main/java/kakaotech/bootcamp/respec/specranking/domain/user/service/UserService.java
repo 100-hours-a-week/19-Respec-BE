@@ -1,7 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
@@ -99,16 +98,16 @@ public class UserService {
         return createUserResponseDto(user);
     }
 
-    public UserDetailResponse getUserInfo(Long userId) {
+    @Transactional(readOnly = true)
+    public UserDetailResponse getUserDetail(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Optional<Spec> activeSpecOpt = specRepository.findByUserIdAndStatus(user.getId(), SpecStatus.ACTIVE);
-        Spec activeSpec = activeSpecOpt.orElse(null);
+        Spec activeSpec = findActiveSpecByUserId(userId);
 
-        UserDetailResponse.UserDetail userDetail = UserDetailResponse.createUserDetail(user, activeSpec);
+        UserDetailResponse.UserDetail userDetailData = UserDetailResponse.UserDetail.from(user, activeSpec);
 
-        return UserDetailResponse.success(userDetail, UserMessages.GET_USER_DETAIL_SUCCESS);
+        return UserDetailResponse.success(userDetailData, UserMessages.GET_USER_DETAIL_SUCCESS);
     }
 
     public UserUpdateResponse updateUserProfile(UserUpdateRequest userUpdateRequest, MultipartFile profileImageUrl) {
@@ -139,15 +138,10 @@ public class UserService {
         return SimpleResponseDto.success(UserMessages.USER_SPEC_VISIBILITY_UPDATE_SUCCESS);
     }
 
-    public SimpleResponseDto deleteUser(Long id) {
-        Optional<User> optUser = userRepository.findById(id);
-        if (optUser.isEmpty()) {
-            throw new RuntimeException("해당 사용자가 존재하지 않습니다.");
-        }
+    public SimpleResponseDto deleteUser() {
+        User user = getCurrentUser();
 
-        User user = optUser.get();
         user.setDeletedAt(LocalDateTime.now());
-
         userRepository.save(user);
 
         return SimpleResponseDto.success(UserMessages.USER_SOFT_DELETE_SUCCESS);
@@ -159,6 +153,11 @@ public class UserService {
 
         return userRepository.findById(currentUserId)
                 .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
+    }
+
+    private Spec findActiveSpecByUserId(Long userId) {
+        return specRepository.findByUserIdAndStatus(userId, SpecStatus.ACTIVE)
+                .orElse(null);
     }
 
     private void validateUpdateRequest(UserUpdateRequest request, MultipartFile profileImageUrl) {

@@ -6,7 +6,6 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
 import jakarta.validation.Valid;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
@@ -17,7 +16,6 @@ import kakaotech.bootcamp.respec.specranking.global.exception.DuplicateNicknameE
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -86,11 +84,11 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserDetailResponse getUserInfo(
+    public UserDetailResponse getUserDetail(
             @PathVariable
             @Positive(message = "userId는 양수여야 합니다.")
             Long userId) {
-        return userService.getUserInfo(userId);
+        return userService.getUserDetail(userId);
     }
 
     @PatchMapping("/me")
@@ -106,7 +104,7 @@ public class UserController {
     }
 
     @DeleteMapping("/me")
-    public SimpleResponseDto deleteUser(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
-        return userService.deleteUser(userDto.getId());
+    public SimpleResponseDto deleteUser() {
+        return userService.deleteUser();
     }
 }
