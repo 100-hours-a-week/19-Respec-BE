@@ -10,6 +10,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
+    NO_USER_DATA_TO_UPDATE(HttpStatus.BAD_REQUEST, "수정할 회원 정보가 없습니다."),
 
     SPEC_NOT_FOUND(HttpStatus.NOT_FOUND, "스펙을 찾을 수 없습니다."),
     SPEC_ACCESS_DENIED(HttpStatus.FORBIDDEN, "스펙에 접근할 권한이 없습니다."),

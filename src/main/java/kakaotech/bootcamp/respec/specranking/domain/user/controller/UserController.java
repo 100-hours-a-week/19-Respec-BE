@@ -1,6 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Positive;
 import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
@@ -16,7 +17,6 @@ import kakaotech.bootcamp.respec.specranking.global.exception.DuplicateNicknameE
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,28 +86,27 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserDetailResponse getUserInfo(@PathVariable Long userId) {
+    public UserDetailResponse getUserInfo(
+            @PathVariable
+            @Positive(message = "userId는 양수여야 합니다.")
+            Long userId) {
         return userService.getUserInfo(userId);
     }
 
-    // 회원탈퇴
-    @DeleteMapping("/me")
-    public ResponseEntity<?> deleteUser(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
-        userService.deleteUser(userDto.getId());
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping("/me")
-    public UserUpdateResponse updateUser(
+    public UserUpdateResponse updateUserProfile(
             @ModelAttribute @Valid UserUpdateRequest request,
             @RequestPart(value = "profileImageUrl", required = false) MultipartFile profileImageUrl) {
-
-        return userService.updateUser(request, profileImageUrl);
+        return userService.updateUserProfile(request, profileImageUrl);
     }
 
     @PatchMapping("/me/visibility")
     public SimpleResponseDto updateUserVisibility(@RequestBody @Valid UserVisibilityRequest request) {
-        userService.updateUserVisibility(request.getIsPublic());
-        return new SimpleResponseDto(true, "스펙 공개여부 변경 성공");
+        return userService.updateUserVisibility(request.isPublic());
+    }
+
+    @DeleteMapping("/me")
+    public SimpleResponseDto deleteUser(@AuthenticationPrincipal AuthenticatedUserDto userDto) {
+        return userService.deleteUser(userDto.getId());
     }
 }

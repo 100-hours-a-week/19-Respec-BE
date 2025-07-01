@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.global.common.entity.BaseTimeEntity;
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserStatus;
@@ -68,43 +69,16 @@ public class User extends BaseTimeEntity {
         this.status = UserStatus.ACTIVE;
     }
 
-    public User updateNickname(String newNickname) {
-        return new User(
-                this.id,
-                this.loginId,
-                this.password,
-                this.userProfileUrl,
-                newNickname,
-                this.isOpenSpec,
-                this.role,
-                this.status
-        );
+    public void updateNickname(String newNickname) {
+        if (newNickname != null && !newNickname.isEmpty()) {
+            this.nickname = newNickname;
+        }
     }
 
-    public User updateProfileImageUrl(String newProfileImageUrl) {
-        return new User(
-                this.id,
-                this.loginId,
-                this.password,
-                newProfileImageUrl,
-                this.nickname,
-                this.isOpenSpec,
-                this.role,
-                this.status
-        );
-    }
-
-    public User updateNicknameAndProfileImageUrl(String newNickname, String newProfileImageUrl) {
-        return new User(
-                this.id,
-                this.loginId,
-                this.password,
-                newProfileImageUrl,
-                newNickname,
-                this.isOpenSpec,
-                this.role,
-                this.status
-        );
+    public void updateProfileImageUrl(String newProfileImageUrl) {
+        if (newProfileImageUrl != null && !newProfileImageUrl.isEmpty()) {
+            this.userProfileUrl = newProfileImageUrl;
+        }
     }
 
     public void updateIsOpenSpec(Boolean isOpenSpec) {

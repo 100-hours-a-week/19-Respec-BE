@@ -7,6 +7,7 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.user.constants.UserMessages;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserDetailResponse;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserResponseDto;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserSignupRequestDto;
@@ -14,12 +15,15 @@ import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateRequest;
 import kakaotech.bootcamp.respec.specranking.domain.user.dto.UserUpdateResponse;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
+import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
+import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
 import kakaotech.bootcamp.respec.specranking.global.exception.DuplicateNicknameException;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserStatus;
+import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.service.ImageFileStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -104,11 +108,38 @@ public class UserService {
 
         UserDetailResponse.UserDetail userDetail = UserDetailResponse.createUserDetail(user, activeSpec);
 
-        return UserDetailResponse.success(userDetail);
+        return UserDetailResponse.success(userDetail, UserMessages.GET_USER_DETAIL_SUCCESS);
     }
 
-    // 회원 탈퇴
-    public void deleteUser(Long id) {
+    public UserUpdateResponse updateUserProfile(UserUpdateRequest userUpdateRequest, MultipartFile profileImageUrl) {
+        validateUpdateRequest(userUpdateRequest, profileImageUrl);
+
+        User user = getCurrentUser();
+
+        if (hasNicknameUpdate(userUpdateRequest)) {
+            validateNicknameDuplication(userUpdateRequest.nickname(), user.getId());
+            user.updateNickname(userUpdateRequest.nickname());
+        }
+
+        if (hasProfileImageUpdate(profileImageUrl)) {
+            String newProfileImageUrl = imageFileStore.upload(profileImageUrl);
+            user.updateProfileImageUrl(newProfileImageUrl);
+        }
+
+        User savedUser = userRepository.save(user);
+
+        return UserUpdateResponse.success(savedUser, UserMessages.USER_UPDATE_SUCCESS);
+    }
+
+    public SimpleResponseDto updateUserVisibility(boolean isPublic) {
+        User user = getCurrentUser();
+        user.updateIsOpenSpec(isPublic);
+        userRepository.save(user);
+
+        return SimpleResponseDto.success(UserMessages.USER_SPEC_VISIBILITY_UPDATE_SUCCESS);
+    }
+
+    public SimpleResponseDto deleteUser(Long id) {
         Optional<User> optUser = userRepository.findById(id);
         if (optUser.isEmpty()) {
             throw new RuntimeException("해당 사용자가 존재하지 않습니다.");
@@ -118,45 +149,36 @@ public class UserService {
         user.setDeletedAt(LocalDateTime.now());
 
         userRepository.save(user);
+
+        return SimpleResponseDto.success(UserMessages.USER_SOFT_DELETE_SUCCESS);
     }
 
-    public UserUpdateResponse updateUser(UserUpdateRequest request, MultipartFile profileImageUrl) {
-        Optional<Long> optUserId = UserUtils.getCurrentUserId();
-        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+    private User getCurrentUser() {
+        Long currentUserId = UserUtils.getCurrentUserId()
+                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
-
-        boolean hasNicknameUpdate = request != null && request.hasNickname();
-        boolean hasProfileImageUpdate = profileImageUrl != null && !profileImageUrl.isEmpty();
-
-        if (!hasNicknameUpdate && !hasProfileImageUpdate) {
-            throw new IllegalArgumentException("수정할 정보가 없습니다.");
-        }
-
-        if (hasNicknameUpdate) {
-            validateNicknameDuplication(request.getNickname(), userId);
-        }
-
-        String newProfileImageUrl = null;
-        if (hasProfileImageUpdate) {
-            newProfileImageUrl = imageFileStore.upload(profileImageUrl);
-        }
-
-        User updatedUser = updateUserEntity(user, hasNicknameUpdate ? request.getNickname() : null, newProfileImageUrl);
-
-        User savedUser = userRepository.save(updatedUser);
-        return UserUpdateResponse.success(savedUser);
+        return userRepository.findById(currentUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
-    public void updateUserVisibility(Boolean isPublic) {
-        Optional<Long> optUserId = UserUtils.getCurrentUserId();
-        Long userId = optUserId.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+    private void validateUpdateRequest(UserUpdateRequest request, MultipartFile profileImageUrl) {
+        if (!hasNicknameUpdate(request) && !hasProfileImageUpdate(profileImageUrl)) {
+            throw new CustomException(ErrorCode.NO_USER_DATA_TO_UPDATE);
+        }
+    }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+    private void validateNicknameDuplication(String nickname, Long currentUserId) {
+        if (userRepository.existsByNicknameAndIdNot(nickname, currentUserId)) {
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+    }
 
-        user.updateIsOpenSpec(isPublic);
+    private boolean hasNicknameUpdate(UserUpdateRequest request) {
+        return (request != null && !request.nickname().isEmpty());
+    }
+
+    private boolean hasProfileImageUpdate(MultipartFile profileImageUrl) {
+        return (profileImageUrl != null && !profileImageUrl.isEmpty());
     }
 
     // UserResponseDto 생성 메소드
@@ -167,23 +189,5 @@ public class UserService {
                 user.getUserProfileUrl(),
                 user.getCreatedAt()
         );
-    }
-
-    private void validateNicknameDuplication(String nickname, Long currentUserId) {
-        if (userRepository.existsByNicknameAndIdNot(nickname, currentUserId)) {
-            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
-        }
-    }
-
-    private User updateUserEntity(User user, String newNickname, String newProfileImageUrl) {
-        if (newNickname != null && newProfileImageUrl != null) {
-            return user.updateNicknameAndProfileImageUrl(newNickname, newProfileImageUrl);
-        } else if (newNickname != null) {
-            return user.updateNickname(newNickname);
-        } else if (newProfileImageUrl != null) {
-            return user.updateProfileImageUrl(newProfileImageUrl);
-        } else {
-            return user;
-        }
     }
 }
