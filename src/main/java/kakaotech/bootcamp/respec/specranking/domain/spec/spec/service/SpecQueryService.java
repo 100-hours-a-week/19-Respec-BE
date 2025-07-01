@@ -6,10 +6,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
@@ -18,7 +16,6 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.Searc
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository.SpecRankingProjection;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.SpecCacheRefreshService;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -89,44 +86,21 @@ public class SpecQueryService {
 
             String nextCursor = hasNext ? encodeCursor(specs.getLast().getId()) : null;
 
-            // 벌크 최적화 시작
-            List<Long> specIds = specs.stream().map(Spec::getId).toList();
-
-            // 벌크 조회들
-            Map<Long, Long> totalRanks = specRepository.findRankingsBySpecIds(specIds, "TOTAL").stream()
-                    .collect(Collectors.toMap(SpecRankingProjection::getSpecId, SpecRankingProjection::getTotalRank));
-
-            Map<Long, Long> jobFieldRanks = specRepository.findRankingsBySpecIds(specIds, jobField.name()).stream()
-                    .collect(
-                            Collectors.toMap(SpecRankingProjection::getSpecId, SpecRankingProjection::getJobFieldRank));
-
-            Map<Long, Long> commentsCounts = commentRepository.countBySpecIds(specIds).stream()
-                    .collect(Collectors.toMap(CommentRepository.SpecCountProjection::getSpecId,
-                            CommentRepository.SpecCountProjection::getCount));
-
-            Map<Long, Long> bookmarksCounts = bookmarkRepository.countBySpecIds(specIds).stream()
-                    .collect(Collectors.toMap(BookmarkRepository.SpecCountProjection::getSpecId,
-                            BookmarkRepository.SpecCountProjection::getCount));
-
-            // 공통 카운트들 (한 번만 조회)
-            Long totalUserCount = userRepository.countUsersHavingSpec();
-            Long usersCountByJobField = specRepository.countByJobField(jobField);
-
             List<RankingResponse.RankingItem> rankingItems = specs.stream().map(spec -> {
                 User user = spec.getUser();
-                Long specId = spec.getId();
+                JobField specJobField = spec.getJobField();
 
                 return new RankingResponse.RankingItem(
-                        user.getId(), user.getNickname(), user.getUserProfileUrl(), specId,
+                        user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
                         spec.getTotalAnalysisScore(),
-                        totalRanks.getOrDefault(specId, 0L),
-                        totalUserCount,
-                        spec.getJobField(),
-                        jobFieldRanks.getOrDefault(specId, 0L),
-                        usersCountByJobField,
-                        bookmarkedSpecIds.contains(specId),
-                        commentsCounts.getOrDefault(specId, 0L),
-                        bookmarksCounts.getOrDefault(specId, 0L)
+                        specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
+                        userRepository.countUsersHavingSpec(),
+                        specJobField,
+                        specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
+                        specRepository.countByJobField(specJobField),
+                        bookmarkedSpecIds.contains(spec.getId()),
+                        commentRepository.countBySpecId(spec.getId()),
+                        bookmarkRepository.countBySpecId(spec.getId())
                 );
             }).toList();
 
