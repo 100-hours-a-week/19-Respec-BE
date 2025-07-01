@@ -10,19 +10,19 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.SpecCacheRefreshService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecDbQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,58 +38,74 @@ public class SpecQueryService {
     private final UserRepository userRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final SpecCacheRefreshService specCacheRefreshService;
-    private final SpecDbQueryService specDbQueryService;
+    private final SpecRefreshQueryService specRefreshQueryService;
 
-    @Cacheable(value = "top10Rankings", key = "#jobField", condition = "#cursor == null")
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
-        Long cursorId = decodeCursor(cursor);
+        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
+        List<Long> bookmarkedSpecIds = userIdOpt
+                .map(bookmarkRepository::findSpecIdsByUserId)
+                .orElseGet(ArrayList::new);
 
-        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
+        if (cursor == null) {
+            String cacheKey = "rankings::" + jobField.name() + "::" + limit;
+            CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
+            int randomDivisor = 18 + (int) (Math.random() * 5);
 
-        boolean hasNext = specs.size() > limit;
-        if (hasNext) {
-            specs = specs.subList(0, limit);
+            if (cached != null) {
+                Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
+                if (ttl != null && ttl <= 30L / randomDivisor) {
+                    specCacheRefreshService.refreshRankingCache(jobField, limit);
+                }
+            }
+
+            if (cached == null) {
+                cached = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
+                redisTemplate.opsForValue().set(cacheKey, cached, Duration.ofMinutes(10));
+            }
+
+            List<RankingResponse.RankingItem> items = cached.items().stream()
+                    .map(i -> new RankingResponse.RankingItem(
+                            i.userId(), i.nickname(), i.profileImageUrl(), i.specId(),
+                            i.score(), i.totalRank(), i.totalUsersCount(),
+                            i.jobField(), i.rankByJobField(), i.usersCountByJobField(),
+                            bookmarkedSpecIds.contains(i.specId()),
+                            i.commentsCount(), i.bookmarksCount()
+                    ))
+                    .toList();
+
+            return RankingResponse.success(items, cached.hasNext(), cached.nextCursor());
+
+        } else {
+            Long cursorId = decodeCursor(cursor);
+            List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
+
+            boolean hasNext = specs.size() > limit;
+            if (hasNext) {
+                specs = specs.subList(0, limit);
+            }
+
+            String nextCursor = hasNext ? encodeCursor(specs.getLast().getId()) : null;
+
+            List<RankingResponse.RankingItem> rankingItems = specs.stream().map(spec -> {
+                User user = spec.getUser();
+                JobField specJobField = spec.getJobField();
+
+                return new RankingResponse.RankingItem(
+                        user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
+                        spec.getTotalAnalysisScore(),
+                        specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
+                        userRepository.countUsersHavingSpec(),
+                        specJobField,
+                        specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
+                        specRepository.countByJobField(specJobField),
+                        bookmarkedSpecIds.contains(spec.getId()),
+                        commentRepository.countBySpecId(spec.getId()),
+                        bookmarkRepository.countBySpecId(spec.getId())
+                );
+            }).toList();
+
+            return RankingResponse.success(rankingItems, hasNext, nextCursor);
         }
-
-        String nextCursor = null;
-        if (hasNext) {
-            nextCursor = encodeCursor(specs.getLast().getId());
-        }
-
-        Optional<Long> userId = UserUtils.getCurrentUserId();
-        List<Long> bookmarkedSpecIds = new ArrayList<>();
-        if (userId.isPresent()) {
-            bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(userId.get());
-        }
-
-        List<RankingResponse.RankingItem> rankingItems = new ArrayList<>();
-
-        for (Spec spec : specs) {
-            User user = spec.getUser();
-            JobField specJobField = spec.getJobField();
-
-            Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
-            Long jobFieldRank = specRepository.findAbsoluteRankByJobField(specJobField, spec.getId());
-
-            Double totalAnalysisScore = spec.getTotalAnalysisScore();
-
-            Long commentsCount = commentRepository.countBySpecId(spec.getId());
-            Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
-            Long totalUserCount = userRepository.countUsersHavingSpec();
-            Long usersCountByJobField = specRepository.countByJobField(specJobField);
-
-            RankingResponse.RankingItem item = new RankingResponse.RankingItem(
-                    user.getId(), user.getNickname(),
-                    user.getUserProfileUrl(), spec.getId(),
-                    totalAnalysisScore, totalRank, totalUserCount,
-                    specJobField, jobFieldRank, usersCountByJobField,
-                    bookmarkedSpecIds.contains(spec.getId()),
-                    commentsCount, bookmarksCount);
-
-            rankingItems.add(item);
-        }
-
-        return RankingResponse.success(rankingItems, hasNext, nextCursor);
     }
 
     public SearchResponse searchByNickname(String keyword, String cursor, int limit) {
@@ -164,7 +180,7 @@ public class SpecQueryService {
             return cached;
         }
 
-        Meta meta = specDbQueryService.getMetaDataFromDb(jobField);
+        Meta meta = specRefreshQueryService.getMetaDataFromDb(jobField);
         redisTemplate.opsForValue().set(cacheKey, meta, Duration.ofHours(1));
         return meta;
     }
