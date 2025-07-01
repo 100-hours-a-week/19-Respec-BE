@@ -45,7 +45,6 @@ public class SpecQueryController {
 
     @GetMapping(params = "type=meta")
     public SpecMetaResponse getSpecMeta(@RequestParam(value = "jobField") JobField jobField) {
-        System.out.println("들어오냐?");
         Meta metaData = specQueryService.getMetaData(jobField);
         return new SpecMetaResponse(true, "메타 데이터 조회 성공!", metaData);
     }

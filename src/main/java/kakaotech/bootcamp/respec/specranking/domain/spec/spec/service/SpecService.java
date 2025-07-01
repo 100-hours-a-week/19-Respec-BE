@@ -55,7 +55,6 @@ public class SpecService {
 
     public void createSpec(PostSpecRequest request) {
         final String idempotentKey = request.idempotentKey();
-        System.out.println("[DEBUG] create idempotent key: " + idempotentKey);
 
         try {
             if (!idempotencyService.setIfAbsent(idempotentKey, IDEMPOTENCY_TTL)) {
@@ -86,7 +85,6 @@ public class SpecService {
 
     public void updateSpec(Long specId, PostSpecRequest request) {
         final String idempotentKey = request.idempotentKey();
-        System.out.println("[DEBUG] update idempotent key: " + idempotentKey);
 
         try {
             if (!idempotencyService.setIfAbsent(idempotentKey, IDEMPOTENCY_TTL)) {
