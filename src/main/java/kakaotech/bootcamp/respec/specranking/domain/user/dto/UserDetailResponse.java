@@ -1,84 +1,60 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.dto;
 
 import java.time.LocalDateTime;
+
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
-import lombok.Data;
 
-@Data
-public class UserDetailResponse {
-    private Boolean isSuccess;
-    private String message;
-    private UserInfoData data;
+public record UserDetailResponse (
+        boolean isSuccess,
+        String message,
+        UserInfoData data
+) {
+    public record UserInfoData (
+            UserDetail user
+    ) { }
 
-    @Data
-    public static class UserInfoData {
-        private UserDetail user;
+    public record UserDetail (
+            Long id,
+            String nickname,
+            String profileImageUrl,
+            LocalDateTime createdAt,
+            String jobField,
+            boolean isOpenSpec,
+            SpecInfo spec
+    ) {
+        public static UserDetail from(User user, Spec spec) {
+            return new UserDetail(
+                    user.getId(),
+                    user.getNickname(),
+                    user.getUserProfileUrl(),
+                    user.getCreatedAt(),
+                    extractJobField(spec),
+                    user.getIsOpenSpec(),
+                    SpecInfo.from(spec)
+            );
+        }
 
-        public UserInfoData(UserDetail user) {
-            this.user = user;
+        private static String extractJobField(Spec spec) {
+            return spec != null ? spec.getJobField().getValue() : null;
         }
     }
 
-    @Data
-    public static class UserDetail {
-        private Long id;
-        private String nickname;
-        private String profileImageUrl;
-        private LocalDateTime createdAt;
-        private String jobField;
-        private Boolean isOpenSpec;
-        private SpecInfo spec;
-
-        public UserDetail(Long id, String nickname, String profileImageUrl, LocalDateTime createdAt,
-                          String jobField, Boolean isOpenSpec, SpecInfo spec) {
-            this.id = id;
-            this.nickname = nickname;
-            this.profileImageUrl = profileImageUrl;
-            this.createdAt = createdAt;
-            this.jobField = jobField;
-            this.isOpenSpec = isOpenSpec;
-            this.spec = spec;
+    public record SpecInfo (
+            boolean hasActiveSpec,
+            Long activeSpec
+    ) {
+        public static SpecInfo from(Spec spec) {
+            boolean hasActiveSpec = spec != null;
+            return new SpecInfo(
+                    hasActiveSpec,
+                    hasActiveSpec ? spec.getId() : null
+            );
         }
     }
 
-    @Data
-    public static class SpecInfo {
-        private Boolean hasActiveSpec;
-        private Long activeSpec;
-
-        public SpecInfo(Boolean hasActiveSpec, Long activeSpec) {
-            this.hasActiveSpec = hasActiveSpec;
-            this.activeSpec = activeSpec;
-        }
-    }
-
-    public UserDetailResponse(Boolean isSuccess, String message, UserInfoData data) {
-        this.isSuccess = isSuccess;
-        this.message = message;
-        this.data = data;
-    }
-
-    public static UserDetailResponse success(UserDetail user) {
+    public static UserDetailResponse success(UserDetail user, String message) {
         UserInfoData data = new UserInfoData(user);
-        return new UserDetailResponse(true, "사용자 정보 조회 성공", data);
-    }
-
-    public static UserDetail createUserDetail(User user, Spec activeSpec) {
-        String jobField = activeSpec != null ? activeSpec.getJobField().getValue() : null;
-        SpecInfo specInfo = new SpecInfo(
-                activeSpec != null,
-                activeSpec != null ? activeSpec.getId() : null
-        );
-
-        return new UserDetail(
-                user.getId(),
-                user.getNickname(),
-                user.getUserProfileUrl(),
-                user.getCreatedAt(),
-                jobField,
-                user.getIsOpenSpec(),
-                specInfo
-        );
+        return new UserDetailResponse(true, message, data);
     }
 }

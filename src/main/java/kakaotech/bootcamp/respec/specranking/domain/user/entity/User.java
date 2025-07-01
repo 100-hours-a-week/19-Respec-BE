@@ -13,16 +13,12 @@ import kakaotech.bootcamp.respec.specranking.global.common.entity.BaseTimeEntity
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserRole;
 import kakaotech.bootcamp.respec.specranking.global.common.type.UserStatus;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(
         name = "users",
         indexes = {
@@ -68,43 +64,16 @@ public class User extends BaseTimeEntity {
         this.status = UserStatus.ACTIVE;
     }
 
-    public User updateNickname(String newNickname) {
-        return new User(
-                this.id,
-                this.loginId,
-                this.password,
-                this.userProfileUrl,
-                newNickname,
-                this.isOpenSpec,
-                this.role,
-                this.status
-        );
+    public void updateNickname(String newNickname) {
+        if (newNickname != null && !newNickname.isEmpty()) {
+            this.nickname = newNickname;
+        }
     }
 
-    public User updateProfileImageUrl(String newProfileImageUrl) {
-        return new User(
-                this.id,
-                this.loginId,
-                this.password,
-                newProfileImageUrl,
-                this.nickname,
-                this.isOpenSpec,
-                this.role,
-                this.status
-        );
-    }
-
-    public User updateNicknameAndProfileImageUrl(String newNickname, String newProfileImageUrl) {
-        return new User(
-                this.id,
-                this.loginId,
-                this.password,
-                newProfileImageUrl,
-                newNickname,
-                this.isOpenSpec,
-                this.role,
-                this.status
-        );
+    public void updateProfileImageUrl(String newProfileImageUrl) {
+        if (newProfileImageUrl != null && !newProfileImageUrl.isEmpty()) {
+            this.userProfileUrl = newProfileImageUrl;
+        }
     }
 
     public void updateIsOpenSpec(Boolean isOpenSpec) {
