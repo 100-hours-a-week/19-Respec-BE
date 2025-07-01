@@ -2,7 +2,6 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_CACHING_SECONDS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -40,7 +39,6 @@ public class SpecQueryService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final SpecCacheRefreshService specCacheRefreshService;
     private final SpecDbQueryService specDbQueryService;
-    private final ObjectMapper objectMapper;
 
     @Cacheable(value = "top10Rankings", key = "#jobField", condition = "#cursor == null")
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
