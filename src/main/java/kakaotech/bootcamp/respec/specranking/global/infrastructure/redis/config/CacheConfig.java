@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.config;
 
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_CACHING_SECONDS;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +25,7 @@ public class CacheConfig {
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        cacheConfigurations.put("specMetadata", createCacheConfig(Duration.ofMinutes(30)));
+        cacheConfigurations.put("specMetadata", createCacheConfig(Duration.ofSeconds(SPEC_META_DATA_CACHING_SECONDS)));
         cacheConfigurations.put("specDetails", createCacheConfigWithNullValues(Duration.ofMinutes(3)));
         cacheConfigurations.put("top10Rankings", createCacheConfig(Duration.ofSeconds(30)));
 

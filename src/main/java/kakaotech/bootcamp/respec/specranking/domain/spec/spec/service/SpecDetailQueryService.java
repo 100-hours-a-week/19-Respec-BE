@@ -44,8 +44,7 @@ public class SpecDetailQueryService {
     private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
 
-    @Cacheable(value = "specDetail",
-            key = "#specId")
+    @Cacheable(value = "specDetail", key = "#specId")
     public SpecDetailResponse getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new IllegalArgumentException("Spec not found"));

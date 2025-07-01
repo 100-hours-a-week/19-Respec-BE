@@ -1,9 +1,14 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_CACHING_SECONDS;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
@@ -11,12 +16,14 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.Searc
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.dbquery.SpecDbQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +36,10 @@ public class SpecQueryService {
     private final BookmarkRepository bookmarkRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheRefreshService cacheRefreshService;
+    private final SpecDbQueryService specDbQueryService;
+    private final ObjectMapper objectMapper;
 
     @Cacheable(value = "top10Rankings", key = "#jobField", condition = "#cursor == null")
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
@@ -141,29 +152,22 @@ public class SpecQueryService {
         return SearchResponse.success(keyword, searchResults, hasNext, nextCursor);
     }
 
-    @Cacheable(
-            value = "specMetadata",
-            key = "#jobField.name()",
-            unless = "#result == null"
-    )
     public Meta getMetaData(JobField jobField) {
-        long totalUserCount = 0;
-        Double averageScore = 0.0;
+        String cacheKey = "specMetadata::" + jobField.name();
+        Object raw = redisTemplate.opsForValue().get("specMetadata::" + jobField.name());
+        Meta cached = objectMapper.convertValue(raw, Meta.class);
+        int randomDivisor = 18 + (int) (Math.random() * 5);
 
-        if (jobField == JobField.TOTAL) {
-            totalUserCount = userRepository.countUsersHavingSpec();
-            averageScore = specRepository.findAverageScoreByJobField(null);
-        } else {
-            totalUserCount = specRepository.countByJobField(jobField);
-            averageScore = specRepository.findAverageScoreByJobField(jobField);
+        if (cached != null) {
+            Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
+            if (ttl != null && ttl <= SPEC_META_DATA_CACHING_SECONDS / randomDivisor) {
+                cacheRefreshService.refreshSpecMetadata(jobField);
+            }
+            return cached;
         }
 
-        if (averageScore == null) {
-            averageScore = 0.0;
-        }
-
-        Meta meta = new Meta(totalUserCount, averageScore);
-
+        Meta meta = specDbQueryService.getMetaDataFromDb(jobField);
+        redisTemplate.opsForValue().set(cacheKey, meta, Duration.ofHours(1));
         return meta;
     }
 
