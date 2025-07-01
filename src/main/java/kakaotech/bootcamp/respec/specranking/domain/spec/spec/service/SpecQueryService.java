@@ -16,6 +16,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.Searc
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.SpecCacheRefreshService;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.dbquery.SpecDbQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
@@ -37,7 +38,7 @@ public class SpecQueryService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final CacheRefreshService cacheRefreshService;
+    private final SpecCacheRefreshService specCacheRefreshService;
     private final SpecDbQueryService specDbQueryService;
     private final ObjectMapper objectMapper;
 
@@ -154,14 +155,13 @@ public class SpecQueryService {
 
     public Meta getMetaData(JobField jobField) {
         String cacheKey = "specMetadata::" + jobField.name();
-        Object raw = redisTemplate.opsForValue().get("specMetadata::" + jobField.name());
-        Meta cached = objectMapper.convertValue(raw, Meta.class);
+        Meta cached = (Meta) redisTemplate.opsForValue().get("specMetadata::" + jobField.name());
         int randomDivisor = 18 + (int) (Math.random() * 5);
 
         if (cached != null) {
             Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
             if (ttl != null && ttl <= SPEC_META_DATA_CACHING_SECONDS / randomDivisor) {
-                cacheRefreshService.refreshSpecMetadata(jobField);
+                specCacheRefreshService.refreshSpecMetadata(jobField);
             }
             return cached;
         }

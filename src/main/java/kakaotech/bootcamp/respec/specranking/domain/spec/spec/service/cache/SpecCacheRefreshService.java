@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache;
 
 import java.time.Duration;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CacheRefreshService {
+public class SpecCacheRefreshService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final SpecDbQueryService specDbQueryService;
