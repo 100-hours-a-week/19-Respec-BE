@@ -66,7 +66,7 @@ public class CommentService {
         User user = getCurrentUser();
         Comment targetComment = findCommentByIdAndSpecId(commentId, specId);
 
-        commentValidator.validateCommentOwner(targetComment, user);
+        commentValidator.validateCommentUpdate(targetComment, user);
 
         targetComment.updateContent(request.content());
         Comment updatedComment = commentRepository.save(targetComment);

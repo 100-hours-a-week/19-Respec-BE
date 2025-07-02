@@ -3,7 +3,7 @@ package kakaotech.bootcamp.respec.specranking.domain.social.comment.service;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.constants.CommentMessages;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.CommentListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.social.comment.validator.CommentValidator;
+import kakaotech.bootcamp.respec.specranking.domain.social.comment.validator.CommentQueryValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentQueryService {
 
     private final CommentRepository commentRepository;
-    private final CommentValidator commentValidator;
+    private final CommentQueryValidator commentQueryValidator;
 
     public CommentListResponse getComments(Long specId, Pageable pageable) {
 
-        commentValidator.validateSpecExists(specId);
+        commentQueryValidator.validateSpecExists(specId);
 
         Page<CommentListResponse.CommentWithReplies> commentsPage = commentRepository.findCommentsWithReplies(specId,
                 pageable);
