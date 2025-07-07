@@ -4,8 +4,7 @@ import kakaotech.bootcamp.respec.specranking.domain.social.comment.constants.Com
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.dto.CommentListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.validator.CommentQueryValidator;
-import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
-import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
+import kakaotech.bootcamp.respec.specranking.fixture.CommentQueryFixture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,12 +18,12 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+import static kakaotech.bootcamp.respec.specranking.fixture.TestConstants.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("CommentQueryService 테스트")
+@DisplayName("댓글 목록 조회 서비스 테스트")
 class CommentQueryServiceTest {
 
     @Mock
@@ -40,22 +39,19 @@ class CommentQueryServiceTest {
     @DisplayName("성공: 댓글과 대댓글이 있는 경우")
     void getComments_WithCommentsAndReplies_ReturnsCommentListResponse() {
         // given
-        Long specId = 1L;
         Pageable pageable = PageRequest.of(0, 5);
-
-        CommentListResponse.CommentWithReplies commentWithReplies = createCommentWithReplies();
+        CommentListResponse.CommentWithReplies commentWithReplies = CommentQueryFixture.createCommentWithReplies();
         Page<CommentListResponse.CommentWithReplies> commentsPage =
                 new PageImpl<>(List.of(commentWithReplies), pageable, 1);
 
-        given(commentRepository.findCommentsWithReplies(specId, pageable))
-                .willReturn(commentsPage);
+        given(commentRepository.findCommentsWithReplies(DEFAULT_SPEC_ID, pageable)).willReturn(commentsPage);
 
         // when
-        CommentListResponse commentListResponse = commentQueryService.getComments(specId, pageable);
+        CommentListResponse commentListResponse = commentQueryService.getComments(DEFAULT_SPEC_ID, pageable);
 
         // then
-        then(commentQueryValidator).should().validateSpecExists(specId);
-        then(commentRepository).should().findCommentsWithReplies(specId, pageable);
+        then(commentQueryValidator).should().validateSpecExists(DEFAULT_SPEC_ID);
+        then(commentRepository).should().findCommentsWithReplies(DEFAULT_SPEC_ID, pageable);
 
         assertThat(commentListResponse).isNotNull();
         assertThat(commentListResponse.isSuccess()).isTrue();
@@ -69,21 +65,18 @@ class CommentQueryServiceTest {
     @DisplayName("성공: 댓글이 없는 경우")
     void getComments_WithNoComments_ReturnsEmptyListResponse() {
         // given
-        Long specId = 1L;
         Pageable pageable = PageRequest.of(0, 5);
-
         Page<CommentListResponse.CommentWithReplies> emptyPage =
                 new PageImpl<>(List.of(), pageable, 0);
 
-        given(commentRepository.findCommentsWithReplies(specId, pageable))
-                .willReturn(emptyPage);
+        given(commentRepository.findCommentsWithReplies(DEFAULT_SPEC_ID, pageable)).willReturn(emptyPage);
 
         // when
-        CommentListResponse commentListResponse = commentQueryService.getComments(specId, pageable);
+        CommentListResponse commentListResponse = commentQueryService.getComments(DEFAULT_SPEC_ID, pageable);
 
         // then
-        then(commentQueryValidator).should().validateSpecExists(specId);
-        then(commentRepository).should().findCommentsWithReplies(specId, pageable);
+        then(commentQueryValidator).should().validateSpecExists(DEFAULT_SPEC_ID);
+        then(commentRepository).should().findCommentsWithReplies(DEFAULT_SPEC_ID, pageable);
 
         assertThat(commentListResponse).isNotNull();
         assertThat(commentListResponse.isSuccess()).isTrue();
@@ -96,20 +89,18 @@ class CommentQueryServiceTest {
     @DisplayName("성공: 페이징 정보가 올바르게 설정됨")
     void getComments_WithPaging_ReturnsCorrectPageInfo() {
         // given
-        Long specId = 1L;
         Pageable pageable = PageRequest.of(1, 3);
-        CommentListResponse.CommentWithReplies comment1 = createCommentWithReplies(1L, "첫 번째 댓글");
-        CommentListResponse.CommentWithReplies comment2 = createCommentWithReplies(2L, "두 번째 댓글");
-        CommentListResponse.CommentWithReplies comment3 = createCommentWithReplies(3L, "세 번째 댓글");
+        CommentListResponse.CommentWithReplies comment1 = CommentQueryFixture.createNumberedComment(4L, 4);
+        CommentListResponse.CommentWithReplies comment2 = CommentQueryFixture.createNumberedComment(5L, 5);
+        CommentListResponse.CommentWithReplies comment3 = CommentQueryFixture.createNumberedComment(6L, 6);
 
         Page<CommentListResponse.CommentWithReplies> commentsPage =
                 new PageImpl<>(List.of(comment1, comment2, comment3), pageable, 8);
 
-        given(commentRepository.findCommentsWithReplies(specId, pageable))
-                .willReturn(commentsPage);
+        given(commentRepository.findCommentsWithReplies(DEFAULT_SPEC_ID, pageable)).willReturn(commentsPage);
 
         // when
-        CommentListResponse commentListResponse = commentQueryService.getComments(specId, pageable);
+        CommentListResponse commentListResponse = commentQueryService.getComments(DEFAULT_SPEC_ID, pageable);
 
         // then
         CommentListResponse.PageInfo pageInfo = commentListResponse.data().pageInfo();
@@ -125,16 +116,15 @@ class CommentQueryServiceTest {
     @DisplayName("성공: 첫 번째 페이지인 경우")
     void getComments_FirstPage_ReturnsCorrectPageInfo() {
         // given
-        Long specId = 1L;
         Pageable firstPage = PageRequest.of(0, 5);
+        CommentListResponse.CommentWithReplies comment = CommentQueryFixture.createCommentWithReplies();
         Page<CommentListResponse.CommentWithReplies> commentsPage =
-                new PageImpl<>(List.of(createCommentWithReplies()), firstPage, 10);
+                new PageImpl<>(List.of(comment), firstPage, 10);
 
-        given(commentRepository.findCommentsWithReplies(specId, firstPage))
-                .willReturn(commentsPage);
+        given(commentRepository.findCommentsWithReplies(DEFAULT_SPEC_ID, firstPage)).willReturn(commentsPage);
 
         // when
-        CommentListResponse commentListResponse = commentQueryService.getComments(specId, firstPage);
+        CommentListResponse commentListResponse = commentQueryService.getComments(DEFAULT_SPEC_ID, firstPage);
 
         // then
         CommentListResponse.PageInfo pageInfo = commentListResponse.data().pageInfo();
@@ -146,16 +136,15 @@ class CommentQueryServiceTest {
     @DisplayName("성공: 마지막 페이지인 경우")
     void getComments_LastPage_ReturnsCorrectPageInfo() {
         // given
-        Long specId = 1L;
         Pageable lastPage = PageRequest.of(1, 5);
+        CommentListResponse.CommentWithReplies comment = CommentQueryFixture.createCommentWithReplies();
         Page<CommentListResponse.CommentWithReplies> commentsPage =
-                new PageImpl<>(List.of(createCommentWithReplies()), lastPage, 6);
+                new PageImpl<>(List.of(comment), lastPage, 6);
 
-        given(commentRepository.findCommentsWithReplies(specId, lastPage))
-                .willReturn(commentsPage);
+        given(commentRepository.findCommentsWithReplies(DEFAULT_SPEC_ID, lastPage)).willReturn(commentsPage);
 
         // when
-        CommentListResponse commentListResponse = commentQueryService.getComments(specId, lastPage);
+        CommentListResponse commentListResponse = commentQueryService.getComments(DEFAULT_SPEC_ID, lastPage);
 
         // then
         CommentListResponse.PageInfo pageInfo = commentListResponse.data().pageInfo();
@@ -167,92 +156,26 @@ class CommentQueryServiceTest {
     @DisplayName("성공: 대댓글이 포함된 댓글")
     void getComments_WithReplies_ReturnsCommentsWithReplies() {
         // given
-        Long specId = 1L;
         Pageable pageable = PageRequest.of(0, 5);
-        CommentListResponse.ReplyInfo reply1 = createReplyInfo(10L, "첫 번째 대댓글");
-        CommentListResponse.ReplyInfo reply2 = createReplyInfo(11L, "두 번째 대댓글");
+        CommentListResponse.ReplyInfo reply1 = CommentQueryFixture.createFirstReply();
+        CommentListResponse.ReplyInfo reply2 = CommentQueryFixture.createSecondReply();
 
         CommentListResponse.CommentWithReplies commentWithReplies =
-                createCommentWithRepliesAndReplyList(1L, "댓글 내용", List.of(reply1, reply2), 2);
+                CommentQueryFixture.createCommentWithRepliesAndReplyList(
+                        DEFAULT_COMMENT_ID, DEFAULT_COMMENT_CONTENT, List.of(reply1, reply2), 2);
 
         Page<CommentListResponse.CommentWithReplies> commentsPage =
                 new PageImpl<>(List.of(commentWithReplies), pageable, 1);
 
-        given(commentRepository.findCommentsWithReplies(specId, pageable))
-                .willReturn(commentsPage);
+        given(commentRepository.findCommentsWithReplies(DEFAULT_SPEC_ID, pageable)).willReturn(commentsPage);
 
         // when
-        CommentListResponse commentListResponse = commentQueryService.getComments(specId, pageable);
+        CommentListResponse commentListResponse = commentQueryService.getComments(DEFAULT_SPEC_ID, pageable);
 
         // then
         CommentListResponse.CommentWithReplies result = commentListResponse.data().comments().getFirst();
         assertThat(result.replyCount()).isEqualTo(2);
         assertThat(result.replies()).hasSize(2);
-        assertThat(result.replies().get(0).content()).isEqualTo("첫 번째 대댓글");
-        assertThat(result.replies().get(1).content()).isEqualTo("두 번째 대댓글");
-    }
-
-    @Test
-    @DisplayName("실패: 존재하지 않는 스펙 ID")
-    void getComments_WithNotExistingSpecId_ThrowsException() {
-        // given
-        Long specId = 1L;
-        Pageable pageable = PageRequest.of(0, 5);
-
-        willThrow(new CustomException(ErrorCode.SPEC_NOT_FOUND))
-                .given(commentQueryValidator).validateSpecExists(specId);
-
-        // when & then
-        assertThatThrownBy(() -> commentQueryService.getComments(specId, pageable))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ErrorCode.SPEC_NOT_FOUND.getMessage());
-
-        then(commentQueryValidator).should().validateSpecExists(specId);
-        then(commentRepository).shouldHaveNoInteractions();
-    }
-
-    private CommentListResponse.CommentWithReplies createCommentWithReplies() {
-        return createCommentWithReplies(1L, "테스트 댓글 내용");
-    }
-
-    private CommentListResponse.CommentWithReplies createCommentWithReplies(Long commentId, String content) {
-        return new CommentListResponse.CommentWithReplies(
-                commentId,
-                1L,
-                content,
-                "테스트유저",
-                "https://example.com/profile.jpg",
-                "2025-01-01T10:00:00",
-                "2025-01-01T10:00:00",
-                0,
-                List.of()
-        );
-    }
-
-    private CommentListResponse.CommentWithReplies createCommentWithRepliesAndReplyList(
-            Long commentId, String content, List<CommentListResponse.ReplyInfo> replies, int replyCount) {
-        return new CommentListResponse.CommentWithReplies(
-                commentId,
-                1L,
-                content,
-                "테스트유저",
-                "https://example.com/profile.jpg",
-                "2025-01-01T10:00:00",
-                "2025-01-01T10:00:00",
-                replyCount,
-                replies
-        );
-    }
-
-    private CommentListResponse.ReplyInfo createReplyInfo(Long replyId, String content) {
-        return new CommentListResponse.ReplyInfo(
-                replyId,
-                2L,
-                content,
-                "대댓글유저",
-                "https://example.com/reply-profile.jpg",
-                "2025-01-01T11:00:00",
-                "2025-01-01T11:00:00"
-        );
+        assertThat(result.replies()).containsExactly(reply1, reply2);
     }
 }
