@@ -9,6 +9,7 @@ import jakarta.validation.Validator;
 import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chat.adapter.out.dto.ChatSessionRedisValue;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.SocketChatSendRequest;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.manager.WebSocketSessionManager;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.dto.ChatProduceDto;
@@ -41,7 +42,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         Long userId = (Long) session.getAttributes().get("userId");
 
-        redisTemplate.opsForValue().set("chat:user:" + userId, privateAddress, Duration.ofHours(24));
+        ChatSessionRedisValue chatSessionRedisValue = new ChatSessionRedisValue(privateAddress, userId);
+        redisTemplate.opsForValue().set("chat:user:" + userId, chatSessionRedisValue, Duration.ofHours(24));
         webSocketSessionManager.addSession(userId, session);
     }
 
