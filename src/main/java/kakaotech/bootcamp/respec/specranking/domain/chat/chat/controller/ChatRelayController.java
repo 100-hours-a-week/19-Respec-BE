@@ -21,7 +21,11 @@ public class ChatRelayController {
 
     @PostMapping("/relay")
     public SimpleResponseDto relayMessage(@RequestBody ChatRelayRequestDto chatRelayDto) throws IOException {
+        Long senderId = chatRelayDto.senderId();
+        Long receiverId = chatRelayDto.receiverId();
+        log.info("메인 서버에 {}가 {}에게 보내는 메시지 요청이 들어왔습니다.", senderId, receiverId);
         chatService.sendMessageToUser(chatRelayDto);
+        log.info("메인 서버에 {}가 {}에게 보내는 메시지 요청이 성공했습니다.", senderId, receiverId);
         return new SimpleResponseDto(true, "relay 요청 성공");
     }
 }
