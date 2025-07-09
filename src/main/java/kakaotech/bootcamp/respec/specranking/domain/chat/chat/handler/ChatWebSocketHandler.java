@@ -45,6 +45,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChatSessionRedisValue chatSessionRedisValue = new ChatSessionRedisValue(privateAddress, userId);
         redisTemplate.opsForValue().set("chat:user:" + userId, chatSessionRedisValue, Duration.ofHours(24));
         webSocketSessionManager.addSession(userId, session);
+        log.info("userId" + userId + "connected");
     }
 
     @Override
@@ -77,6 +78,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Long userId = (Long) session.getAttributes().get("userId");
         webSocketSessionManager.removeSession(userId);
         redisTemplate.delete("chat:user:" + userId);
+        log.info("connection closed: userId" + userId);
     }
 
     private String generateKeyForSequence(Long senderId, Long receiverId) {
