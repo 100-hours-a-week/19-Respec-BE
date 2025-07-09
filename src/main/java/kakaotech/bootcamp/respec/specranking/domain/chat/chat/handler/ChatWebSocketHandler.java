@@ -45,7 +45,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChatSessionRedisValue chatSessionRedisValue = new ChatSessionRedisValue(privateAddress, userId);
         redisTemplate.opsForValue().set("chat:user:" + userId, chatSessionRedisValue, Duration.ofHours(24));
         webSocketSessionManager.addSession(userId, session);
-        log.info("userId" + userId + "connected");
+        log.info("userId{}가 초기 세션 연결에 성공했습니다.", userId);
     }
 
     @Override
@@ -55,18 +55,21 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         SocketChatSendRequest incomingMessage = parseJsonMessage(payload);
         if (incomingMessage == null) {
             session.sendMessage(new TextMessage("Error: json parsing error."));
+            log.error("메시지의 json parsing이 실패했습니다.");
             return;
         }
 
         String validationError = validateRequestData(incomingMessage);
         if (validationError != null) {
             session.sendMessage(new TextMessage("Error: " + validationError));
+            log.error("메시지의 검증에 실패했습니다.");
             return;
         }
 
         Long senderId = validateExistsUser(session);
         if (senderId == null) {
             session.sendMessage(new TextMessage("Error: Invalid type session."));
+            log.error("세션의 타입이 유효하지 않습니다.");
             return;
         }
 
@@ -78,7 +81,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Long userId = (Long) session.getAttributes().get("userId");
         webSocketSessionManager.removeSession(userId);
         redisTemplate.delete("chat:user:" + userId);
-        log.info("connection closed: userId" + userId);
+        log.info("userId{}의 세션 연결이 종료되었습니다.", userId);
     }
 
     private String generateKeyForSequence(Long senderId, Long receiverId) {

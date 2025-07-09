@@ -28,14 +28,17 @@ public class ChatService {
 
     public void sendMessageToUser(ChatRelayRequestDto chatRelayDto) throws IOException {
         Long receiverId = chatRelayDto.receiverId();
+        Long senderId = chatRelayDto.senderId();
 
         WebSocketSession session = webSocketSessionManager.getSessionByUserId(receiverId);
 
         if (session == null) {
-            log.info("userId{} is not connected", receiverId);
+            log.info("userId{}의 세션이 존재하지 않습니다.", receiverId);
             notificationService.createChatNotificationIfNotExists(receiverId);
             return;
         }
+
+        log.info("userId{}의 세션이 존재합니다.", receiverId);
 
         ChatRelayResponse messageToClient = new ChatRelayResponse(chatRelayDto.senderId(), chatRelayDto.receiverId(),
                 chatRelayDto.content());
@@ -44,12 +47,12 @@ public class ChatService {
 
         try {
             session.sendMessage(new TextMessage(messageJson));
-            log.info("userId{}에게 세션 메시지 전송에 성공했습니다.", receiverId);
+            log.info("userId{}가 userId{}에게 세션 메시지 전송에 성공했습니다.", senderId ,receiverId);
         } catch (IOException | IllegalStateException e) {
             if (session.isOpen()) {
                 session.close(CloseStatus.SESSION_NOT_RELIABLE);
             }
-            log.error("userId{}의 세션은 존재하나 메시지 전송에 실패했습니다.", receiverId);
+            log.info("userId{}가 userId{}에게 세션 메시지 전송에 실패했습니다.", senderId ,receiverId);
             log.error(e.getMessage());
             redisTemplate.delete("chat:user:" + receiverId);
             webSocketSessionManager.removeSessionByUserId(receiverId);
