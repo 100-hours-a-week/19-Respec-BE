@@ -26,8 +26,8 @@ public class TimeTraceAspect {
             return joinPoint.proceed();
         } finally {
             stopWatch.stop();
-            log.info("{} - Total time = {}s", joinPoint.getSignature().toShortString(),
-                    stopWatch.getTotalTimeSeconds());
+            log.info("{} - Total time = {}ms", joinPoint.getSignature().toShortString(),
+                    stopWatch.getTotalTimeMillis());
         }
     }
 }
