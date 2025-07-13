@@ -62,7 +62,7 @@ public class SpecRefreshQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        Long totalUserCount = userRepository.countUsersHavingSpec();
+        long computeTotalUserCount = userRepository.countUsersHavingSpec();
 
         List<CachedRankingResponse.CachedRankingItem> items = specs.stream().map(spec -> {
             User user = spec.getUser();
@@ -70,6 +70,7 @@ public class SpecRefreshQueryService {
 
             Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
             Long jobFieldRank = specRepository.findAbsoluteRankByJobField(specJobField, spec.getId());
+            Long totalUserCount = computeTotalUserCount;
             Long usersCountByJobField = specRepository.countByJobField(specJobField);
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
