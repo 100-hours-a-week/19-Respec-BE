@@ -85,7 +85,8 @@ public class SpecQueryService {
             }
 
             String nextCursor = hasNext ? encodeCursor(specs.getLast().getId()) : null;
-            long countUsersHavingSpec = userRepository.countUsersHavingSpec();
+
+            long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
 
             List<RankingResponse.RankingItem> rankingItems = specs.stream().map(spec -> {
                 User user = spec.getUser();
