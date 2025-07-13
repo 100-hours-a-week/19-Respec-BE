@@ -1,7 +1,5 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
-import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_CACHING_SECONDS;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -10,6 +8,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
@@ -49,11 +49,10 @@ public class SpecQueryService {
         if (cursor == null) {
             String cacheKey = "rankings::" + jobField.name() + "::" + limit;
             CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
-            int randomDivisor = 18 + (int) (Math.random() * 5);
 
             if (cached != null) {
                 Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
-                if (ttl != null && ttl <= 30L / randomDivisor) {
+                if (ttl != null && shouldRefreshByPER(ttl, cached.computeTime(), 1.0)) {
                     specCacheRefreshService.refreshRankingCache(jobField, limit);
                 }
             }
@@ -171,20 +170,24 @@ public class SpecQueryService {
 
     public Meta getMetaData(JobField jobField) {
         String cacheKey = "specMetadata::" + jobField.name();
-        Meta cached = (Meta) redisTemplate.opsForValue().get("specMetadata::" + jobField.name());
-        int randomDivisor = 18 + (int) (Math.random() * 5);
+        CachedMetaResponse cached = (CachedMetaResponse) redisTemplate.opsForValue()
+                .get("specMetadata::" + jobField.name());
 
         if (cached != null) {
             Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
-            if (ttl != null && ttl <= SPEC_META_DATA_CACHING_SECONDS / randomDivisor) {
+            if (ttl != null && shouldRefreshByPER(ttl, cached.computeTime(), 1.0)) {
                 specCacheRefreshService.refreshSpecMetadata(jobField);
             }
-            return cached;
         }
 
-        Meta meta = specRefreshQueryService.getMetaDataFromDb(jobField);
-        redisTemplate.opsForValue().set(cacheKey, meta, Duration.ofHours(1));
-        return meta;
+        if (cached == null) {
+            cached = specRefreshQueryService.getMetaDataFromDb(jobField);
+            redisTemplate.opsForValue().set(cacheKey, cached, Duration.ofHours(1));
+        }
+
+        CachedMeta data = cached.data();
+
+        return new Meta(data.totalUserCount(), data.averageScore());
     }
 
     private String encodeCursor(Long id) {
@@ -201,5 +204,12 @@ public class SpecQueryService {
         return Long.parseLong(decodedString);
     }
 
+    private boolean shouldRefreshByPER(long ttl, long cacheComputeTime, double beta) {
+        long remainedTtlMillis = TimeUnit.SECONDS.toMillis(ttl);
+        double currentTime = System.currentTimeMillis();
+        double randomNaturalLog = Math.log(Math.random());
+        double expireTime = currentTime + remainedTtlMillis;
 
+        return currentTime - cacheComputeTime * beta * randomNaturalLog >= expireTime;
+    }
 }

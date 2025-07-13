@@ -4,8 +4,9 @@ import java.util.Base64;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -25,7 +26,8 @@ public class SpecRefreshQueryService {
     private final CommentRepository commentRepository;
     private final BookmarkRepository bookmarkRepository;
 
-    public Meta getMetaDataFromDb(JobField jobField) {
+    public CachedMetaResponse getMetaDataFromDb(JobField jobField) {
+        long startTime = System.currentTimeMillis();
         long totalUserCount = 0;
         Double averageScore = 0.0;
 
@@ -41,12 +43,13 @@ public class SpecRefreshQueryService {
             averageScore = 0.0;
         }
 
-        Meta meta = new Meta(totalUserCount, averageScore);
-
-        return meta;
+        long endTime = System.currentTimeMillis();
+        CachedMeta cachedMeta = new CachedMeta(totalUserCount, averageScore);
+        return new CachedMetaResponse(endTime - startTime, cachedMeta);
     }
 
     public CachedRankingResponse getRankingDataFromDb(JobField jobField, int limit) {
+        long startTime = System.currentTimeMillis();
         List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, Long.MAX_VALUE, limit + 1);
 
         boolean hasNext = specs.size() > limit;
@@ -59,13 +62,14 @@ public class SpecRefreshQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
+        Long totalUserCount = userRepository.countUsersHavingSpec();
+
         List<CachedRankingResponse.CachedRankingItem> items = specs.stream().map(spec -> {
             User user = spec.getUser();
             JobField specJobField = spec.getJobField();
 
             Long totalRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
             Long jobFieldRank = specRepository.findAbsoluteRankByJobField(specJobField, spec.getId());
-            Long totalUserCount = userRepository.countUsersHavingSpec();
             Long usersCountByJobField = specRepository.countByJobField(specJobField);
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
@@ -86,7 +90,8 @@ public class SpecRefreshQueryService {
             );
         }).toList();
 
-        return new CachedRankingResponse(items, hasNext, nextCursor);
+        long endTime = System.currentTimeMillis();
+        return new CachedRankingResponse(items, hasNext, nextCursor, (endTime - startTime));
     }
 
     private String encodeCursor(Long id) {
