@@ -47,6 +47,7 @@ public class SpecRefreshQueryService {
     }
 
     public CachedRankingResponse getRankingDataFromDb(JobField jobField, int limit) {
+        long startTime = System.currentTimeMillis();
         List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, Long.MAX_VALUE, limit + 1);
 
         boolean hasNext = specs.size() > limit;
@@ -86,7 +87,8 @@ public class SpecRefreshQueryService {
             );
         }).toList();
 
-        return new CachedRankingResponse(items, hasNext, nextCursor);
+        long endTime = System.currentTimeMillis();
+        return new CachedRankingResponse(items, hasNext, nextCursor, (endTime - startTime));
     }
 
     private String encodeCursor(Long id) {

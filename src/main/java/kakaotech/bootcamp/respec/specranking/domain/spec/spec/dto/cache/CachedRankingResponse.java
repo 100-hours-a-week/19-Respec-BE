@@ -7,7 +7,9 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 public record CachedRankingResponse(
         List<CachedRankingItem> items,
         boolean hasNext,
-        String nextCursor) {
+        String nextCursor,
+        long computeTime
+) {
 
     public record CachedRankingItem(
             Long userId,

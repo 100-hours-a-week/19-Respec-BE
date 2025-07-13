@@ -49,11 +49,10 @@ public class SpecQueryService {
         if (cursor == null) {
             String cacheKey = "rankings::" + jobField.name() + "::" + limit;
             CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
-            int randomDivisor = 18 + (int) (Math.random() * 5);
 
             if (cached != null) {
                 Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
-                if (ttl != null && ttl <= 30L / randomDivisor) {
+                if (ttl != null && shouldRefreshByPER(ttl, cached.computeTime(), 1.0)) {
                     specCacheRefreshService.refreshRankingCache(jobField, limit);
                 }
             }
@@ -201,5 +200,11 @@ public class SpecQueryService {
         return Long.parseLong(decodedString);
     }
 
+    private boolean shouldRefreshByPER(Long ttl, double cacheComputeTime, double beta) {
+        double currentTime = System.currentTimeMillis();
+        double randomNaturalLog = Math.log(Math.random());
+        double expireTime = ttl + currentTime;
 
+        return currentTime - cacheComputeTime * beta * randomNaturalLog >= expireTime;
+    }
 }
