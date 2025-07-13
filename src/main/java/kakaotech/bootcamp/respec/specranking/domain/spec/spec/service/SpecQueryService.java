@@ -204,10 +204,11 @@ public class SpecQueryService {
         return Long.parseLong(decodedString);
     }
 
-    private boolean shouldRefreshByPER(Long ttl, double cacheComputeTime, double beta) {
+    private boolean shouldRefreshByPER(long ttl, long cacheComputeTime, double beta) {
+        long remainedTtlMillis = TimeUnit.SECONDS.toMillis(ttl);
         double currentTime = System.currentTimeMillis();
         double randomNaturalLog = Math.log(Math.random());
-        double expireTime = ttl + currentTime;
+        double expireTime = currentTime + remainedTtlMillis;
 
         return currentTime - cacheComputeTime * beta * randomNaturalLog >= expireTime;
     }
