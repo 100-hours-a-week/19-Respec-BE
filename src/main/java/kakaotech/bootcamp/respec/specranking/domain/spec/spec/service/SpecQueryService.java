@@ -86,6 +86,8 @@ public class SpecQueryService {
 
             String nextCursor = hasNext ? encodeCursor(specs.getLast().getId()) : null;
 
+            long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
+
             List<RankingResponse.RankingItem> rankingItems = specs.stream().map(spec -> {
                 User user = spec.getUser();
                 JobField specJobField = spec.getJobField();
@@ -94,7 +96,7 @@ public class SpecQueryService {
                         user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
                         spec.getTotalAnalysisScore(),
                         specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
-                        userRepository.countUsersHavingSpec(),
+                        countUsersHavingSpec,
                         specJobField,
                         specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
                         specRepository.countByJobField(specJobField),

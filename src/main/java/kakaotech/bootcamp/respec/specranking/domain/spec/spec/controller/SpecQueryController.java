@@ -7,6 +7,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecM
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecDetailQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecQueryService;
+import kakaotech.bootcamp.respec.specranking.global.common.aop.timetrace.TimeTrace;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class SpecQueryController {
     private final SpecDetailQueryService specDetailQueryService;
 
     @GetMapping(params = "type=ranking")
+    @TimeTrace
     public RankingResponse getRankings(
             @RequestParam(value = "jobField") JobField jobField,
             @RequestParam(value = "cursor", required = false) String cursor,

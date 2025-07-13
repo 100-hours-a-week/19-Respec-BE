@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(indexes = {
-        @Index(name = "idx_job_field_total_analysis_score", columnList = "job_field, total_analysis_score"),
-        @Index(name = "idx_total_analysis_score", columnList = "total_analysis_score")
+        @Index(name = "idx_status_job_field_total_analysis_score", columnList = "status, job_field, total_analysis_score"),
+        @Index(name = "idx_status_total_analysis_score", columnList = "status, total_analysis_score")
 })
 public class Spec extends BaseTimeEntity {
 
