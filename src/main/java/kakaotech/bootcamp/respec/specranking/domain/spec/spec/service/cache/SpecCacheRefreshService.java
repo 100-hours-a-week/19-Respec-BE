@@ -1,8 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache;
 
 import java.time.Duration;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +19,8 @@ public class SpecCacheRefreshService {
 
     @Async
     public void refreshSpecMetadata(JobField jobField) {
-        Meta meta = specRefreshQueryService.getMetaDataFromDb(jobField);
-        redisTemplate.opsForValue().set("specMetadata::" + jobField.name(), meta, Duration.ofHours(1));
+        CachedMetaResponse cachedMetaResponse = specRefreshQueryService.getMetaDataFromDb(jobField);
+        redisTemplate.opsForValue().set("specMetadata::" + jobField.name(), cachedMetaResponse, Duration.ofHours(1));
     }
 
     @Async
