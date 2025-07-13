@@ -38,7 +38,6 @@ public record RankingResponse(
             JobField jobField,
             Long rankByJobField,
             Long usersCountByJobField,
-            Boolean isBookmarked,
             Long commentsCount,
             Long bookmarksCount
     ) {

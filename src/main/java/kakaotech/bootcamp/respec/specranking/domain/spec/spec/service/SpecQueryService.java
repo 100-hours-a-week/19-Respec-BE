@@ -41,11 +41,6 @@ public class SpecQueryService {
     private final SpecRefreshQueryService specRefreshQueryService;
 
     public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
-        Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
-        List<Long> bookmarkedSpecIds = userIdOpt
-                .map(bookmarkRepository::findSpecIdsByUserId)
-                .orElseGet(ArrayList::new);
-
         if (cursor == null) {
             String cacheKey = "rankings::" + jobField.name() + "::" + limit;
             CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
@@ -67,7 +62,6 @@ public class SpecQueryService {
                             i.userId(), i.nickname(), i.profileImageUrl(), i.specId(),
                             i.score(), i.totalRank(), i.totalUsersCount(),
                             i.jobField(), i.rankByJobField(), i.usersCountByJobField(),
-                            bookmarkedSpecIds.contains(i.specId()),
                             i.commentsCount(), i.bookmarksCount()
                     ))
                     .toList();
@@ -99,7 +93,6 @@ public class SpecQueryService {
                         specJobField,
                         specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
                         specRepository.countByJobField(specJobField),
-                        bookmarkedSpecIds.contains(spec.getId()),
                         commentRepository.countBySpecId(spec.getId()),
                         bookmarkRepository.countBySpecId(spec.getId())
                 );
