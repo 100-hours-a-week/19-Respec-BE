@@ -4,7 +4,6 @@ import kakaotech.bootcamp.respec.specranking.domain.notification.dto.response.No
 import kakaotech.bootcamp.respec.specranking.domain.notification.service.NotificationService;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,8 +28,8 @@ public class NotificationController {
     }
 
     @DeleteMapping(params = "type=social")
-    public ResponseEntity<SimpleResponseDto> deleteSocialNotifications() {
+    public SimpleResponseDto deleteSocialNotifications() {
         notificationService.deleteSocialNotifications();
-        return ResponseEntity.ok(new SimpleResponseDto(true, "소셜 알림 삭제 성공"));
+        return new SimpleResponseDto(true, "소셜 알림 삭제 성공");
     }
 }
