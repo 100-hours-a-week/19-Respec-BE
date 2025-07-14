@@ -3,10 +3,12 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser.user;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.Objects;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
@@ -70,6 +72,18 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .fetchOne();
 
         return count != null ? count : 0L;
+    }
+
+    public List<Tuple> countByJobFields(List<JobField> jobFields) {
+        return queryFactory
+                .select(spec.jobField, spec.count())
+                .from(spec)
+                .where(
+                        isActive(),
+                        jobFieldInWithNullSupport(jobFields)
+                )
+                .groupBy(spec.jobField)
+                .fetch();
     }
 
     @Override
@@ -151,5 +165,17 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
 
     private BooleanExpression nicknameContains(String nickname) {
         return nickname != null && !nickname.isEmpty() ? user.nickname.contains(nickname) : null;
+    }
+
+    private BooleanExpression jobFieldInWithNullSupport(List<JobField> jobFields) {
+        BooleanExpression expr = spec.jobField.in(jobFields.stream()
+                .filter(Objects::nonNull)
+                .toList());
+
+        if (jobFields.contains(null)) {
+            expr = expr.or(spec.jobField.isNull());
+        }
+
+        return expr;
     }
 }
