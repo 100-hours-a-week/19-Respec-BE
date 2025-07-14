@@ -1,9 +1,15 @@
 package kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.service;
 
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.constant.S3Constant.S3_FILE_REMOVE_FAIL_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.constant.S3Constant.S3_UPLOAD_FAIL_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.util.FileStoreUtil.createStoreFileName;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.util.FileStoreUtil.validateExistsMultipartFile;
+
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import java.io.IOException;
-import java.util.UUID;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.exception.S3RemoveFileFailException;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.exception.S3UploadFailException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -31,7 +37,7 @@ public class ResumeS3Store implements ResumeStore {
             ObjectMetadata metadata = createS3MetaData(multipartFile);
             amazonS3Client.putObject(bucket, storeFileName, multipartFile.getInputStream(), metadata);
         } catch (IOException e) {
-            throw new IllegalArgumentException("S3 업로드 실패", e);
+            throw new S3UploadFailException(S3_UPLOAD_FAIL_MESSAGE, e);
         }
 
         return amazonS3Client.getUrl(bucket, storeFileName).toString();
@@ -42,7 +48,7 @@ public class ResumeS3Store implements ResumeStore {
         try {
             amazonS3Client.deleteObject(bucket, fileName);
         } catch (Exception e) {
-            throw new IllegalArgumentException("S3 파일 삭제 실패", e);
+            throw new S3RemoveFileFailException(S3_FILE_REMOVE_FAIL_MESSAGE, e);
         }
     }
 
@@ -51,22 +57,5 @@ public class ResumeS3Store implements ResumeStore {
         metadata.setContentLength(multipartFile.getSize());
         metadata.setContentType(multipartFile.getContentType());
         return metadata;
-    }
-
-    private String createStoreFileName(String originalFilename) {
-        String ext = extractExt(originalFilename);
-        String uuid = UUID.randomUUID().toString();
-        return uuid + "." + ext;
-    }
-
-    private String extractExt(String originalFilename) {
-        int pos = originalFilename.lastIndexOf(".");
-        return originalFilename.substring(pos + 1);
-    }
-
-    private void validateExistsMultipartFile(MultipartFile multipartFile) {
-        if (multipartFile.isEmpty()) {
-            throw new IllegalArgumentException("파일이 존재하지 않습니다.");
-        }
     }
 }

@@ -1,4 +1,6 @@
-package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.health;
+package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.health.controller;
+
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.health.constant.HealthConstant.health_RETURN_MESSAGE;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +12,6 @@ public class HealthController {
 
     @GetMapping
     public String health() {
-        return "OK";
+        return health_RETURN_MESSAGE;
     }
 }

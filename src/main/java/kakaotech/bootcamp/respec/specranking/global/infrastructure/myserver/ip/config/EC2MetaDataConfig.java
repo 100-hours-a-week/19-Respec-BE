@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.config;
+package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,6 @@ public class EC2MetaDataConfig {
     @Bean
     public WebClient ec2MetadataWebClient() {
         return WebClient.builder()
-                .baseUrl("")
                 .build();
     }
 }

@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip;
+package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
