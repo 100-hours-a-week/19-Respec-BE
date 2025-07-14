@@ -29,6 +29,7 @@ public class TestConstants {
     public static final Long DEFAULT_PARENT_COMMENT_ID = 3L;
     public static final Long REPLY_ID = 4L;
     public static final Long NON_EXISTENT_COMMENT_ID = 999L;
+    public static final Long NON_EXISTENT_PARENT_COMMENT_ID = 999L;
 
     public static final String DEFAULT_COMMENT_CONTENT = "테스트 댓글 내용";
     public static final String REPLY_CONTENT = "대댓글 내용";
