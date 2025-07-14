@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.config;
 
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.constant.KafkaConstant.CHAT_TOPIC_NAME;
+
 import java.util.HashMap;
 import java.util.Map;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.dto.ChatProduceDto;
@@ -52,7 +54,7 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic chatTopic() {
-        return TopicBuilder.name("chat")
+        return TopicBuilder.name(CHAT_TOPIC_NAME)
                 .partitions(partitions_cnt)
                 .replicas(replicas_cnt)
                 .build();

@@ -4,6 +4,7 @@ import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.reques
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostResumeResponse;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostSpecResponse;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.exception.AiServerErrorException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 @RequiredArgsConstructor
 @Slf4j
 public class SpecAnalyzeAiServer implements AiServer {
+
+    private static final String SPEC_AI_ERROR_PREFIX = "spec AI server error: ";
+    private static final String RESUME_AI_ERROR_PREFIX = "resume AI server error: ";
 
     private final WebClient aiServerWebClient;
 
@@ -37,8 +41,8 @@ public class SpecAnalyzeAiServer implements AiServer {
                 .onStatus(HttpStatusCode::isError,
                         res -> res.bodyToMono(String.class)
                                 .doOnNext(body -> log.error("spec AI {} body ▶ {}", res.statusCode(), body))
-                                .map(body -> new IllegalStateException(
-                                        "spec AI server error (" + res.statusCode() + "): " + body))
+                                .map(body -> new AiServerErrorException(
+                                        SPEC_AI_ERROR_PREFIX + res.statusCode() + ", " + body))
                 )
                 .bodyToMono(AiPostSpecResponse.class)
                 .block();
@@ -46,7 +50,6 @@ public class SpecAnalyzeAiServer implements AiServer {
 
     @Override
     public AiPostResumeResponse analyzeResume(AiPostResumeRequest aiPostResumeRequest) {
-        log.info("analyzeResume {}", aiPostResumeRequest);
         return aiServerWebClient.post()
                 .uri(resumePath)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -55,8 +58,8 @@ public class SpecAnalyzeAiServer implements AiServer {
                 .onStatus(HttpStatusCode::isError,
                         res -> res.bodyToMono(String.class)
                                 .doOnNext(body -> log.error("resume AI {} body ▶ {}", res.statusCode(), body))
-                                .map(body -> new IllegalStateException(
-                                        "resume AI server error (" + res.statusCode() + "): " + body))
+                                .map(body -> new AiServerErrorException(
+                                        RESUME_AI_ERROR_PREFIX + res.statusCode() + ", " + body))
                 )
                 .bodyToMono(AiPostResumeResponse.class)
                 .block();

@@ -66,8 +66,10 @@ public class MockAiServer implements AiServer {
 
 
     private Double adjustTotalScore(Double avgScore) {
+        final Double ADJUST_UNIT = 10.0;
+
         Random random = new Random();
-        Double adjustment = (random.nextDouble() * 10.0) - 5.0;
+        Double adjustment = (random.nextDouble() * ADJUST_UNIT) - (ADJUST_UNIT / 2.0);
         Double adjusted = avgScore + adjustment;
 
         adjusted = guaranteeBetweenLowestAndHighest(adjusted);

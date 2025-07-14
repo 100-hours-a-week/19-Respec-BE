@@ -1,8 +1,11 @@
 package kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.service;
 
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.constant.S3Constant.MOCK_FILE_BASE_URL;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.util.FileStoreUtil.createStoreFileName;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.s3.util.FileStoreUtil.validateExistsMultipartFile;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +22,7 @@ public class ResumeMemoryStore implements ResumeStore {
         String originalFilename = multipartFile.getOriginalFilename();
         String storeFileName = createStoreFileName(originalFilename);
         uploadedFiles.add(storeFileName);
-        return "mock:url:resume:example.com/" + storeFileName;
+        return MOCK_FILE_BASE_URL + "/" + storeFileName;
     }
 
     @Override
@@ -27,29 +30,7 @@ public class ResumeMemoryStore implements ResumeStore {
         uploadedFiles.remove(fileId);
     }
 
-    public boolean exists(String fileId) {
-        return uploadedFiles.contains(fileId);
-    }
-
     public int count() {
         return uploadedFiles.size();
-    }
-
-
-    private String createStoreFileName(String originalFilename) {
-        String ext = extractExt(originalFilename);
-        String uuid = UUID.randomUUID().toString();
-        return uuid + "." + ext;
-    }
-
-    private String extractExt(String originalFilename) {
-        int pos = originalFilename.lastIndexOf(".");
-        return originalFilename.substring(pos + 1);
-    }
-
-    private void validateExistsMultipartFile(MultipartFile multipartFile) {
-        if (multipartFile.isEmpty()) {
-            throw new IllegalArgumentException("파일이 존재하지 않습니다.");
-        }
     }
 }

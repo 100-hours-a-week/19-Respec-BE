@@ -1,10 +1,13 @@
-package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip;
+package kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.service;
+
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.constant.MyServerIpConstant.GET_PRIVATE_IP_FAIL_MESSAGE;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.exception.GetPrivateIpFailException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
@@ -44,7 +47,7 @@ class LocalIPService implements IPService {
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        throw new IllegalArgumentException("Could not get private ip address");
+        throw new GetPrivateIpFailException(GET_PRIVATE_IP_FAIL_MESSAGE);
     }
 
     private int getPrivatePort() {
