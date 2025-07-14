@@ -2,6 +2,8 @@ package kakaotech.bootcamp.respec.specranking.fixture;
 
 public class TestConstants {
 
+    public static final String COMMENT_API_URL = "/api/specs/{specId}/comments";
+
     public static final Long DEFAULT_USER_ID = 1L;
     public static final String DEFAULT_USER_LOGIN_ID = "testuser";
     public static final String DEFAULT_USER_NICKNAME = "테스트유저";

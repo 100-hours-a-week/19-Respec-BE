@@ -44,8 +44,6 @@ class CommentControllerTest {
     @MockitoBean
     private CommentService commentService;
 
-    private static final String COMMENT_API_URL = "/api/specs/{specId}/comments";
-
     @Nested
     @DisplayName("공통: PathVariable 유효성 검증 테스트")
     class PathVariableValidationTest {
