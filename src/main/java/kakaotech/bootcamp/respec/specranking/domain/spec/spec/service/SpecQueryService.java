@@ -1,17 +1,24 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
+
+import com.querydsl.core.Tuple;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingItem;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
@@ -81,23 +88,38 @@ public class SpecQueryService {
 
             long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
 
+            List<JobField> jobFields = new ArrayList<>();
+
+            for (Spec spec : specs) {
+                JobField jobField1 = spec.getJobField();
+                jobFields.add(jobField1);
+            }
+            ArrayList<JobField> jobFields1 = new ArrayList<>(new HashSet<>(jobFields));
+            List<Tuple> tuples = specRepository.countByJobFields(jobFields1);
+
+            Map<JobField, Long> jobFieldCountMap = tuples.stream()
+                    .collect(Collectors.toMap(
+                            tuple -> tuple.get(spec.jobField),
+                            tuple -> tuple.get(spec.count())
+                    ));
+
             List<RankingResponse.RankingItem> rankingItems = specs.stream().map(spec -> {
                 User user = spec.getUser();
                 JobField specJobField = spec.getJobField();
 
-                return new RankingResponse.RankingItem(
+                RankingItem rankingItem = new RankingItem(
                         user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
                         spec.getTotalAnalysisScore(),
                         specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
                         countUsersHavingSpec,
                         specJobField,
                         specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
-                        specRepository.countByJobField(specJobField),
+                        jobFieldCountMap.getOrDefault(specJobField, 0L),
                         commentRepository.countBySpecId(spec.getId()),
                         bookmarkRepository.countBySpecId(spec.getId())
                 );
+                return rankingItem;
             }).toList();
-
             return RankingResponse.success(rankingItems, hasNext, nextCursor);
         }
     }

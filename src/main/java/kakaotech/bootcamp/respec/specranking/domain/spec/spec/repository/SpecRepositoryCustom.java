@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository;
 
+import com.querydsl.core.Tuple;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
@@ -15,4 +16,6 @@ public interface SpecRepositoryCustom {
     Long findAbsoluteRankByJobField(JobField jobField, Long specId);
 
     Double findAverageScoreByJobField(JobField jobField);
+
+    List<Tuple> countByJobFields(List<JobField> jobFields);
 }
