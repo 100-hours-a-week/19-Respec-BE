@@ -13,7 +13,7 @@ import kakaotech.bootcamp.respec.specranking.domain.chat.chat.adapter.out.dto.Ch
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.SocketChatSendRequest;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.manager.WebSocketSessionManager;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.dto.ChatProduceDto;
-import kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.IPService;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.service.IPService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
