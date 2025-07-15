@@ -3,8 +3,9 @@ package kakaotech.bootcamp.respec.specranking.domain.chat.chat.service;
 import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.GET_CHAT_LIST_SUCCESS_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.constant.ChatParticipationConstant.PARTNER_NOT_FOUND_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.decodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
 
-import java.util.Base64;
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.response.ChatListResponse;
@@ -68,19 +69,5 @@ public class ChatQueryService {
         ChatListData data = new ChatListData(partnerId, messageDtos, hasNext, nextCursor);
 
         return new ChatListResponse(true, GET_CHAT_LIST_SUCCESS_MESSAGE, data);
-    }
-
-    private String encodeCursor(Long id) {
-        return Base64.getEncoder().encodeToString(String.valueOf(id).getBytes());
-    }
-
-    private Long decodeCursor(String cursor) {
-        if (cursor == null || cursor.isEmpty()) {
-            return Long.MAX_VALUE;
-        }
-
-        byte[] decodedBytes = Base64.getDecoder().decode(cursor);
-        String decodedString = new String(decodedBytes);
-        return Long.parseLong(decodedString);
     }
 }
