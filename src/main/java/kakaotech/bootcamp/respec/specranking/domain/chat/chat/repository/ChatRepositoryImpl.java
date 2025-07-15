@@ -2,6 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.chat.chat.repository;
 
 
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.entity.QChat.chat;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.isFirstCursor;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -62,9 +63,5 @@ public class ChatRepositoryImpl implements ChatRepositoryCustom {
                         chat.createdAt.eq(cursorChat.getCreatedAt())
                                 .and(chat.id.lt(cursorId))
                 );
-    }
-
-    private static boolean isFirstCursor(Long cursorId) {
-        return cursorId == null || cursorId == Long.MAX_VALUE;
     }
 }

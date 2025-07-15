@@ -2,6 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser.user;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.isFirstCursor;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -146,10 +147,6 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                         jobFieldEqualsWithTotalNull(jobField)
                 )
                 .fetchOne();
-    }
-
-    private static boolean isFirstCursor(Long cursorId) {
-        return cursorId == null || cursorId == Long.MAX_VALUE;
     }
 
     private BooleanExpression isActive() {

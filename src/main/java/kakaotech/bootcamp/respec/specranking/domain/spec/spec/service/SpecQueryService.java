@@ -1,11 +1,12 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.decodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
 
 import com.querydsl.core.Tuple;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -203,20 +204,6 @@ public class SpecQueryService {
         CachedMeta data = cached.data();
 
         return new Meta(data.totalUserCount(), data.averageScore());
-    }
-
-    private String encodeCursor(Long id) {
-        return Base64.getEncoder().encodeToString(String.valueOf(id).getBytes());
-    }
-
-    private Long decodeCursor(String cursor) {
-        if (cursor == null || cursor.isEmpty()) {
-            return Long.MAX_VALUE;
-        }
-
-        byte[] decodedBytes = Base64.getDecoder().decode(cursor);
-        String decodedString = new String(decodedBytes);
-        return Long.parseLong(decodedString);
     }
 
     private boolean shouldRefreshByPER(long ttl, long cacheComputeTime, double beta) {

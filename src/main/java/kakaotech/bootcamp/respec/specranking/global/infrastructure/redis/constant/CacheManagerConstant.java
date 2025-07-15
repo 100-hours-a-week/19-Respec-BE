@@ -8,4 +8,6 @@ public class CacheManagerConstant {
     public static final Long SPEC_DETAILS_CACHING_MINUTES = 3L;
     public static final Long TOP_10_RANKINGS_CACHING_SECONDS = 30L;
     public static final Long DEFAULT_CACHING_SECONDS = 30L;
+    public static final String CHAT_ENTER_USER_PREFIX = "chat:user:";
+    public static final Long CHAT_ENTER_TTL_HOURS = 24L;
 }

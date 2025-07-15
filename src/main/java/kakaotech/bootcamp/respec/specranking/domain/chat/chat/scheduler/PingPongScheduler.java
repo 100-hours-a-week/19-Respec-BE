@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.scheduler;
 
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.PING_MESSAGE;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -27,7 +29,7 @@ public class PingPongScheduler {
             WebSocketSession session = entry.getValue();
 
             try {
-                session.sendMessage(new PingMessage(ByteBuffer.wrap("ping".getBytes())));
+                session.sendMessage(new PingMessage(ByteBuffer.wrap(PING_MESSAGE.getBytes())));
             } catch (IOException | IllegalStateException e) {
                 if (session.isOpen()) {
                     session.close(CloseStatus.SESSION_NOT_RELIABLE);
