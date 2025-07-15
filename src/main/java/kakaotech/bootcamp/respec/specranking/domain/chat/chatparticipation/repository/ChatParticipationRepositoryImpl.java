@@ -26,15 +26,19 @@ public class ChatParticipationRepositoryImpl implements ChatParticipationReposit
                         chatParticipation.deletedAt.isNull()
                 )
                 .orderBy(
-                        new OrderSpecifier<>(
-                                Order.DESC,
-                                JPAExpressions
-                                        .select(chat.createdAt.max())
-                                        .from(chat)
-                                        .where(chat.chatroom.eq(chatParticipation.chatroom))
-                        ),
+                        LastMessageOrderFromChatParticipation(),
                         chatParticipation.id.desc()
                 )
                 .fetch();
+    }
+
+    private OrderSpecifier<?> LastMessageOrderFromChatParticipation() {
+        return new OrderSpecifier<>(
+                Order.DESC,
+                JPAExpressions
+                        .select(chat.createdAt.max())
+                        .from(chat)
+                        .where(chat.chatroom.eq(chatParticipation.chatroom))
+        );
     }
 }

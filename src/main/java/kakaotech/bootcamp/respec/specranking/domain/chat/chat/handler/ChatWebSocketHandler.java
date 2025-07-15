@@ -1,6 +1,13 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.handler;
 
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.INVAILD_TYPE_SESSION_ERROR_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.JSON_PARSING_ERROR_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.SESSION_USER_ID_KEY;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.VALIDATION_FAILED_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.common.type.ChatStatus.SENT;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.constant.KafkaConstant.CHAT_TOPIC_NAME;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.CHAT_ENTER_TTL_HOURS;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.CHAT_ENTER_USER_PREFIX;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,10 +47,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String privateAddress = ipService.loadEC2PrivateAddress();
 
-        Long userId = (Long) session.getAttributes().get("userId");
+        Long userId = (Long) session.getAttributes().get(SESSION_USER_ID_KEY);
 
         ChatSessionRedisValue chatSessionRedisValue = new ChatSessionRedisValue(privateAddress, userId);
-        redisTemplate.opsForValue().set("chat:user:" + userId, chatSessionRedisValue, Duration.ofHours(24));
+        redisTemplate.opsForValue()
+                .set(CHAT_ENTER_USER_PREFIX + userId, chatSessionRedisValue, Duration.ofHours(CHAT_ENTER_TTL_HOURS));
         webSocketSessionManager.addSession(userId, session);
         log.info("userId{}가 초기 세션 연결에 성공했습니다.", userId);
     }
@@ -54,7 +62,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         SocketChatSendRequest incomingMessage = parseJsonMessage(payload);
         if (incomingMessage == null) {
-            session.sendMessage(new TextMessage("Error: json parsing error."));
+            session.sendMessage(new TextMessage(JSON_PARSING_ERROR_MESSAGE));
             log.error("메시지의 json parsing이 실패했습니다.");
             return;
         }
@@ -68,7 +76,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         Long senderId = validateExistsUser(session);
         if (senderId == null) {
-            session.sendMessage(new TextMessage("Error: Invalid type session."));
+            session.sendMessage(new TextMessage(INVAILD_TYPE_SESSION_ERROR_MESSAGE));
             log.error("세션의 타입이 유효하지 않습니다.");
             return;
         }
@@ -78,9 +86,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        Long userId = (Long) session.getAttributes().get("userId");
+        Long userId = (Long) session.getAttributes().get(SESSION_USER_ID_KEY);
         webSocketSessionManager.removeSession(userId);
-        redisTemplate.delete("chat:user:" + userId);
+        redisTemplate.delete(CHAT_ENTER_USER_PREFIX + userId);
         log.info("userId{}의 세션 연결이 종료되었습니다.", userId);
     }
 
@@ -104,7 +112,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Set<ConstraintViolation<SocketChatSendRequest>> violations = validator.validate(request);
 
         if (!violations.isEmpty()) {
-            StringBuilder sb = new StringBuilder("Validation failed: ");
+            StringBuilder sb = new StringBuilder(VALIDATION_FAILED_PREFIX);
             for (ConstraintViolation<SocketChatSendRequest> violation : violations) {
                 sb.append(violation.getPropertyPath()).append(" ").append(violation.getMessage()).append("; ");
             }
@@ -115,7 +123,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     private Long validateExistsUser(WebSocketSession session) {
-        Object senderIdObj = session.getAttributes().get("userId");
+        Object senderIdObj = session.getAttributes().get(SESSION_USER_ID_KEY);
 
         if (!(senderIdObj instanceof Long)) {
             log.warn("invalid type userId in WebSocket session");
@@ -133,7 +141,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChatProduceDto chatProduceDto = new ChatProduceDto(idempotentKey, senderId, receiverId, content, SENT);
         String key = generateKeyForSequence(senderId, receiverId);
 
-        chatMessageKafkaTemplate.send("chat", key, chatProduceDto).whenComplete((result, ex) -> {
+        chatMessageKafkaTemplate.send(CHAT_TOPIC_NAME, key, chatProduceDto).whenComplete((result, ex) -> {
             if (ex != null) {
                 log.error("Kafka SEND FAILED topic=chat key={} payload={} error={}",
                         key, chatProduceDto, ex.getMessage(), ex);

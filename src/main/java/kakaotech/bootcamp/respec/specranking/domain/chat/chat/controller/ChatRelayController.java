@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.controller;
 
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.RELAY_REQUEST_SUCCESS_MESSAGE;
+
 import java.io.IOException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.ChatRelayRequestDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.service.ChatService;
@@ -26,6 +28,6 @@ public class ChatRelayController {
         log.info("메인 서버에 {}가 {}에게 보내는 메시지 요청이 들어왔습니다.", senderId, receiverId);
         chatService.sendMessageToUser(chatRelayDto);
         log.info("메인 서버에 {}가 {}에게 보내는 메시지 요청이 성공했습니다.", senderId, receiverId);
-        return new SimpleResponseDto(true, "relay 요청 성공");
+        return new SimpleResponseDto(true, RELAY_REQUEST_SUCCESS_MESSAGE);
     }
 }

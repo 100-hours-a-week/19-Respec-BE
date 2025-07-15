@@ -13,7 +13,7 @@ public record ChatParticipationListResponse(
             List<ChatRoomDto> chatRooms
     ) {
         public ChatParticipationListData {
-            chatRooms = List.copyOf(chatRooms); // 불변 방어 복사
+            chatRooms = List.copyOf(chatRooms);
         }
     }
 
