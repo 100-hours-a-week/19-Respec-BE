@@ -20,7 +20,7 @@ public class CustomAuthorizationRequestRepository implements AuthorizationReques
 
     private static final String STATE_PARAMETER = "state";
     private static final String OAUTH2_AUTHORIZATION_REQUEST_PREFIX = "oauth2:authorization:request:";
-    private static final Duration OAUTH2_AUTHORIZATION_REQUEST_EXPIRATION = Duration.ofSeconds(30);
+    private static final Duration OAUTH2_AUTHORIZATION_REQUEST_EXPIRATION = Duration.ofSeconds(1);
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest httpServletRequest) {
