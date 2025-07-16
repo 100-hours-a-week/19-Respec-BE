@@ -63,8 +63,6 @@ public class ChatParticipationService {
                 })
                 .toList();
 
-        ChatParticipationListData data = new ChatParticipationListData(chatroomDtos);
-
-        return data;
+        return new ChatParticipationListData(chatroomDtos);
     }
 }
