@@ -2,7 +2,6 @@ package kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.serv
 
 import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.constant.ChatParticipationConstant.CHAT_NOT_FOUND_MESSAGE;
-import static kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.constant.ChatParticipationConstant.GET_CHAT_PARTICIPATIONS_SUCCESS_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.constant.ChatParticipationConstant.PARTNER_NOT_FOUND_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.user.constants.UserConstant.USER_NOT_FOUND_MESSAGE;
 
@@ -10,7 +9,6 @@ import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.entity.Chat;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.repository.ChatRepository;
-import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.dto.response.ChatParticipationListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.dto.response.ChatParticipationListResponse.ChatParticipationListData;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.dto.response.ChatParticipationListResponse.ChatRoomDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.entity.ChatParticipation;
@@ -34,7 +32,7 @@ public class ChatParticipationService {
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
 
-    public ChatParticipationListResponse getChatParticipationList() {
+    public ChatParticipationListData getChatParticipationList() {
         Long loginUserId = UserUtils.getCurrentUserId()
                 .orElseThrow(() -> new LoginRequiredException(LOGIN_REQUIRED_MESSAGE));
 
@@ -65,8 +63,6 @@ public class ChatParticipationService {
                 })
                 .toList();
 
-        ChatParticipationListData data = new ChatParticipationListData(chatroomDtos);
-
-        return new ChatParticipationListResponse(true, GET_CHAT_PARTICIPATIONS_SUCCESS_MESSAGE, data);
+        return new ChatParticipationListData(chatroomDtos);
     }
 }
