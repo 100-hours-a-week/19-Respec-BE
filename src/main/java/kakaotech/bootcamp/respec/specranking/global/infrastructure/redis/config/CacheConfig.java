@@ -2,11 +2,7 @@ package kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.config
 
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.DEFAULT_CACHING_SECONDS;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_DETAILS_CACHING_MINUTES;
-import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_DETAILS_KEY;
-import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_CACHING_SECONDS;
-import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_KEY;
-import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_CACHING_SECONDS;
-import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_KEY;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_DETAILS_NAME;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -31,12 +27,8 @@ public class CacheConfig {
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        cacheConfigurations.put(SPEC_META_DATA_KEY,
-                createCacheConfig(Duration.ofSeconds(SPEC_META_DATA_CACHING_SECONDS)));
-        cacheConfigurations.put(SPEC_DETAILS_KEY,
+        cacheConfigurations.put(SPEC_DETAILS_NAME,
                 createCacheConfigWithNullValues(Duration.ofMinutes(SPEC_DETAILS_CACHING_MINUTES)));
-        cacheConfigurations.put(TOP_10_RANKINGS_KEY,
-                createCacheConfig(Duration.ofSeconds(TOP_10_RANKINGS_CACHING_SECONDS)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(createCacheConfig(Duration.ofMinutes(DEFAULT_CACHING_SECONDS)))

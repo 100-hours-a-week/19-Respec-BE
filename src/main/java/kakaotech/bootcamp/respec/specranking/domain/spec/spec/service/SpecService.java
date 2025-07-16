@@ -1,12 +1,22 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
+import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_DUPLICATE_TRY_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_NOT_ABLE_UPDATE_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_UPDATE_FORBIDDEN_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.user.constants.UserConstant.USER_NOT_FOUND_MESSAGE;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.mapping.AiDtoMapping;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.request.PostSpecRequest.EducationDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.exception.SpecDuplicateTryException;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.exception.SpecNotAbleUpdateException;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.exception.SpecUpdateForbiddenException;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.activitynetworking.entity.ActivityNetworking;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.activitynetworking.repository.ActivityNetworkingRepository;
@@ -20,6 +30,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.languageskill.
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.workexperience.entity.WorkExperience;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.workexperience.repository.WorkExperienceRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
+import kakaotech.bootcamp.respec.specranking.domain.user.exception.UserNotFoundException;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.Degree;
@@ -62,10 +73,10 @@ public class SpecService {
             }
 
             Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
-            Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+            Long userId = userIdOpt.orElseThrow(() -> new LoginRequiredException(LOGIN_REQUIRED_MESSAGE));
 
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
+                    .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE + " ID: " + userId));
 
             validateMultipleSpec(userId);
 
@@ -92,16 +103,16 @@ public class SpecService {
             }
 
             Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
-            Long userId = userIdOpt.orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+            Long userId = userIdOpt.orElseThrow(() -> new LoginRequiredException(LOGIN_REQUIRED_MESSAGE));
 
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. ID: " + userId));
+                    .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE + " ID: " + userId));
 
             Spec spec = specRepository.findByIdAndStatus(specId, SpecStatus.ACTIVE)
-                    .orElseThrow(() -> new IllegalArgumentException("수정할 수 없는 스펙입니다. ID: " + specId));
+                    .orElseThrow(() -> new SpecNotAbleUpdateException(SPEC_NOT_ABLE_UPDATE_MESSAGE + " ID: " + specId));
 
             if (!spec.getUser().equals(user)) {
-                throw new IllegalArgumentException("해당 스펙에 대한 수정 권한이 없습니다.");
+                throw new SpecUpdateForbiddenException(SPEC_UPDATE_FORBIDDEN_MESSAGE);
             }
 
             AiPostSpecRequest aiPostSpecRequest = AiDtoMapping.convertToSpecAnalysisRequest(request,
@@ -122,7 +133,7 @@ public class SpecService {
     private void validateMultipleSpec(Long userId) {
         Optional<Spec> existingActiveSpec = specRepository.findByUserIdAndStatus(userId, SpecStatus.ACTIVE);
         if (existingActiveSpec.isPresent()) {
-            throw new IllegalStateException("이미 등록된 스펙이 있습니다. 스펙을 수정하려면 수정 API를 사용해주세요.");
+            throw new SpecDuplicateTryException(SPEC_DUPLICATE_TRY_MESSAGE);
         }
     }
 
@@ -170,10 +181,8 @@ public class SpecService {
                 Position position = workExp.position();
 
                 WorkExperience workExperience = new WorkExperience(
-                        spec,
-                        workExp.companyName(),
-                        position,
-                        workExp.period()
+                        spec, workExp.companyName(),
+                        position, workExp.period()
                 );
 
                 workExperienceRepository.save(workExperience);
@@ -185,8 +194,7 @@ public class SpecService {
         if (isNotEmpty(request.certifications())) {
             for (PostSpecRequest.Certification certificationDto : request.certifications()) {
                 Certification certification = new Certification(
-                        spec,
-                        certificationDto.name()
+                        spec, certificationDto.name()
                 );
                 certificationRepository.save(certification);
             }

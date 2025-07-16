@@ -1,6 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.resume.service;
 
+import static kakaotech.bootcamp.respec.specranking.domain.spec.resume.contant.ResumeConstant.RESUME_NOT_FOUND_ERROR_MESSAGE;
+
 import kakaotech.bootcamp.respec.specranking.domain.spec.resume.dto.response.WebPostResumeResponse.ResumeAnalysisResult;
+import kakaotech.bootcamp.respec.specranking.domain.spec.resume.exception.ResumeNotFoundException;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.mapping.AiDtoMapping;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.request.AiPostResumeRequest;
 import kakaotech.bootcamp.respec.specranking.global.infrastructure.ai.dto.response.AiPostResumeResponse;
@@ -21,7 +24,7 @@ public class ResumeService {
 
     public ResumeAnalysisResult analysisResume(MultipartFile resume) {
         if (!existsFile(resume)) {
-            throw new IllegalArgumentException("resume not found");
+            throw new ResumeNotFoundException(RESUME_NOT_FOUND_ERROR_MESSAGE);
         }
         log.info("Enter analysis resume and isExists");
         String resumeUrl = resumeStore.upload(resume);

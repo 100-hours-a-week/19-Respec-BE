@@ -8,15 +8,6 @@ public record SearchResponse(
         String message,
         SearchData data
 ) {
-    public static SearchResponse success(String keyword, List<SearchResult> results, Boolean hasNext,
-                                         String nextCursor) {
-        return new SearchResponse(
-                true,
-                "검색 목록 조회 성공",
-                new SearchData(keyword, List.copyOf(results), hasNext, nextCursor)
-        );
-    }
-
     public record SearchData(
             String keyword,
             List<SearchResult> results,
@@ -24,22 +15,16 @@ public record SearchResponse(
             String nextCursor
     ) {
         public SearchData {
-            results = List.copyOf(results); // 방어적 복사
+            results = List.copyOf(results);
         }
     }
 
     public record SearchResult(
-            Long userId,
-            String nickname,
-            String profileImageUrl,
-            Long specId,
-            Double score,
-            Long totalRank,
-            Long totalUsersCount,
-            JobField jobField,
-            Long rankByJobField,
-            Long totalUsersCountByJobField,
-            Boolean isBookmarked,
+            Long userId, String nickname,
+            String profileImageUrl, Long specId,
+            Double score, Long totalRank,
+            Long totalUsersCount, JobField jobField,
+            Long rankByJobField, Long totalUsersCountByJobField,
             Long commentsCount,
             Long bookmarksCount
     ) {
