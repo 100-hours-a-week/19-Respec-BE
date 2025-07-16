@@ -1,6 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh;
 
-import java.util.Base64;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
+
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
@@ -93,9 +94,5 @@ public class SpecRefreshQueryService {
 
         long endTime = System.currentTimeMillis();
         return new CachedRankingResponse(items, hasNext, nextCursor, (endTime - startTime));
-    }
-
-    private String encodeCursor(Long id) {
-        return Base64.getEncoder().encodeToString(String.valueOf(id).getBytes());
     }
 }

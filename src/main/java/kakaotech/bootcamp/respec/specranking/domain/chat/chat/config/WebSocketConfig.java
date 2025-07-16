@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.config;
 
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.WEB_SOCKET_BASE_URL;
+
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.handler.ChatWebSocketHandler;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.interceptor.WebsocketHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(chatWebSocketHandler, "/ws/chat")
+        registry.addHandler(chatWebSocketHandler, WEB_SOCKET_BASE_URL)
                 .addInterceptors(handshakeInterceptor)
                 .setAllowedOrigins(frontendBaseUrl);
     }

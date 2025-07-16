@@ -14,7 +14,6 @@ public record ChatListResponse(
             String nextCursor
     ) {
         public ChatListData {
-            // 불변 방어 복사
             messages = List.copyOf(messages);
         }
     }

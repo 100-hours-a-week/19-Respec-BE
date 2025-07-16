@@ -1,14 +1,20 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.service;
 
-import java.util.Base64;
+import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.GET_CHAT_LIST_SUCCESS_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.constant.ChatParticipationConstant.PARTNER_NOT_FOUND_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.decodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
+
 import java.util.List;
-import java.util.stream.Collectors;
+import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.response.ChatListResponse;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.response.ChatListResponse.ChatListData;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.response.ChatListResponse.ChatMessageDto;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.entity.Chat;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chat.repository.ChatRepository;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.entity.ChatParticipation;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.exception.ChatPartnerNotFoundException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.repository.ChatParticipationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +33,7 @@ public class ChatQueryService {
         Long cursorId = decodeCursor(cursor);
 
         Long loginUserId = UserUtils.getCurrentUserId()
-                .orElseThrow(() -> new IllegalArgumentException("로그인이 필요한 서비스입니다."));
+                .orElseThrow(() -> new LoginRequiredException(LOGIN_REQUIRED_MESSAGE));
 
         List<ChatParticipation> participations =
                 chatParticipationRepository.findByChatroomId(chatroomId);
@@ -36,7 +42,7 @@ public class ChatQueryService {
                 .map(cp -> cp.getUser().getId())
                 .filter(id -> !id.equals(loginUserId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅에 참여한 상대 사용자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ChatPartnerNotFoundException(PARTNER_NOT_FOUND_MESSAGE));
 
         List<Chat> chats = chatRepository
                 .findLatestChatsWithCursor(chatroomId, cursorId, limit + 1);
@@ -58,24 +64,10 @@ public class ChatQueryService {
                         chat.getContent(),
                         chat.getCreatedAt().toString()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         ChatListData data = new ChatListData(partnerId, messageDtos, hasNext, nextCursor);
 
-        return new ChatListResponse(true, "채팅 목록 조회 성공", data);
-    }
-
-    private String encodeCursor(Long id) {
-        return Base64.getEncoder().encodeToString(String.valueOf(id).getBytes());
-    }
-
-    private Long decodeCursor(String cursor) {
-        if (cursor == null || cursor.isEmpty()) {
-            return Long.MAX_VALUE;
-        }
-
-        byte[] decodedBytes = Base64.getDecoder().decode(cursor);
-        String decodedString = new String(decodedBytes);
-        return Long.parseLong(decodedString);
+        return new ChatListResponse(true, GET_CHAT_LIST_SUCCESS_MESSAGE, data);
     }
 }

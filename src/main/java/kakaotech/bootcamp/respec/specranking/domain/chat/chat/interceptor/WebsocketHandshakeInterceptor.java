@@ -1,5 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.chat.chat.interceptor;
 
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.SESSION_USER_ID_KEY;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.TOKEN_KEY;
+
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
@@ -31,7 +34,7 @@ public class WebsocketHandshakeInterceptor implements HandshakeInterceptor {
         }
 
         HttpServletRequest httpServletRequest = servletRequest.getServletRequest();
-        String token = httpServletRequest.getParameter("token");
+        String token = httpServletRequest.getParameter(TOKEN_KEY);
 
         if (token == null || token.isBlank()) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -49,7 +52,7 @@ public class WebsocketHandshakeInterceptor implements HandshakeInterceptor {
             return false;
         }
 
-        attributes.put("userId", userId);
+        attributes.put(SESSION_USER_ID_KEY, userId);
         return true;
     }
 
