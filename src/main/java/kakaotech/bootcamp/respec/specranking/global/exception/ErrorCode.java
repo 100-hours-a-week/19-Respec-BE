@@ -6,6 +6,11 @@ public enum ErrorCode {
 
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜로그인 업체입니다."),
+    INVALID_LOGIN_ID_FORMAT(HttpStatus.BAD_REQUEST, "LoginId 형식이 올바르지 않습니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레시 토큰이 없습니다."),
+    REFRESH_TOKEN_IS_EXPIRED(HttpStatus.BAD_REQUEST, "리프레시 토큰이 만료되었습니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 리프레시 토큰입니다."),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다."),
@@ -13,8 +18,6 @@ public enum ErrorCode {
     NO_USER_DATA_TO_UPDATE(HttpStatus.BAD_REQUEST, "수정할 회원 정보가 없습니다."),
     INVALID_FILE_FORMAT(HttpStatus.BAD_REQUEST, "PNG 또는 JPG 형식의 이미지만 업로드 가능합니다."),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기는 10MB 이하여야 합니다."),
-    UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜로그인 업체입니다."),
-    INVALID_LOGIN_ID_FORMAT(HttpStatus.BAD_REQUEST, "LoginId 형식이 올바르지 않습니다."),
 
     SPEC_NOT_FOUND(HttpStatus.NOT_FOUND, "스펙을 찾을 수 없습니다."),
     SPEC_ACCESS_DENIED(HttpStatus.FORBIDDEN, "스펙에 접근할 권한이 없습니다."),

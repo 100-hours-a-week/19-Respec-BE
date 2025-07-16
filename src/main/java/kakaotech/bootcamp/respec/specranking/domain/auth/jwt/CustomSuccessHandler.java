@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequest;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.CustomOAuth2User;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
@@ -51,9 +51,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             // 기존 사용자 - JWT 발급
             User user = optUser.get();
-            AuthTokenRequestDto requestDto = new AuthTokenRequestDto(user.getId(), user.getLoginId());
-            AuthTokenResponseDto responseDto = authService.issueToken(requestDto, false);
-            authService.convertTokenToResponse(responseDto, response);
+            AuthTokenRequest requestDto = new AuthTokenRequest(user.getId(), user.getLoginId());
+            AuthTokenResponse responseDto = authService.issueToken(requestDto, false);
+            authService.setTokensInResponse(responseDto, response);
 
             cookieUtils.addCookie(response, ACCESS, responseDto.accessToken(), (int) (ACCESS_EXP / 1000));
         } else {

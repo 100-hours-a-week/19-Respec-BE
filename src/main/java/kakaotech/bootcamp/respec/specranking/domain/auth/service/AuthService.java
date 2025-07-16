@@ -5,15 +5,18 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.RefreshTokenCreateDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequest;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.RefreshToken;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.RefreshTokenRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
+import kakaotech.bootcamp.respec.specranking.global.common.cookie.CookieConstants;
+import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
+import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -32,78 +36,89 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public static final String BEARER_PREFIX = "Bearer ";
-    public static final String ACCESS = "access";
-    public static final String REFRESH = "refresh";
 
-    private static final Long ACCESS_EXP = 1000L * 60 * 10; // 10분
-    private static final Long REFRESH_EXP = 1000L * 60 * 60 * 24 * 7; // 7일
+    public AuthTokenResponse issueToken(AuthTokenRequest request, boolean isReissue) {
+        log.info("토큰 발급 시작 - userId: {}, loginId: {}, isReissue: {}", request.userId(), request.loginId(), isReissue);
 
-    public AuthTokenResponseDto issueToken(AuthTokenRequestDto dto, boolean isReissue) {
-        String access = jwtUtil.createJwts(ACCESS, dto.getId(), dto.getLoginId(), ACCESS_EXP);
-        String refresh = jwtUtil.createJwts(REFRESH, dto.getId(), dto.getLoginId(), REFRESH_EXP);
+        String accessToken = jwtUtil.createJwts(CookieConstants.ACCESS_TOKEN, request.userId(), request.loginId(), CookieConstants.ACCESS_TOKEN_EXP);
+        String refreshToken = jwtUtil.createJwts(CookieConstants.REFRESH_TOKEN, request.userId(), request.loginId(), CookieConstants.REFRESH_TOKEN_EXP);
 
-        User user = userRepository.findById(dto.getId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        saveRefreshToken(user, refresh, isReissue);
+        User user = userRepository.findById(request.userId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        saveRefreshTokenToDatabase(user, refreshToken, isReissue);
 
-        return AuthTokenResponseDto.success(access, refresh);
+        log.info("토큰 발급 완료 - userId: {}", request.userId());
+        return AuthTokenResponse.of(accessToken, refreshToken);
     }
 
     public void reissueTokens(HttpServletRequest request, HttpServletResponse response) {
-        String refresh = cookieUtils.getCookie(request, REFRESH)
-                .map(Cookie::getValue)
-                .orElseThrow(() -> new IllegalArgumentException("refresh 토큰이 없습니다."));
+        log.info("토큰 재발급 시작");
 
-        validateExpired(refresh);
-        validateCategory(refresh);
-        validateRefreshExists(refresh);
+        String refreshToken = extractRefreshTokenFromCookie(request);
 
-        Long userId = jwtUtil.getUserId(refresh);
-        String loginId = jwtUtil.getLoginId(refresh);
+        validateTokenNotExpired(refreshToken);
+        validateTokenCategory(refreshToken);
+        validateRefreshTokenExists(refreshToken);
 
-        AuthTokenResponseDto dto = issueToken(new AuthTokenRequestDto(userId, loginId), true);
-        convertTokenToResponse(dto, response);
+        Long userId = jwtUtil.getUserId(refreshToken);
+        String loginId = jwtUtil.getLoginId(refreshToken);
+
+        AuthTokenRequest tokenRequest = new AuthTokenRequest(userId, loginId);
+        AuthTokenResponse tokenResponse = issueToken(tokenRequest, true);
+
+        setTokensInResponse(tokenResponse, response);
+        log.info("토큰 재발급 완료 - userId: {}", userId);
     }
 
-    public void convertTokenToResponse(AuthTokenResponseDto dto, HttpServletResponse response) {
-        response.setHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + dto.accessToken());
-        cookieUtils.addCookie(response, REFRESH, dto.refreshToken(), (int) (REFRESH_EXP / 1000));
+    public void setTokensInResponse(AuthTokenResponse tokenResponse, HttpServletResponse response) {
+        response.setHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + tokenResponse.accessToken());
+        cookieUtils.addCookie(response, CookieConstants.REFRESH_TOKEN,
+                tokenResponse.refreshToken(), (int) (CookieConstants.REFRESH_TOKEN_EXP / 1000));
     }
 
-    public void deleteByExpirationBefore(LocalDateTime currentTime) {
-        refreshTokenRepository.deleteAllByExpirationBefore(currentTime);
+    public void deleteExpiredRefreshToken(LocalDateTime currentTime) {
+        log.info("만료된 리프레시 토큰 삭제 시작 - currentTime: {}", currentTime);
+        int deletedCount = refreshTokenRepository.deleteAllByExpirationBefore(currentTime);
+        log.info("만료된 리프레시 토큰 삭제 완료 - 삭제된 개수: {}", deletedCount);
     }
 
-    private void saveRefreshToken(User user, String refresh, boolean isReissue) {
+    private void saveRefreshTokenToDatabase(User user, String refreshToken, boolean isReissue) {
         if (isReissue) {
             refreshTokenRepository.deleteAllByUser(user);
+            log.info("기존 리프레시 토큰 삭제 완료 - userId: {}", user.getId());
         }
 
-        LocalDateTime expiration = LocalDateTime.now().plus(Duration.ofMillis(REFRESH_EXP));
-        RefreshTokenCreateDto dto = new RefreshTokenCreateDto(user, refresh, expiration);
-        RefreshToken refreshToken = new RefreshToken(dto.getUser(), dto.getValue(), dto.getExpiration());
-        refreshTokenRepository.save(refreshToken);
+        LocalDateTime expiration = LocalDateTime.now().plus(Duration.ofMillis(CookieConstants.REFRESH_TOKEN_EXP));
+        RefreshToken refreshTokenEntity = new RefreshToken(user, refreshToken, expiration);
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        log.info("리프레시 토큰 저장 완료 - userId: {}", user.getId());
     }
 
-    private void validateExpired(String refresh) {
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        return cookieUtils.getCookie(request, CookieConstants.REFRESH_TOKEN)
+                .map(Cookie::getValue)
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+    }
+
+    private void validateTokenNotExpired(String refreshToken) {
         try {
-            jwtUtil.isExpired(refresh);
+            jwtUtil.isExpired(refreshToken);
         } catch (ExpiredJwtException e) {
-            throw new IllegalArgumentException("refresh 토큰이 만료되었습니다.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_IS_EXPIRED);
         }
     }
 
-    private void validateCategory(String refresh) {
-        String category = jwtUtil.getCategory(refresh);
-        if (!category.equals(REFRESH)) {
-            throw new IllegalArgumentException("유효하지 않은 refresh 토큰입니다.");
+    private void validateTokenCategory(String refreshToken) {
+        String tokenCategory = jwtUtil.getCategory(refreshToken);
+        if (!CookieConstants.REFRESH_TOKEN.equals(tokenCategory)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
 
-    private void validateRefreshExists(String refresh) {
-        Boolean isExist = refreshTokenRepository.existsByValue(refresh);
-        if (!isExist) {
-            throw new IllegalArgumentException("refresh 토큰이 DB에 존재하지 않습니다.");
+    private void validateRefreshTokenExists(String refreshToken) {
+        Boolean exists = refreshTokenRepository.existsByValue(refreshToken);
+        if (!exists) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
     }
 }

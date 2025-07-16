@@ -5,7 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -56,7 +56,7 @@ public class JWTFilter extends OncePerRequestFilter {
         Long userId = jwtUtil.getUserId(accessToken);
         String loginId = jwtUtil.getLoginId(accessToken);
 
-        AuthenticatedUserDto authUser = new AuthenticatedUserDto();
+        AuthenticatedUser authUser = new AuthenticatedUser();
         authUser.setId(userId);
         authUser.setLoginId(loginId);
 
