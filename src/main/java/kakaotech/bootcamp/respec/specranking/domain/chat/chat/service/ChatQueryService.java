@@ -3,8 +3,8 @@ package kakaotech.bootcamp.respec.specranking.domain.chat.chat.service;
 import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.GET_CHAT_LIST_SUCCESS_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.constant.ChatParticipationConstant.PARTNER_NOT_FOUND_MESSAGE;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.decodeCursor;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.decodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
 
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
@@ -17,6 +17,7 @@ import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.entit
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.exception.ChatPartnerNotFoundException;
 import kakaotech.bootcamp.respec.specranking.domain.chat.chatparticipation.repository.ChatParticipationRepository;
 import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
+import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,15 +48,10 @@ public class ChatQueryService {
         List<Chat> chats = chatRepository
                 .findLatestChatsWithCursor(chatroomId, cursorId, limit + 1);
 
-        boolean hasNext = chats.size() > limit;
-        if (hasNext) {
-            chats = chats.subList(0, limit);
-        }
-
-        String nextCursor = null;
-        if (hasNext) {
-            nextCursor = encodeCursor(chats.getLast().getId());
-        }
+        CursorPagination<Chat> cursorPagination = processCursorPagination(chats, limit, Chat::getId);
+        boolean hasNext = cursorPagination.hasNext();
+        chats = cursorPagination.items();
+        String nextCursor = cursorPagination.nextCursor();
 
         List<ChatMessageDto> messageDtos = chats.stream()
                 .map(chat -> new ChatMessageDto(
