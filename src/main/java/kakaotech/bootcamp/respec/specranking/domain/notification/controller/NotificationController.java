@@ -1,6 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.notification.controller;
 
+import static kakaotech.bootcamp.respec.specranking.domain.notification.constant.NotificationConstant.GET_NOTIFICATION_SUCCESS_MESSAGE;
+
 import kakaotech.bootcamp.respec.specranking.domain.notification.dto.response.NotificationStatusResponse;
+import kakaotech.bootcamp.respec.specranking.domain.notification.dto.response.NotificationStatusResponse.NotificationStatusData;
 import kakaotech.bootcamp.respec.specranking.domain.notification.service.NotificationService;
 import kakaotech.bootcamp.respec.specranking.global.dto.SimpleResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +21,8 @@ public class NotificationController {
 
     @GetMapping(params = "type=footer")
     public NotificationStatusResponse getNotificationStatus() {
-        return notificationService.getFooterNotificationStatus();
+        NotificationStatusData footerNotificationStatus = notificationService.getFooterNotificationStatus();
+        return new NotificationStatusResponse(true, GET_NOTIFICATION_SUCCESS_MESSAGE, footerNotificationStatus);
     }
 
     @DeleteMapping(params = "type=chat")
