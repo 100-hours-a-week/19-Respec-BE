@@ -12,16 +12,16 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.ScoreCategoryDet
 public record SpecDetailResponse(
         Boolean isSuccess,
         String message,
-        SpecDetailData specDetailData
+        SpecDetail specDetail
 ) {
 
-    public record SpecDetailData(
+    public record SpecDetail(
             FinalEducation finalEducation, List<EducationDetails> educationDetails,
             List<WorkExperience> workExperiences, List<Certification> certifications,
             List<LanguageSkill> languageSkills, List<Activity> activities,
             JobField jobField, Rankings rankings, String assessment
     ) {
-        public SpecDetailData {
+        public SpecDetail {
             educationDetails = List.copyOf(educationDetails);
             workExperiences = List.copyOf(workExperiences);
             certifications = List.copyOf(certifications);

@@ -3,12 +3,14 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.controller;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.META_GET_SUCCESS_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.RANKING_GET_SUCCESS_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SEARCH_LIST_GET_SUCCESS_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_DETAIL_GET_MESSAGE;
 
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse.SearchData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.SpecDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecDetailQueryService;
@@ -62,7 +64,8 @@ public class SpecQueryController {
     @GetMapping("/{specId}")
     public SpecDetailResponse getSpecDetail(@PathVariable Long specId) {
         log.info("Get Spec Detail Query for Spec ID: {}", specId);
-        return specDetailQueryService.getSpecDetail(specId);
+        SpecDetail specDetail = specDetailQueryService.getSpecDetail(specId);
+        return new SpecDetailResponse(true, SPEC_DETAIL_GET_MESSAGE, specDetail);
     }
 
 }

@@ -1,7 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
 import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
-import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_DETAIL_GET_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_NOT_FOUND_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus.ACTIVE;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_DETAILS_NAME;
@@ -14,6 +13,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecD
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.Details;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.EducationDetails;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.ScoreDetail;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.SpecDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.exception.SpecNotFoundException;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
@@ -51,7 +51,7 @@ public class SpecDetailQueryService {
     private final ActivityNetworkingRepository activityNetworkingRepository;
 
     @Cacheable(value = SPEC_DETAILS_NAME, key = "#specId")
-    public SpecDetailResponse getSpecDetail(Long specId) {
+    public SpecDetail getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
                 .orElseThrow(() -> new SpecNotFoundException(SPEC_NOT_FOUND_MESSAGE));
 
@@ -78,14 +78,14 @@ public class SpecDetailQueryService {
         List<ScoreDetail> categories = getScoreDetails(spec);
         SpecDetailResponse.Rankings rankings = new SpecDetailResponse.Rankings(details, categories);
 
-        SpecDetailResponse.SpecDetailData response = new SpecDetailResponse.SpecDetailData(
+        SpecDetail specDetail = new SpecDetail(
                 mappingEducation(education), mappingEducationDetails(education),
                 mappingWorkExperience(workExperiences), mappingCertification(certifications),
                 mappingLanguageSkill(languages), mappingActivities(activities),
                 jobField, rankings, spec.getAssessment()
         );
 
-        return new SpecDetailResponse(true, SPEC_DETAIL_GET_MESSAGE, response);
+        return specDetail;
 
     }
 
