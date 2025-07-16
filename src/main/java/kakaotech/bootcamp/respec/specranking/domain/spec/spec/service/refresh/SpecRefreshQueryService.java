@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
 
 import com.querydsl.core.Tuple;
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRep
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,15 +38,10 @@ public class SpecRefreshQueryService {
         long startTime = System.currentTimeMillis();
         List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, Long.MAX_VALUE, limit + 1);
 
-        boolean hasNext = specs.size() > limit;
-        if (hasNext) {
-            specs = specs.subList(0, limit);
-        }
-
-        String nextCursor = null;
-        if (hasNext) {
-            nextCursor = encodeCursor(specs.getLast().getId());
-        }
+        CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
+        boolean hasNext = cursorPagination.hasNext();
+        specs = cursorPagination.items();
+        String nextCursor = cursorPagination.nextCursor();
 
         long countUsersHavingSpec = userRepository.countUsersHavingSpec();
 

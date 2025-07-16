@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.chat.chat.repository;
 
 
 import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.entity.QChat.chat;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.isFirstCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.isFirstCursor;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

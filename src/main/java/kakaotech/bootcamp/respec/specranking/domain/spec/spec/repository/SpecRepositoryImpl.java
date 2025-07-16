@@ -2,7 +2,7 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser.user;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.isFirstCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.isFirstCursor;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;

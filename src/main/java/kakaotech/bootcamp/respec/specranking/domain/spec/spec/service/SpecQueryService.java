@@ -1,8 +1,9 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.decodeCursor;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.decodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.encodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_RANKINGS_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_CACHING_MINUTES;
@@ -33,6 +34,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.Sp
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
+import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -127,6 +129,77 @@ public class SpecQueryService {
 
             return new RankingData(rankingItems, hasNext, nextCursor);
         }
+<<<<<<< Updated upstream
+=======
+
+        if (cached == null) {
+            cached = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
+            redisTemplate.opsForValue().set(cacheKey, cached, Duration.ofMinutes(TOP_10_RANKINGS_CACHING_MINUTES));
+        }
+
+        List<RankingItem> items = cached.items().stream()
+                .map(i -> new RankingItem(
+                        i.userId(), i.nickname(), i.profileImageUrl(), i.specId(),
+                        i.score(), i.totalRank(), i.totalUsersCount(),
+                        i.jobField(), i.rankByJobField(), i.usersCountByJobField(),
+                        i.commentsCount(), i.bookmarksCount()
+                ))
+                .toList();
+
+        return new RankingData(items, cached.hasNext(), cached.nextCursor());
+    }
+
+    private RankingData getRankingDataForBasic(JobField jobField, String cursor, int limit) {
+        Long cursorId = decodeCursor(cursor);
+        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
+
+        CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
+        boolean hasNext = cursorPagination.hasNext();
+        specs = cursorPagination.items();
+        String nextCursor = cursorPagination.nextCursor();
+
+        long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
+
+        List<JobField> jobFields = new ArrayList<>();
+
+        for (Spec spec : specs) {
+            JobField jobField1 = spec.getJobField();
+            jobFields.add(jobField1);
+        }
+
+        Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
+                jobFields);
+
+        List<RankingItem> rankingItems = specs.stream().map(spec -> {
+            User user = spec.getUser();
+            JobField specJobField = spec.getJobField();
+
+            RankingItem rankingItem = new RankingItem(
+                    user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
+                    spec.getTotalAnalysisScore(),
+                    specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
+                    countUsersHavingSpec, specJobField,
+                    specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
+                    jobFieldCountMap.getOrDefault(specJobField, 0L),
+                    commentRepository.countBySpecId(spec.getId()),
+                    bookmarkRepository.countBySpecId(spec.getId())
+            );
+            return rankingItem;
+        }).toList();
+
+        return new RankingData(rankingItems, hasNext, nextCursor);
+    }
+
+    private Map<JobField, Long> getJobFieldCountMap(List<JobField> jobFields) {
+        ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
+        List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
+
+        return tuples.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(spec.jobField),
+                        tuple -> tuple.get(spec.count())
+                ));
+>>>>>>> Stashed changes
     }
 
     public SearchData searchByNickname(String keyword, String cursor, int limit) {
