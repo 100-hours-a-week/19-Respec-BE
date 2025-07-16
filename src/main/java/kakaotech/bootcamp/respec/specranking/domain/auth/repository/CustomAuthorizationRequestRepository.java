@@ -25,7 +25,11 @@ public class CustomAuthorizationRequestRepository implements AuthorizationReques
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest httpServletRequest) {
 
+        log.info("✅ loadAuthorizationRequest 호출됨 URI: {}, QueryString: {}",
+                httpServletRequest.getRequestURI(), httpServletRequest.getQueryString());
+
         String state = httpServletRequest.getParameter(STATE_PARAMETER);
+        log.info("추출된 state: [{}]", state);
 
         if (state == null) {
             log.warn("OAuth2AuthorizationRequest 로드 실패 - state 파라미터가 없습니다.");
@@ -33,8 +37,9 @@ public class CustomAuthorizationRequestRepository implements AuthorizationReques
         }
 
         String redisKey = OAUTH2_AUTHORIZATION_REQUEST_PREFIX + state;
+        log.info("생성된 redisKey: [{}]", redisKey);
         OAuth2AuthorizationRequest authorizationRequest = redisTemplate.opsForValue().get(redisKey);;
-        log.info("OAuth2AuthorizationRequest 로드 완료 - state: {}, found: {}", state, authorizationRequest != null);
+        log.info("OAuth2AuthorizationRequest 로드 완료 - state: {}", state);
 
         return authorizationRequest;
     }
@@ -67,6 +72,7 @@ public class CustomAuthorizationRequestRepository implements AuthorizationReques
 
         String redisKey = OAUTH2_AUTHORIZATION_REQUEST_PREFIX + state;
         OAuth2AuthorizationRequest authorizationRequest = redisTemplate.opsForValue().get(redisKey);
+        redisTemplate.delete(redisKey);
         log.info("OAuth2AuthorizationRequest 삭제 완료 - state: {}", state);
 
         return authorizationRequest;

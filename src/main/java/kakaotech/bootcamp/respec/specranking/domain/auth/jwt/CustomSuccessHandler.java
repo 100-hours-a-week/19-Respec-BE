@@ -42,7 +42,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                         Authentication authentication) throws IOException {
 
         CustomOAuth2User userInfo = (CustomOAuth2User) authentication.getPrincipal();
-        log.info("OAuth2 로그인 성공 - LoginId: {}", userInfo.getLoginId());
+        log.info("OAuth2 로그인 성공 - LoginId: {}, URI: {}, QueryString: {}",
+                userInfo.getLoginId(), request.getRequestURI(), request.getQueryString());
 
         Optional<User> optUser = userRepository.findByLoginId(userInfo.getLoginId());
 
