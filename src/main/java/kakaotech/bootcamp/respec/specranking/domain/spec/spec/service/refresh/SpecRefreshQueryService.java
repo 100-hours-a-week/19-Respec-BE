@@ -51,14 +51,8 @@ public class SpecRefreshQueryService {
             JobField jobField1 = spec.getJobField();
             jobFields.add(jobField1);
         }
-        ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
-        List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
-
-        Map<JobField, Long> jobFieldCountMap = tuples.stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(spec.jobField),
-                        tuple -> tuple.get(spec.count())
-                ));
+        Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
+                jobFields);
 
         List<CachedRankingResponse.CachedRankingItem> items = specs.stream().map(spec -> {
             User user = spec.getUser();
@@ -78,6 +72,17 @@ public class SpecRefreshQueryService {
 
         long endTime = System.currentTimeMillis();
         return new CachedRankingResponse(items, hasNext, nextCursor, (endTime - startTime));
+    }
+
+    private Map<JobField, Long> getJobFieldCountMap(List<JobField> jobFields) {
+        ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
+        List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
+
+        return tuples.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(spec.jobField),
+                        tuple -> tuple.get(spec.count())
+                ));
     }
 
     public CachedMetaResponse getMetaDataFromDb(JobField jobField) {
