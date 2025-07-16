@@ -38,12 +38,8 @@ public class AiDtoMapping {
         List<EducationDetail> universities = request.educationDetails().stream()
                 .map(edu -> {
                     EducationDetail educationDetail = new EducationDetail(
-                            edu.schoolName(),
-                            edu.degree(),
-                            edu.major(),
-                            edu.gpa(),
-                            edu.maxGpa()
-                    );
+                            edu.schoolName(), edu.degree(),
+                            edu.major(), edu.gpa(), edu.maxGpa());
                     return educationDetail;
                 })
                 .collect(Collectors.toList());
@@ -80,8 +76,7 @@ public class AiDtoMapping {
         List<AiPostSpecRequest.Activity> activities = request.activities().stream()
                 .map(act -> {
                     return new AiPostSpecRequest.Activity(
-                            act.name(), act.role(), act.award()
-                    );
+                            act.name(), act.role(), act.award());
                 })
                 .collect(Collectors.toList());
         return activities;
@@ -103,12 +98,8 @@ public class AiDtoMapping {
                         .map(e -> {
                             Degree degree = safeConvertToEnum(e.degree(), Degree.class, Degree.BACHELOR);
                             return new WebPostResumeResponse.EducationDetails(
-                                    e.schoolName(),
-                                    degree,
-                                    e.major(),
-                                    e.gpa(),
-                                    e.maxGpa()
-                            );
+                                    e.schoolName(), degree,
+                                    e.major(), e.gpa(), e.maxGpa());
                         }).toList();
 
         List<WebPostResumeResponse.WorkExperience> workExperiences =
@@ -117,10 +108,7 @@ public class AiDtoMapping {
                             Position position = safeConvertToEnum(w.position(), Position.class,
                                     Position.INTERN);
                             return new WebPostResumeResponse.WorkExperience(
-                                    w.companyName(),
-                                    position,
-                                    w.period()
-                            );
+                                    w.companyName(), position, w.period());
                         }).toList();
 
         List<WebPostResumeResponse.Certification> certifications =
@@ -134,27 +122,20 @@ public class AiDtoMapping {
                             LanguageTest languageTest = safeConvertToEnum(l.languageTest(), LanguageTest.class,
                                     LanguageTest.TOEIC_ENGLISH);
                             return new WebPostResumeResponse.LanguageSkill(
-                                    languageTest,
-                                    l.score()
+                                    languageTest, l.score()
                             );
                         }).toList();
 
         List<WebPostResumeResponse.Activity> activities =
                 response.activities().stream()
                         .map(a -> new WebPostResumeResponse.Activity(
-                                a.name(),
-                                a.role(),
-                                a.award()
+                                a.name(), a.role(), a.award()
                         )).toList();
 
         return new WebPostResumeResponse.ResumeAnalysisResult(
-                finalEducation,
-                educationDetails,
-                workExperiences,
-                certifications,
-                languageSkills,
-                activities,
-                jobField
+                finalEducation, educationDetails,
+                workExperiences, certifications,
+                languageSkills, activities, jobField
         );
     }
 

@@ -1,7 +1,13 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.controller;
 
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.META_GET_SUCCESS_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.RANKING_GET_SUCCESS_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SEARCH_LIST_GET_SUCCESS_MESSAGE;
+
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse.SearchData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
@@ -33,7 +39,8 @@ public class SpecQueryController {
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
-        return specQueryService.getRankings(jobField, cursor, limit);
+        RankingData rankings = specQueryService.getRankings(jobField, cursor, limit);
+        return new RankingResponse(true, RANKING_GET_SUCCESS_MESSAGE, rankings);
     }
 
     @GetMapping(params = "type=search")
@@ -42,13 +49,14 @@ public class SpecQueryController {
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
-        return specQueryService.searchByNickname(keyword, cursor, limit);
+        SearchData searchData = specQueryService.searchByNickname(keyword, cursor, limit);
+        return new SearchResponse(true, SEARCH_LIST_GET_SUCCESS_MESSAGE, searchData);
     }
 
     @GetMapping(params = "type=meta")
     public SpecMetaResponse getSpecMeta(@RequestParam(value = "jobField") JobField jobField) {
         Meta metaData = specQueryService.getMetaData(jobField);
-        return new SpecMetaResponse(true, "메타 데이터 조회 성공!", metaData);
+        return new SpecMetaResponse(true, META_GET_SUCCESS_MESSAGE, metaData);
     }
 
     @GetMapping("/{specId}")

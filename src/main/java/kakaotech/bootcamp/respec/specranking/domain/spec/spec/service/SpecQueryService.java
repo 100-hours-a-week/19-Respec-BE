@@ -19,8 +19,10 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMe
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingItem;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse.SearchData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
@@ -48,7 +50,7 @@ public class SpecQueryService {
     private final SpecCacheRefreshService specCacheRefreshService;
     private final SpecRefreshQueryService specRefreshQueryService;
 
-    public RankingResponse getRankings(JobField jobField, String cursor, int limit) {
+    public RankingData getRankings(JobField jobField, String cursor, int limit) {
         if (cursor == null) {
             String cacheKey = "rankings::" + jobField.name() + "::" + limit;
             CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
@@ -74,7 +76,7 @@ public class SpecQueryService {
                     ))
                     .toList();
 
-            return RankingResponse.success(items, cached.hasNext(), cached.nextCursor());
+            return new RankingData(items, cached.hasNext(), cached.nextCursor());
 
         } else {
             Long cursorId = decodeCursor(cursor);
@@ -121,11 +123,12 @@ public class SpecQueryService {
                 );
                 return rankingItem;
             }).toList();
-            return RankingResponse.success(rankingItems, hasNext, nextCursor);
+
+            return new RankingData(rankingItems, hasNext, nextCursor);
         }
     }
 
-    public SearchResponse searchByNickname(String keyword, String cursor, int limit) {
+    public SearchData searchByNickname(String keyword, String cursor, int limit) {
         Long cursorId = decodeCursor(cursor);
 
         List<Spec> specs = specRepository.searchByNicknameWithCursor(keyword, cursorId, limit + 1);
@@ -180,8 +183,7 @@ public class SpecQueryService {
 
             searchResults.add(item);
         }
-
-        return SearchResponse.success(keyword, searchResults, hasNext, nextCursor);
+        return new SearchData(keyword, searchResults, hasNext, nextCursor);
     }
 
     public Meta getMetaData(JobField jobField) {

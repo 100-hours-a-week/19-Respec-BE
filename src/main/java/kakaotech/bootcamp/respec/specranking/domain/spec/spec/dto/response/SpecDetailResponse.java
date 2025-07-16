@@ -16,15 +16,10 @@ public record SpecDetailResponse(
 ) {
 
     public record SpecDetailData(
-            FinalEducation finalEducation,
-            List<EducationDetails> educationDetails,
-            List<WorkExperience> workExperiences,
-            List<Certification> certifications,
-            List<LanguageSkill> languageSkills,
-            List<Activity> activities,
-            JobField jobField,
-            Rankings rankings,
-            String assessment
+            FinalEducation finalEducation, List<EducationDetails> educationDetails,
+            List<WorkExperience> workExperiences, List<Certification> certifications,
+            List<LanguageSkill> languageSkills, List<Activity> activities,
+            JobField jobField, Rankings rankings, String assessment
     ) {
         public SpecDetailData {
             educationDetails = List.copyOf(educationDetails);
@@ -42,17 +37,14 @@ public record SpecDetailResponse(
     }
 
     public record EducationDetails(
-            String schoolName,
-            Degree degree,
-            String major,
-            Double gpa,
+            String schoolName, Degree degree,
+            String major, Double gpa,
             Double maxGpa
     ) {
     }
 
     public record WorkExperience(
-            String company,
-            Position position,
+            String company, Position position,
             Integer period
     ) {
     }
@@ -85,10 +77,8 @@ public record SpecDetailResponse(
     }
 
     public record Details(
-            Double score,
-            Long jobFieldRank,
-            Long jobFieldUserCount,
-            Long totalRank,
+            Double score, Long jobFieldRank,
+            Long jobFieldUserCount, Long totalRank,
             Long totalUserCount
     ) {
     }
