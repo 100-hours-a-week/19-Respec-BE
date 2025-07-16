@@ -98,8 +98,9 @@ public class SpecQueryService {
                 JobField jobField1 = spec.getJobField();
                 jobFields.add(jobField1);
             }
-            ArrayList<JobField> jobFields1 = new ArrayList<>(new HashSet<>(jobFields));
-            List<Tuple> tuples = specRepository.countByJobFields(jobFields1);
+
+            ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
+            List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
 
             Map<JobField, Long> jobFieldCountMap = tuples.stream()
                     .collect(Collectors.toMap(
