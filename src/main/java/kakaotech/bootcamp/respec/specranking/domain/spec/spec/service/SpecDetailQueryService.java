@@ -1,15 +1,21 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 
+import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_DETAIL_GET_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_NOT_FOUND_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus.ACTIVE;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_DETAILS_NAME;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.Details;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.EducationDetails;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.ScoreDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.exception.SpecNotFoundException;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.activitynetworking.entity.ActivityNetworking;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.sub.activitynetworking.repository.ActivityNetworkingRepository;
@@ -44,14 +50,14 @@ public class SpecDetailQueryService {
     private final LanguageSkillRepository languageSkillRepository;
     private final ActivityNetworkingRepository activityNetworkingRepository;
 
-    @Cacheable(value = "specDetail", key = "#specId")
+    @Cacheable(value = SPEC_DETAILS_NAME, key = "#specId")
     public SpecDetailResponse getSpecDetail(Long specId) {
         Spec spec = specRepository.findById(specId)
-                .orElseThrow(() -> new IllegalArgumentException("Spec not found"));
+                .orElseThrow(() -> new SpecNotFoundException(SPEC_NOT_FOUND_MESSAGE));
 
         Optional<Long> userIdOpt = UserUtils.getCurrentUserId();
         if (!userIdOpt.isPresent()) {
-            throw new IllegalArgumentException("로그인이 필요한 서비스입니다.");
+            throw new LoginRequiredException(LOGIN_REQUIRED_MESSAGE);
         }
 
         Education education = educationRepository.findBySpecId(specId);
@@ -66,23 +72,20 @@ public class SpecDetailQueryService {
         Long jobFieldRank = specRepository.findAbsoluteRankByJobField(jobField, specId);
         Long jobFieldUserCount = specRepository.countByJobField(jobField);
 
-        Details details = new Details(spec.getTotalAnalysisScore(), jobFieldRank, jobFieldUserCount, totalRank,
-                activeSpecCount);
+        Details details = new Details(spec.getTotalAnalysisScore(), jobFieldRank,
+                jobFieldUserCount, totalRank, activeSpecCount);
 
         List<ScoreDetail> categories = getScoreDetails(spec);
         SpecDetailResponse.Rankings rankings = new SpecDetailResponse.Rankings(details, categories);
 
         SpecDetailResponse.SpecDetailData response = new SpecDetailResponse.SpecDetailData(
-                mappingEducation(education),
-                mappingEducationDetails(education),
-                mappingWorkExperience(workExperiences),
-                mappingCertification(certifications),
-                mappingLanguageSkill(languages),
-                mappingActivities(activities),
+                mappingEducation(education), mappingEducationDetails(education),
+                mappingWorkExperience(workExperiences), mappingCertification(certifications),
+                mappingLanguageSkill(languages), mappingActivities(activities),
                 jobField, rankings, spec.getAssessment()
         );
 
-        return new SpecDetailResponse(true, "세부 스펙 조회 성공!", response);
+        return new SpecDetailResponse(true, SPEC_DETAIL_GET_MESSAGE, response);
 
     }
 

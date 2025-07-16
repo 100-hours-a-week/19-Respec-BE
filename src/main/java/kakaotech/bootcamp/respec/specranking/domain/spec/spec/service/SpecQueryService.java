@@ -3,6 +3,9 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.decodeCursor;
 import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.encodeCursor;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_PREFIX;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_RANKINGS_PREFIX;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_CACHING_MINUTES;
 
 import com.querydsl.core.Tuple;
 import java.time.Duration;
@@ -10,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
@@ -30,7 +32,6 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.Spec
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
-import kakaotech.bootcamp.respec.specranking.domain.user.util.UserUtils;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -52,7 +53,7 @@ public class SpecQueryService {
 
     public RankingData getRankings(JobField jobField, String cursor, int limit) {
         if (cursor == null) {
-            String cacheKey = "rankings::" + jobField.name() + "::" + limit;
+            String cacheKey = SPEC_RANKINGS_PREFIX + jobField.name() + "::" + limit;
             CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
 
             if (cached != null) {
@@ -64,7 +65,7 @@ public class SpecQueryService {
 
             if (cached == null) {
                 cached = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
-                redisTemplate.opsForValue().set(cacheKey, cached, Duration.ofMinutes(10));
+                redisTemplate.opsForValue().set(cacheKey, cached, Duration.ofMinutes(TOP_10_RANKINGS_CACHING_MINUTES));
             }
 
             List<RankingResponse.RankingItem> items = cached.items().stream()
@@ -114,8 +115,7 @@ public class SpecQueryService {
                         user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
                         spec.getTotalAnalysisScore(),
                         specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
-                        countUsersHavingSpec,
-                        specJobField,
+                        countUsersHavingSpec, specJobField,
                         specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
                         jobFieldCountMap.getOrDefault(specJobField, 0L),
                         commentRepository.countBySpecId(spec.getId()),
@@ -143,13 +143,8 @@ public class SpecQueryService {
             nextCursor = encodeCursor(specs.getLast().getId());
         }
 
-        Optional<Long> userId = UserUtils.getCurrentUserId();
-        List<Long> bookmarkedSpecIds = new ArrayList<>();
-        if (userId.isPresent()) {
-            bookmarkedSpecIds = bookmarkRepository.findSpecIdsByUserId(userId.get());
-        }
-
         List<SearchResponse.SearchResult> searchResults = new ArrayList<>();
+        Long totalUserCount = userRepository.countUsersHavingSpec();
 
         for (Spec spec : specs) {
             User user = spec.getUser();
@@ -157,28 +152,17 @@ public class SpecQueryService {
 
             Long currentRank = specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId());
             Long jobFieldRank = specRepository.findAbsoluteRankByJobField(jobField, spec.getId());
-
             double averageScore = spec.getTotalAnalysisScore();
 
             Long commentsCount = commentRepository.countBySpecId(spec.getId());
             Long bookmarksCount = bookmarkRepository.countBySpecId(spec.getId());
-            Long totalUserCount = userRepository.countUsersHavingSpec();
             Long totalUsersCountByJobField = specRepository.countByJobField(jobField);
 
             SearchResponse.SearchResult item = new SearchResponse.SearchResult(
-                    user.getId(),
-                    user.getNickname(),
-                    user.getUserProfileUrl(),
-                    spec.getId(),
-                    averageScore,
-                    currentRank,
-                    totalUserCount,
-                    jobField,
-                    jobFieldRank,
-                    totalUsersCountByJobField,
-                    bookmarkedSpecIds.contains(spec.getId()),
-                    commentsCount,
-                    bookmarksCount
+                    user.getId(), user.getNickname(), user.getUserProfileUrl(),
+                    spec.getId(), averageScore, currentRank, totalUserCount,
+                    jobField, jobFieldRank, totalUsersCountByJobField,
+                    commentsCount, bookmarksCount
             );
 
             searchResults.add(item);
@@ -187,9 +171,9 @@ public class SpecQueryService {
     }
 
     public Meta getMetaData(JobField jobField) {
-        String cacheKey = "specMetadata::" + jobField.name();
+        String cacheKey = SPEC_META_DATA_PREFIX + jobField.name();
         CachedMetaResponse cached = (CachedMetaResponse) redisTemplate.opsForValue()
-                .get("specMetadata::" + jobField.name());
+                .get(SPEC_META_DATA_PREFIX + jobField.name());
 
         if (cached != null) {
             Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);

@@ -25,7 +25,7 @@ public record SearchResponse(
             Double score, Long totalRank,
             Long totalUsersCount, JobField jobField,
             Long rankByJobField, Long totalUsersCountByJobField,
-            Boolean isBookmarked, Long commentsCount,
+            Long commentsCount,
             Long bookmarksCount
     ) {
     }
