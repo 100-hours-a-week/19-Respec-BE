@@ -1,7 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.user.util;
 
 import java.util.Optional;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,10 +23,10 @@ public class UserUtils {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUserDto userDto)) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUser authenticatedUser)) {
             return Optional.empty();
         }
 
-        return Optional.of(userDto.getId());
+        return Optional.of(authenticatedUser.id());
     }
 }

@@ -6,7 +6,6 @@ public enum ErrorCode {
 
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
-    UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜로그인 업체입니다."),
     INVALID_LOGIN_ID_FORMAT(HttpStatus.BAD_REQUEST, "LoginId 형식이 올바르지 않습니다."),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레시 토큰이 없습니다."),
     REFRESH_TOKEN_IS_EXPIRED(HttpStatus.BAD_REQUEST, "리프레시 토큰이 만료되었습니다."),

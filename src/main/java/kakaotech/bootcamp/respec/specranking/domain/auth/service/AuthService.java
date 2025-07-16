@@ -109,7 +109,7 @@ public class AuthService {
     }
 
     private void validateTokenCategory(String refreshToken) {
-        String tokenCategory = jwtUtil.getCategory(refreshToken);
+        String tokenCategory = jwtUtil.getTokenCategory(refreshToken);
         if (!CookieConstants.REFRESH_TOKEN.equals(tokenCategory)) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }

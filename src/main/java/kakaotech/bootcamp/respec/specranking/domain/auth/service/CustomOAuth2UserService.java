@@ -1,5 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.service;
 
+import kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthMessages;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.CustomOAuth2User;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.KakaoResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.dto.OAuth2Response;
@@ -8,8 +9,6 @@ import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
-import kakaotech.bootcamp.respec.specranking.global.exception.CustomException;
-import kakaotech.bootcamp.respec.specranking.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -55,7 +54,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return new KakaoResponse(oAuth2User.getAttributes());
         }
 
-        throw new CustomException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER);
+        throw new OAuth2AuthenticationException(AuthMessages.UNSUPPORTED_OAUTH_PROVIDER);
     }
 
     private User findUserByOAuthInfo(OAuth2Response oAuth2Response) {
