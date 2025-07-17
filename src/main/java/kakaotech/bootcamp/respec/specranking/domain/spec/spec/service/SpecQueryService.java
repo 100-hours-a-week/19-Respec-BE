@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto.CachedMeta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingItem;
@@ -101,8 +101,8 @@ public class SpecQueryService {
         List<JobField> jobFields = new ArrayList<>();
 
         for (Spec spec : specs) {
-            JobField jobField1 = spec.getJobField();
-            jobFields.add(jobField1);
+            JobField jobFieldBySpec = spec.getJobField();
+            jobFields.add(jobFieldBySpec);
         }
 
         Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
@@ -183,7 +183,7 @@ public class SpecQueryService {
 
     public Meta getMetaData(JobField jobField) {
         String cacheKey = SPEC_META_DATA_PREFIX + jobField.name();
-        CachedMetaResponse cached = (CachedMetaResponse) redisTemplate.opsForValue()
+        CachedMetaDto cached = (CachedMetaDto) redisTemplate.opsForValue()
                 .get(SPEC_META_DATA_PREFIX + jobField.name());
 
         if (cached != null) {

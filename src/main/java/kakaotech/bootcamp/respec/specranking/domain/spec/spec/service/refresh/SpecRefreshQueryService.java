@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto.CachedMeta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
@@ -48,8 +48,8 @@ public class SpecRefreshQueryService {
         List<JobField> jobFields = new ArrayList<>();
 
         for (Spec spec : specs) {
-            JobField jobField1 = spec.getJobField();
-            jobFields.add(jobField1);
+            JobField jobFieldBySpec = spec.getJobField();
+            jobFields.add(jobFieldBySpec);
         }
         Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
                 jobFields);
@@ -85,7 +85,7 @@ public class SpecRefreshQueryService {
                 ));
     }
 
-    public CachedMetaResponse getMetaDataFromDb(JobField jobField) {
+    public CachedMetaDto getMetaDataFromDb(JobField jobField) {
         long startTime = System.currentTimeMillis();
         long totalUserCount = 0;
         Double averageScore = 0.0;
@@ -104,7 +104,7 @@ public class SpecRefreshQueryService {
 
         long endTime = System.currentTimeMillis();
         CachedMeta cachedMeta = new CachedMeta(totalUserCount, averageScore);
-        return new CachedMetaResponse(endTime - startTime, cachedMeta);
+        return new CachedMetaDto(endTime - startTime, cachedMeta);
     }
 
 }
