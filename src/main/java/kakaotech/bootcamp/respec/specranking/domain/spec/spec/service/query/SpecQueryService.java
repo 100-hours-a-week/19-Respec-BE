@@ -19,9 +19,9 @@ import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.B
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto.CachedMeta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingItem;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.SpecRankings;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse.SearchData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
@@ -29,7 +29,7 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.SpecCacheRefreshService;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh.SpecRefreshQueryService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingDataResult;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingsBundle;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
@@ -52,16 +52,16 @@ public class SpecQueryService {
     private final SpecRefreshQueryService specRefreshQueryService;
     private final SpecRankingsQueryService specRankingsQueryService;
 
-    public RankingData getRankings(JobField jobField, String cursor, int limit) {
+    public SpecRankings getRankings(JobField jobField, String cursor, int limit) {
         if (cursor == null) {
             return getRankingForCache(jobField, limit);
         }
         return getRankingDataForBasic(jobField, cursor, limit);
     }
 
-    private RankingData getRankingForCache(JobField jobField, int limit) {
+    private SpecRankings getRankingForCache(JobField jobField, int limit) {
         String cacheKey = SPEC_RANKINGS_PREFIX + jobField.name() + "::" + limit;
-        CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
+        CachedRankingDto cached = (CachedRankingDto) redisTemplate.opsForValue().get(cacheKey);
 
         if (cached != null) {
             Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
@@ -84,11 +84,11 @@ public class SpecQueryService {
                 ))
                 .toList();
 
-        return new RankingData(items, cached.hasNext(), cached.nextCursor());
+        return new SpecRankings(items, cached.hasNext(), cached.nextCursor());
     }
 
-    private RankingData getRankingDataForBasic(JobField jobField, String cursor, int limit) {
-        RankingDataResult rankingData = specRankingsQueryService.fetchForRankings(jobField, decodeCursor(cursor),
+    private SpecRankings getRankingDataForBasic(JobField jobField, String cursor, int limit) {
+        RankingsBundle rankingData = specRankingsQueryService.fetchRankingsBundle(jobField, decodeCursor(cursor),
                 limit);
 
         List<Spec> specs = rankingData.specs();
@@ -114,7 +114,7 @@ public class SpecQueryService {
             return rankingItem;
         }).toList();
 
-        return new RankingData(rankingItems, hasNext, nextCursor);
+        return new SpecRankings(rankingItems, hasNext, nextCursor);
     }
 
     private Map<JobField, Long> getJobFieldCountMap(List<JobField> jobFields) {

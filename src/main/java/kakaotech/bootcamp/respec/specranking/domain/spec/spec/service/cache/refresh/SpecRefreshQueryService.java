@@ -13,11 +13,11 @@ import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.B
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto.CachedMeta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingDataResult;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingsBundle;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
@@ -36,9 +36,9 @@ public class SpecRefreshQueryService {
     private final BookmarkRepository bookmarkRepository;
     private final SpecRankingsQueryService specRankingsQueryService;
 
-    public CachedRankingResponse getRankingDataFromDb(JobField jobField, int limit) {
+    public CachedRankingDto getRankingDataFromDb(JobField jobField, int limit) {
         long startTime = System.currentTimeMillis();
-        RankingDataResult rankingData = specRankingsQueryService.fetchForRankings(jobField, decodeCursor(""), limit);
+        RankingsBundle rankingData = specRankingsQueryService.fetchRankingsBundle(jobField, decodeCursor(""), limit);
 
         List<Spec> specs = rankingData.specs();
         String nextCursor = rankingData.nextCursor();
@@ -46,11 +46,11 @@ public class SpecRefreshQueryService {
         Map<JobField, Long> jobFieldCountMap = rankingData.jobFieldCountMap();
         long countUsersHavingSpec = rankingData.totalUsersCount();
 
-        List<CachedRankingResponse.CachedRankingItem> items = specs.stream().map(spec -> {
+        List<CachedRankingDto.CachedRankingItem> items = specs.stream().map(spec -> {
             User user = spec.getUser();
             JobField specJobField = spec.getJobField();
 
-            return new CachedRankingResponse.CachedRankingItem(
+            return new CachedRankingDto.CachedRankingItem(
                     user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
                     spec.getTotalAnalysisScore(),
                     specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
@@ -63,7 +63,7 @@ public class SpecRefreshQueryService {
         }).toList();
 
         long endTime = System.currentTimeMillis();
-        return new CachedRankingResponse(items, hasNext, nextCursor, (endTime - startTime));
+        return new CachedRankingDto(items, hasNext, nextCursor, (endTime - startTime));
     }
 
     private Map<JobField, Long> getJobFieldCountMap(List<JobField> jobFields) {

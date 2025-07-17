@@ -4,7 +4,7 @@ import java.util.List;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 
 
-public record CachedRankingResponse(
+public record CachedRankingDto(
         List<CachedRankingItem> items,
         boolean hasNext,
         String nextCursor,

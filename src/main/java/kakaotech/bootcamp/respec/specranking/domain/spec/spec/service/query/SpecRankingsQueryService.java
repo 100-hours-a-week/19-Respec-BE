@@ -24,7 +24,7 @@ public class SpecRankingsQueryService {
     private final SpecRepository specRepository;
     private final UserRepository userRepository;
 
-    public RankingDataResult fetchForRankings(JobField jobField, Long cursorId, int limit) {
+    public RankingsBundle fetchRankingsBundle(JobField jobField, Long cursorId, int limit) {
         List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
 
         CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
@@ -35,7 +35,7 @@ public class SpecRankingsQueryService {
         long countUsersHavingSpec = userRepository.countUsersHavingSpec();
         Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(specs);
 
-        return new RankingDataResult(specs, hasNext, nextCursor, countUsersHavingSpec, jobFieldCountMap);
+        return new RankingsBundle(specs, hasNext, nextCursor, countUsersHavingSpec, jobFieldCountMap);
     }
 
     private Map<JobField, Long> getJobFieldCountMap(List<Spec> specs) {
@@ -52,7 +52,7 @@ public class SpecRankingsQueryService {
                 ));
     }
 
-    public record RankingDataResult(
+    public record RankingsBundle(
             List<Spec> specs,
             boolean hasNext,
             String nextCursor,
