@@ -6,9 +6,9 @@ import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_CACHING_MINUTES;
 
 import java.time.Duration;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingDto;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh.SpecRefreshQueryService;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,14 +24,14 @@ public class SpecCacheRefreshService {
 
     @Async
     public void refreshSpecMetadata(JobField jobField) {
-        CachedMetaResponse cachedMetaResponse = specRefreshQueryService.getMetaDataFromDb(jobField);
+        CachedMetaDto cachedMetaResponse = specRefreshQueryService.getMetaDataFromDb(jobField);
         redisTemplate.opsForValue().set(SPEC_META_DATA_PREFIX + jobField.name(), cachedMetaResponse,
                 Duration.ofHours(SPEC_META_DATA_CACHING_HOURS));
     }
 
     @Async
     public void refreshRankingCache(JobField jobField, int limit) {
-        CachedRankingResponse rankingData = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
+        CachedRankingDto rankingData = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
         String cacheKey = SPEC_RANKINGS_PREFIX + jobField.name() + "::" + limit;
         redisTemplate.opsForValue().set(cacheKey, rankingData, Duration.ofMinutes(TOP_10_RANKINGS_CACHING_MINUTES));
     }

@@ -6,15 +6,15 @@ import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.Sp
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_DETAIL_GET_MESSAGE;
 
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.SpecRankings;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse.SearchData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.SpecDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecDetailQueryService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecDetailQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecQueryService;
 import kakaotech.bootcamp.respec.specranking.global.common.aop.timetrace.TimeTrace;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +41,8 @@ public class SpecQueryController {
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
 
-        RankingData rankings = specQueryService.getRankings(jobField, cursor, limit);
-        return new RankingResponse(true, RANKING_GET_SUCCESS_MESSAGE, rankings);
+        SpecRankings specRankings = specQueryService.getRankings(jobField, cursor, limit);
+        return new RankingResponse(true, RANKING_GET_SUCCESS_MESSAGE, specRankings);
     }
 
     @GetMapping(params = "type=search")

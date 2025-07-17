@@ -1,4 +1,4 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query;
 
 import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_NOT_FOUND_MESSAGE;

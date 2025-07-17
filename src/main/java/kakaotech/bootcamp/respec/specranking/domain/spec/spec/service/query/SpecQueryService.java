@@ -1,9 +1,8 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.decodeCursor;
 import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.encodeCursor;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_RANKINGS_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_CACHING_MINUTES;
@@ -18,23 +17,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingData;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto.CachedMeta;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.RankingItem;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.RankingResponse.SpecRankings;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SearchResponse.SearchData;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.SpecCacheRefreshService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh.SpecRefreshQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingsBundle;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
-import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -52,85 +50,25 @@ public class SpecQueryService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final SpecCacheRefreshService specCacheRefreshService;
     private final SpecRefreshQueryService specRefreshQueryService;
+    private final SpecRankingsQueryService specRankingsQueryService;
 
-    public RankingData getRankings(JobField jobField, String cursor, int limit) {
+    public SpecRankings getRankings(JobField jobField, String cursor, int limit) {
         if (cursor == null) {
-            String cacheKey = SPEC_RANKINGS_PREFIX + jobField.name() + "::" + limit;
-            CachedRankingResponse cached = (CachedRankingResponse) redisTemplate.opsForValue().get(cacheKey);
-
-            if (cached != null) {
-                Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
-                if (ttl != null && shouldRefreshByPER(ttl, cached.computeTime(), 1.0)) {
-                    specCacheRefreshService.refreshRankingCache(jobField, limit);
-                }
-            }
-
-            if (cached == null) {
-                cached = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
-                redisTemplate.opsForValue().set(cacheKey, cached, Duration.ofMinutes(TOP_10_RANKINGS_CACHING_MINUTES));
-            }
-
-            List<RankingResponse.RankingItem> items = cached.items().stream()
-                    .map(i -> new RankingResponse.RankingItem(
-                            i.userId(), i.nickname(), i.profileImageUrl(), i.specId(),
-                            i.score(), i.totalRank(), i.totalUsersCount(),
-                            i.jobField(), i.rankByJobField(), i.usersCountByJobField(),
-                            i.commentsCount(), i.bookmarksCount()
-                    ))
-                    .toList();
-
-            return new RankingData(items, cached.hasNext(), cached.nextCursor());
-
-        } else {
-            Long cursorId = decodeCursor(cursor);
-            List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
-
-            boolean hasNext = specs.size() > limit;
-            if (hasNext) {
-                specs = specs.subList(0, limit);
-            }
-
-            String nextCursor = hasNext ? encodeCursor(specs.getLast().getId()) : null;
-
-            long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
-
-            List<JobField> jobFields = new ArrayList<>();
-
-            for (Spec spec : specs) {
-                JobField jobField1 = spec.getJobField();
-                jobFields.add(jobField1);
-            }
-
-            ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
-            List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
-
-            Map<JobField, Long> jobFieldCountMap = tuples.stream()
-                    .collect(Collectors.toMap(
-                            tuple -> tuple.get(spec.jobField),
-                            tuple -> tuple.get(spec.count())
-                    ));
-
-            List<RankingResponse.RankingItem> rankingItems = specs.stream().map(spec -> {
-                User user = spec.getUser();
-                JobField specJobField = spec.getJobField();
-
-                RankingItem rankingItem = new RankingItem(
-                        user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
-                        spec.getTotalAnalysisScore(),
-                        specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
-                        countUsersHavingSpec, specJobField,
-                        specRepository.findAbsoluteRankByJobField(specJobField, spec.getId()),
-                        jobFieldCountMap.getOrDefault(specJobField, 0L),
-                        commentRepository.countBySpecId(spec.getId()),
-                        bookmarkRepository.countBySpecId(spec.getId())
-                );
-                return rankingItem;
-            }).toList();
-
-            return new RankingData(rankingItems, hasNext, nextCursor);
+            return getRankingForCache(jobField, limit);
         }
-<<<<<<< Updated upstream
-=======
+        return getRankingDataForBasic(jobField, cursor, limit);
+    }
+
+    private SpecRankings getRankingForCache(JobField jobField, int limit) {
+        String cacheKey = SPEC_RANKINGS_PREFIX + jobField.name() + "::" + limit;
+        CachedRankingDto cached = (CachedRankingDto) redisTemplate.opsForValue().get(cacheKey);
+
+        if (cached != null) {
+            Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
+            if (ttl != null && shouldRefreshByPER(ttl, cached.computeTime(), 1.0)) {
+                specCacheRefreshService.refreshRankingCache(jobField, limit);
+            }
+        }
 
         if (cached == null) {
             cached = specRefreshQueryService.getRankingDataFromDb(jobField, limit);
@@ -146,29 +84,18 @@ public class SpecQueryService {
                 ))
                 .toList();
 
-        return new RankingData(items, cached.hasNext(), cached.nextCursor());
+        return new SpecRankings(items, cached.hasNext(), cached.nextCursor());
     }
 
-    private RankingData getRankingDataForBasic(JobField jobField, String cursor, int limit) {
-        Long cursorId = decodeCursor(cursor);
-        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
+    private SpecRankings getRankingDataForBasic(JobField jobField, String cursor, int limit) {
+        RankingsBundle rankingData = specRankingsQueryService.fetchRankingsBundle(jobField, decodeCursor(cursor),
+                limit);
 
-        CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
-        boolean hasNext = cursorPagination.hasNext();
-        specs = cursorPagination.items();
-        String nextCursor = cursorPagination.nextCursor();
-
-        long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
-
-        List<JobField> jobFields = new ArrayList<>();
-
-        for (Spec spec : specs) {
-            JobField jobField1 = spec.getJobField();
-            jobFields.add(jobField1);
-        }
-
-        Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
-                jobFields);
+        List<Spec> specs = rankingData.specs();
+        String nextCursor = rankingData.nextCursor();
+        boolean hasNext = rankingData.hasNext();
+        Map<JobField, Long> jobFieldCountMap = rankingData.jobFieldCountMap();
+        long countUsersHavingSpec = rankingData.totalUsersCount();
 
         List<RankingItem> rankingItems = specs.stream().map(spec -> {
             User user = spec.getUser();
@@ -187,7 +114,7 @@ public class SpecQueryService {
             return rankingItem;
         }).toList();
 
-        return new RankingData(rankingItems, hasNext, nextCursor);
+        return new SpecRankings(rankingItems, hasNext, nextCursor);
     }
 
     private Map<JobField, Long> getJobFieldCountMap(List<JobField> jobFields) {
@@ -199,7 +126,6 @@ public class SpecQueryService {
                         tuple -> tuple.get(spec.jobField),
                         tuple -> tuple.get(spec.count())
                 ));
->>>>>>> Stashed changes
     }
 
     public SearchData searchByNickname(String keyword, String cursor, int limit) {
@@ -246,7 +172,7 @@ public class SpecQueryService {
 
     public Meta getMetaData(JobField jobField) {
         String cacheKey = SPEC_META_DATA_PREFIX + jobField.name();
-        CachedMetaResponse cached = (CachedMetaResponse) redisTemplate.opsForValue()
+        CachedMetaDto cached = (CachedMetaDto) redisTemplate.opsForValue()
                 .get(SPEC_META_DATA_PREFIX + jobField.name());
 
         if (cached != null) {

@@ -1,7 +1,7 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.decodeCursor;
 
 import com.querydsl.core.Tuple;
 import java.util.ArrayList;
@@ -11,15 +11,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.social.bookmark.repository.BookmarkRepository;
 import kakaotech.bootcamp.respec.specranking.domain.social.comment.repository.CommentRepository;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaResponse.CachedMeta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto.CachedMeta;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingsBundle;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
-import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,38 +34,23 @@ public class SpecRefreshQueryService {
     private final SpecRepository specRepository;
     private final CommentRepository commentRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final SpecRankingsQueryService specRankingsQueryService;
 
-    public CachedRankingResponse getRankingDataFromDb(JobField jobField, int limit) {
+    public CachedRankingDto getRankingDataFromDb(JobField jobField, int limit) {
         long startTime = System.currentTimeMillis();
-        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, Long.MAX_VALUE, limit + 1);
+        RankingsBundle rankingData = specRankingsQueryService.fetchRankingsBundle(jobField, decodeCursor(""), limit);
 
-        CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
-        boolean hasNext = cursorPagination.hasNext();
-        specs = cursorPagination.items();
-        String nextCursor = cursorPagination.nextCursor();
+        List<Spec> specs = rankingData.specs();
+        String nextCursor = rankingData.nextCursor();
+        boolean hasNext = rankingData.hasNext();
+        Map<JobField, Long> jobFieldCountMap = rankingData.jobFieldCountMap();
+        long countUsersHavingSpec = rankingData.totalUsersCount();
 
-        long countUsersHavingSpec = userRepository.countUsersHavingSpec();
-
-        List<JobField> jobFields = new ArrayList<>();
-
-        for (Spec spec : specs) {
-            JobField jobField1 = spec.getJobField();
-            jobFields.add(jobField1);
-        }
-        ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
-        List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
-
-        Map<JobField, Long> jobFieldCountMap = tuples.stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(spec.jobField),
-                        tuple -> tuple.get(spec.count())
-                ));
-
-        List<CachedRankingResponse.CachedRankingItem> items = specs.stream().map(spec -> {
+        List<CachedRankingDto.CachedRankingItem> items = specs.stream().map(spec -> {
             User user = spec.getUser();
             JobField specJobField = spec.getJobField();
 
-            return new CachedRankingResponse.CachedRankingItem(
+            return new CachedRankingDto.CachedRankingItem(
                     user.getId(), user.getNickname(), user.getUserProfileUrl(), spec.getId(),
                     spec.getTotalAnalysisScore(),
                     specRepository.findAbsoluteRankByJobField(JobField.TOTAL, spec.getId()),
@@ -77,10 +63,21 @@ public class SpecRefreshQueryService {
         }).toList();
 
         long endTime = System.currentTimeMillis();
-        return new CachedRankingResponse(items, hasNext, nextCursor, (endTime - startTime));
+        return new CachedRankingDto(items, hasNext, nextCursor, (endTime - startTime));
     }
 
-    public CachedMetaResponse getMetaDataFromDb(JobField jobField) {
+    private Map<JobField, Long> getJobFieldCountMap(List<JobField> jobFields) {
+        ArrayList<JobField> jobFieldsNotDuplicated = new ArrayList<>(new HashSet<>(jobFields));
+        List<Tuple> tuples = specRepository.countByJobFields(jobFieldsNotDuplicated);
+
+        return tuples.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(spec.jobField),
+                        tuple -> tuple.get(spec.count())
+                ));
+    }
+
+    public CachedMetaDto getMetaDataFromDb(JobField jobField) {
         long startTime = System.currentTimeMillis();
         long totalUserCount = 0;
         Double averageScore = 0.0;
@@ -99,7 +96,7 @@ public class SpecRefreshQueryService {
 
         long endTime = System.currentTimeMillis();
         CachedMeta cachedMeta = new CachedMeta(totalUserCount, averageScore);
-        return new CachedMetaResponse(endTime - startTime, cachedMeta);
+        return new CachedMetaDto(endTime - startTime, cachedMeta);
     }
 
 }
