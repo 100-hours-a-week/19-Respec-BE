@@ -1,7 +1,7 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.decodeCursor;
 
 import com.querydsl.core.Tuple;
 import java.util.ArrayList;
@@ -16,10 +16,11 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMe
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingDataResult;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
-import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,26 +34,17 @@ public class SpecRefreshQueryService {
     private final SpecRepository specRepository;
     private final CommentRepository commentRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final SpecRankingsQueryService specRankingsQueryService;
 
     public CachedRankingResponse getRankingDataFromDb(JobField jobField, int limit) {
         long startTime = System.currentTimeMillis();
-        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, Long.MAX_VALUE, limit + 1);
+        RankingDataResult rankingData = specRankingsQueryService.fetchForRankings(jobField, decodeCursor(""), limit);
 
-        CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
-        boolean hasNext = cursorPagination.hasNext();
-        specs = cursorPagination.items();
-        String nextCursor = cursorPagination.nextCursor();
-
-        long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
-
-        List<JobField> jobFields = new ArrayList<>();
-
-        for (Spec spec : specs) {
-            JobField jobFieldBySpec = spec.getJobField();
-            jobFields.add(jobFieldBySpec);
-        }
-        Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
-                jobFields);
+        List<Spec> specs = rankingData.specs();
+        String nextCursor = rankingData.nextCursor();
+        boolean hasNext = rankingData.hasNext();
+        Map<JobField, Long> jobFieldCountMap = rankingData.jobFieldCountMap();
+        long countUsersHavingSpec = rankingData.totalUsersCount();
 
         List<CachedRankingResponse.CachedRankingItem> items = specs.stream().map(spec -> {
             User user = spec.getUser();

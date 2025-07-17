@@ -1,9 +1,8 @@
-package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service;
+package kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.decodeCursor;
 import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.encodeCursor;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.processCursorPagination;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_META_DATA_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.SPEC_RANKINGS_PREFIX;
 import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.TOP_10_RANKINGS_CACHING_MINUTES;
@@ -29,11 +28,11 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecM
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository.SpecRepository;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.SpecCacheRefreshService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh.SpecRefreshQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecRankingsQueryService.RankingDataResult;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
-import kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorPagination;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -51,6 +50,7 @@ public class SpecQueryService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final SpecCacheRefreshService specCacheRefreshService;
     private final SpecRefreshQueryService specRefreshQueryService;
+    private final SpecRankingsQueryService specRankingsQueryService;
 
     public RankingData getRankings(JobField jobField, String cursor, int limit) {
         if (cursor == null) {
@@ -88,25 +88,14 @@ public class SpecQueryService {
     }
 
     private RankingData getRankingDataForBasic(JobField jobField, String cursor, int limit) {
-        Long cursorId = decodeCursor(cursor);
-        List<Spec> specs = specRepository.findTopSpecsByJobFieldWithCursor(jobField, cursorId, limit + 1);
+        RankingDataResult rankingData = specRankingsQueryService.fetchForRankings(jobField, decodeCursor(cursor),
+                limit);
 
-        CursorPagination<Spec> cursorPagination = processCursorPagination(specs, limit, Spec::getId);
-        boolean hasNext = cursorPagination.hasNext();
-        specs = cursorPagination.items();
-        String nextCursor = cursorPagination.nextCursor();
-
-        long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
-
-        List<JobField> jobFields = new ArrayList<>();
-
-        for (Spec spec : specs) {
-            JobField jobFieldBySpec = spec.getJobField();
-            jobFields.add(jobFieldBySpec);
-        }
-
-        Map<JobField, Long> jobFieldCountMap = getJobFieldCountMap(
-                jobFields);
+        List<Spec> specs = rankingData.specs();
+        String nextCursor = rankingData.nextCursor();
+        boolean hasNext = rankingData.hasNext();
+        Map<JobField, Long> jobFieldCountMap = rankingData.jobFieldCountMap();
+        long countUsersHavingSpec = rankingData.totalUsersCount();
 
         List<RankingItem> rankingItems = specs.stream().map(spec -> {
             User user = spec.getUser();

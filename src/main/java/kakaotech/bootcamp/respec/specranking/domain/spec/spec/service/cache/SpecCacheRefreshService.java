@@ -8,7 +8,7 @@ import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.
 import java.time.Duration;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedMetaDto;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache.CachedRankingResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.refresh.SpecRefreshQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.cache.refresh.SpecRefreshQueryService;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

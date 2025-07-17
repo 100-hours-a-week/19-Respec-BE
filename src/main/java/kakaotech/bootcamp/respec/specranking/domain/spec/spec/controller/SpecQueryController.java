@@ -13,8 +13,8 @@ import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecD
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecDetailResponse.SpecDetail;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.response.SpecMetaResponse.Meta;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecDetailQueryService;
-import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecDetailQueryService;
+import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.query.SpecQueryService;
 import kakaotech.bootcamp.respec.specranking.global.common.aop.timetrace.TimeTrace;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import lombok.RequiredArgsConstructor;
