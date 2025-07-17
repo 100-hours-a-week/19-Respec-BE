@@ -43,7 +43,7 @@ public class SpecRefreshQueryService {
         specs = cursorPagination.items();
         String nextCursor = cursorPagination.nextCursor();
 
-        long countUsersHavingSpec = userRepository.countUsersHavingSpec();
+        long countUsersHavingSpec = specRepository.countDistinctUsersHavingSpec();
 
         List<JobField> jobFields = new ArrayList<>();
 
