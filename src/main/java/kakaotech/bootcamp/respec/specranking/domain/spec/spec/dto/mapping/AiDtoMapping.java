@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import kakaotech.bootcamp.respec.specranking.domain.spec.resume.dto.response.WebPostResumeResponse;
-import kakaotech.bootcamp.respec.specranking.domain.spec.resume.dto.response.WebPostResumeResponse.Certification;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.global.common.type.Degree;
 import kakaotech.bootcamp.respec.specranking.global.common.type.FinalStatus;
@@ -34,16 +33,29 @@ public class AiDtoMapping {
         return aiRequest;
     }
 
+    public static WebPostResumeResponse.ResumeAnalysisResult convertToResumeAnalysisResponse(
+            AiPostResumeResponse response) {
+
+        WebPostResumeResponse.FinalEducation finalEducation = mappingFinalEducation(response);
+        List<WebPostResumeResponse.EducationDetails> educationDetails = mappingEducationDetailsForResponse(response);
+        List<WebPostResumeResponse.WorkExperience> workExperiences = mappingWorkExperiencesForResponse(response);
+        List<WebPostResumeResponse.Certification> certifications = mappingCertificationsForResponse(response);
+        List<WebPostResumeResponse.LanguageSkill> languageSkills = mappingLanguageSkillsForResponse(response);
+        List<WebPostResumeResponse.Activity> activities = mappingActivitiesForResponse(response);
+        JobField jobField = safeConvertToEnum(response.jobField(), JobField.class, JobField.INTERNET_IT);
+
+        return new WebPostResumeResponse.ResumeAnalysisResult(
+                finalEducation, educationDetails, workExperiences,
+                certifications, languageSkills, activities, jobField
+        );
+    }
+
     private static List<EducationDetail> mappingEducationDetails(PostSpecRequest request) {
         List<EducationDetail> universities = request.educationDetails().stream()
                 .map(edu -> {
                     EducationDetail educationDetail = new EducationDetail(
-                            edu.schoolName(),
-                            edu.degree(),
-                            edu.major(),
-                            edu.gpa(),
-                            edu.maxGpa()
-                    );
+                            edu.schoolName(), edu.degree(),
+                            edu.major(), edu.gpa(), edu.maxGpa());
                     return educationDetail;
                 })
                 .collect(Collectors.toList());
@@ -80,90 +92,68 @@ public class AiDtoMapping {
         List<AiPostSpecRequest.Activity> activities = request.activities().stream()
                 .map(act -> {
                     return new AiPostSpecRequest.Activity(
-                            act.name(), act.role(), act.award()
-                    );
+                            act.name(), act.role(), act.award());
                 })
                 .collect(Collectors.toList());
         return activities;
     }
 
-    public static WebPostResumeResponse.ResumeAnalysisResult convertToResumeAnalysisResponse(
-            AiPostResumeResponse response) {
-
+    private static WebPostResumeResponse.FinalEducation mappingFinalEducation(AiPostResumeResponse response) {
         Institute institute = safeConvertToEnum(response.institute(), Institute.class, Institute.UNIVERSITY);
-        FinalStatus finalStatus = safeConvertToEnum(response.finalStatus(), FinalStatus.class,
-                FinalStatus.GRADUATED);
-        JobField jobField = safeConvertToEnum(response.jobField(), JobField.class, JobField.INTERNET_IT);
+        FinalStatus finalStatus = safeConvertToEnum(response.finalStatus(), FinalStatus.class, FinalStatus.GRADUATED);
 
-        WebPostResumeResponse.FinalEducation finalEducation =
-                new WebPostResumeResponse.FinalEducation(institute, finalStatus);
+        return new WebPostResumeResponse.FinalEducation(institute, finalStatus);
+    }
 
-        List<WebPostResumeResponse.EducationDetails> educationDetails =
-                response.educationDetails().stream()
-                        .map(e -> {
-                            Degree degree = safeConvertToEnum(e.degree(), Degree.class, Degree.BACHELOR);
-                            return new WebPostResumeResponse.EducationDetails(
-                                    e.schoolName(),
-                                    degree,
-                                    e.major(),
-                                    e.gpa(),
-                                    e.maxGpa()
-                            );
-                        }).toList();
+    private static List<WebPostResumeResponse.EducationDetails> mappingEducationDetailsForResponse(
+            AiPostResumeResponse response) {
+        return response.educationDetails().stream()
+                .map(e -> {
+                    Degree degree = safeConvertToEnum(e.degree(), Degree.class, Degree.BACHELOR);
+                    return new WebPostResumeResponse.EducationDetails(
+                            e.schoolName(), degree, e.major(), e.gpa(), e.maxGpa());
+                })
+                .toList();
+    }
 
-        List<WebPostResumeResponse.WorkExperience> workExperiences =
-                response.workExperiences().stream()
-                        .map(w -> {
-                            Position position = safeConvertToEnum(w.position(), Position.class,
-                                    Position.INTERN);
-                            return new WebPostResumeResponse.WorkExperience(
-                                    w.companyName(),
-                                    position,
-                                    w.period()
-                            );
-                        }).toList();
+    private static List<WebPostResumeResponse.WorkExperience> mappingWorkExperiencesForResponse(
+            AiPostResumeResponse response) {
+        return response.workExperiences().stream()
+                .map(w -> {
+                    Position position = safeConvertToEnum(w.position(), Position.class, Position.INTERN);
+                    return new WebPostResumeResponse.WorkExperience(
+                            w.companyName(), position, w.period());
+                })
+                .toList();
+    }
 
-        List<WebPostResumeResponse.Certification> certifications =
-                response.certificates().stream()
-                        .map(Certification::new)
-                        .toList();
+    private static List<WebPostResumeResponse.Certification> mappingCertificationsForResponse(
+            AiPostResumeResponse response) {
+        return response.certificates().stream()
+                .map(WebPostResumeResponse.Certification::new)
+                .toList();
+    }
 
-        List<WebPostResumeResponse.LanguageSkill> languageSkills =
-                response.languageSkills().stream()
-                        .map(l -> {
-                            LanguageTest languageTest = safeConvertToEnum(l.languageTest(), LanguageTest.class,
-                                    LanguageTest.TOEIC_ENGLISH);
-                            return new WebPostResumeResponse.LanguageSkill(
-                                    languageTest,
-                                    l.score()
-                            );
-                        }).toList();
+    private static List<WebPostResumeResponse.LanguageSkill> mappingLanguageSkillsForResponse(
+            AiPostResumeResponse response) {
+        return response.languageSkills().stream()
+                .map(l -> {
+                    LanguageTest languageTest = safeConvertToEnum(l.languageTest(), LanguageTest.class,
+                            LanguageTest.TOEIC_ENGLISH);
+                    return new WebPostResumeResponse.LanguageSkill(languageTest, l.score());
+                })
+                .toList();
+    }
 
-        List<WebPostResumeResponse.Activity> activities =
-                response.activities().stream()
-                        .map(a -> new WebPostResumeResponse.Activity(
-                                a.name(),
-                                a.role(),
-                                a.award()
-                        )).toList();
-
-        return new WebPostResumeResponse.ResumeAnalysisResult(
-                finalEducation,
-                educationDetails,
-                workExperiences,
-                certifications,
-                languageSkills,
-                activities,
-                jobField
-        );
+    private static List<WebPostResumeResponse.Activity> mappingActivitiesForResponse(
+            AiPostResumeResponse response) {
+        return response.activities().stream()
+                .map(a -> new WebPostResumeResponse.Activity(a.name(), a.role(), a.award()))
+                .toList();
     }
 
 
     private static <T extends Enum<T>> T safeConvertToEnum(String value, Class<T> enumClass, T defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-
         try {
             return Arrays.stream(enumClass.getEnumConstants())
                     .filter(enumConstant -> {

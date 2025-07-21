@@ -2,14 +2,13 @@ package kakaotech.bootcamp.respec.specranking.domain.spec.spec.repository;
 
 import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.QSpec.spec;
 import static kakaotech.bootcamp.respec.specranking.domain.user.entity.QUser.user;
-import static kakaotech.bootcamp.respec.specranking.global.common.util.CursorUtils.isFirstCursor;
+import static kakaotech.bootcamp.respec.specranking.global.common.util.cursor.CursorUtils.isFirstCursor;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
-import java.util.Objects;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.entity.Spec;
 import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 import kakaotech.bootcamp.respec.specranking.global.common.type.SpecStatus;
@@ -50,11 +49,7 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .where(
                         isActive(),
                         jobFieldEqualsWithTotalNull(jobField),
-                        spec.totalAnalysisScore.lt(cursorScore)
-                                .or(
-                                        spec.totalAnalysisScore.eq(cursorScore)
-                                                .and(spec.id.lt(cursorId))
-                                )
+                        FilteringByCursor(cursorId, cursorScore)
                 )
                 .orderBy(spec.totalAnalysisScore.desc(), spec.id.desc())
                 .limit(limit)
@@ -149,6 +144,14 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
                 .fetchOne();
     }
 
+    private BooleanExpression FilteringByCursor(Long cursorId, Double cursorScore) {
+        return spec.totalAnalysisScore.lt(cursorScore)
+                .or(
+                        spec.totalAnalysisScore.eq(cursorScore)
+                                .and(spec.id.lt(cursorId))
+                );
+    }
+
     private BooleanExpression isActive() {
         return spec.status.eq(SpecStatus.ACTIVE);
     }
@@ -165,14 +168,6 @@ public class SpecRepositoryImpl implements SpecRepositoryCustom {
     }
 
     private BooleanExpression jobFieldInWithNullSupport(List<JobField> jobFields) {
-        BooleanExpression expr = spec.jobField.in(jobFields.stream()
-                .filter(Objects::nonNull)
-                .toList());
-
-        if (jobFields.contains(null)) {
-            expr = expr.or(spec.jobField.isNull());
-        }
-
-        return expr;
+        return spec.jobField.in(jobFields.stream().toList());
     }
 }

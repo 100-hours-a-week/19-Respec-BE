@@ -1,5 +1,7 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.resume.controller;
 
+import static kakaotech.bootcamp.respec.specranking.domain.spec.resume.contant.ResumeConstant.RESUME_ANALYSIS_SUCCESS_MESSAGE;
+
 import kakaotech.bootcamp.respec.specranking.domain.spec.resume.dto.response.WebPostResumeResponse;
 import kakaotech.bootcamp.respec.specranking.domain.spec.resume.dto.response.WebPostResumeResponse.ResumeAnalysisResult;
 import kakaotech.bootcamp.respec.specranking.domain.spec.resume.service.ResumeService;
@@ -25,6 +27,6 @@ public class ResumeController {
     ) {
         log.info("Enter resume analysis");
         ResumeAnalysisResult resumeAnalysisResult = resumeService.analysisResume(resume);
-        return new WebPostResumeResponse(true, "이력서 분석 성공", resumeAnalysisResult);
+        return new WebPostResumeResponse(true, RESUME_ANALYSIS_SUCCESS_MESSAGE, resumeAnalysisResult);
     }
 }

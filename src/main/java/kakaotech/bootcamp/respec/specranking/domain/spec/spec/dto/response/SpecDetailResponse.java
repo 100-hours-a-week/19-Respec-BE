@@ -12,21 +12,16 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.ScoreCategoryDet
 public record SpecDetailResponse(
         Boolean isSuccess,
         String message,
-        SpecDetailData specDetailData
+        SpecDetail specDetail
 ) {
 
-    public record SpecDetailData(
-            FinalEducation finalEducation,
-            List<EducationDetails> educationDetails,
-            List<WorkExperience> workExperiences,
-            List<Certification> certifications,
-            List<LanguageSkill> languageSkills,
-            List<Activity> activities,
-            JobField jobField,
-            Rankings rankings,
-            String assessment
+    public record SpecDetail(
+            FinalEducation finalEducation, List<EducationDetails> educationDetails,
+            List<WorkExperience> workExperiences, List<Certification> certifications,
+            List<LanguageSkill> languageSkills, List<Activity> activities,
+            JobField jobField, Rankings rankings, String assessment
     ) {
-        public SpecDetailData {
+        public SpecDetail {
             educationDetails = List.copyOf(educationDetails);
             workExperiences = List.copyOf(workExperiences);
             certifications = List.copyOf(certifications);
@@ -42,17 +37,14 @@ public record SpecDetailResponse(
     }
 
     public record EducationDetails(
-            String schoolName,
-            Degree degree,
-            String major,
-            Double gpa,
+            String schoolName, Degree degree,
+            String major, Double gpa,
             Double maxGpa
     ) {
     }
 
     public record WorkExperience(
-            String company,
-            Position position,
+            String company, Position position,
             Integer period
     ) {
     }
@@ -85,10 +77,8 @@ public record SpecDetailResponse(
     }
 
     public record Details(
-            Double score,
-            Long jobFieldRank,
-            Long jobFieldUserCount,
-            Long totalRank,
+            Double score, Long jobFieldRank,
+            Long jobFieldUserCount, Long totalRank,
             Long totalUserCount
     ) {
     }

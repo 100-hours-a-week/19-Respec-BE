@@ -1,7 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.notification.service;
 
 import static kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthConstant.LOGIN_REQUIRED_MESSAGE;
-import static kakaotech.bootcamp.respec.specranking.domain.notification.constant.NotificationConstant.GET_NOTIFICATION_SUCCESS_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.notification.constant.NotificationConstant.NOT_FOUND_CHAT_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.notification.constant.NotificationConstant.NOT_FOUND_SOCIAL_MESSAGE;
 import static kakaotech.bootcamp.respec.specranking.domain.user.constants.UserConstant.USER_NOT_FOUND_MESSAGE_PREFIX;
@@ -10,7 +9,6 @@ import static kakaotech.bootcamp.respec.specranking.global.common.type.Notificat
 
 import java.util.List;
 import kakaotech.bootcamp.respec.specranking.domain.auth.exception.LoginRequiredException;
-import kakaotech.bootcamp.respec.specranking.domain.notification.dto.response.NotificationStatusResponse;
 import kakaotech.bootcamp.respec.specranking.domain.notification.dto.response.NotificationStatusResponse.NotificationStatusData;
 import kakaotech.bootcamp.respec.specranking.domain.notification.entity.Notification;
 import kakaotech.bootcamp.respec.specranking.domain.notification.exception.NotFoundChatNotificationException;
@@ -44,16 +42,14 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public NotificationStatusResponse getFooterNotificationStatus() {
+    public NotificationStatusData getFooterNotificationStatus() {
         Long userId = UserUtils.getCurrentUserId()
                 .orElseThrow(() -> new LoginRequiredException(LOGIN_REQUIRED_MESSAGE));
 
         boolean hasUnreadChat = notificationRepository.existsByUserIdAndTargetName(userId, CHAT);
         boolean hasUnreadComment = notificationRepository.existsByUserIdAndTargetName(userId, SOCIAL);
 
-        NotificationStatusData data = new NotificationStatusData(hasUnreadChat, hasUnreadComment);
-
-        return new NotificationStatusResponse(true, GET_NOTIFICATION_SUCCESS_MESSAGE, data);
+        return new NotificationStatusData(hasUnreadChat, hasUnreadComment);
     }
 
     public void deleteChatNotifications() {

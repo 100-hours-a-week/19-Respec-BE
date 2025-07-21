@@ -6,23 +6,14 @@ import kakaotech.bootcamp.respec.specranking.global.common.type.JobField;
 public record RankingResponse(
         Boolean isSuccess,
         String message,
-        RankingData data
+        SpecRankings data
 ) {
-    public static RankingResponse success(List<RankingItem> rankings, Boolean hasNext, String nextCursor) {
-        RankingData data = new RankingData(
-                List.copyOf(rankings),
-                hasNext,
-                nextCursor
-        );
-        return new RankingResponse(true, "랭킹 목록 조회 성공", data);
-    }
-
-    public record RankingData(
+    public record SpecRankings(
             List<RankingItem> rankings,
             Boolean hasNext,
             String nextCursor
     ) {
-        public RankingData {
+        public SpecRankings {
             rankings = List.copyOf(rankings);
         }
     }

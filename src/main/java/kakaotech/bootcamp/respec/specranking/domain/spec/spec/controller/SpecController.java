@@ -1,5 +1,8 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.controller;
 
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_INPUT_SUCCESS_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.spec.spec.constant.SpecConstant.SPEC_UPDATE_SUCCESS_MESSAGE;
+
 import jakarta.validation.Valid;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.request.PostSpecRequest;
 import kakaotech.bootcamp.respec.specranking.domain.spec.spec.service.SpecService;
@@ -27,7 +30,7 @@ public class SpecController {
             @RequestBody @Valid PostSpecRequest request) {
 
         specService.createSpec(request);
-        return new SimpleResponseDto(true, "스펙 입력 성공");
+        return new SimpleResponseDto(true, SPEC_INPUT_SUCCESS_MESSAGE);
     }
 
     @PutMapping("/{specId}")
@@ -36,7 +39,7 @@ public class SpecController {
             @RequestBody @Valid PostSpecRequest request) {
 
         specService.updateSpec(specId, request);
-        return new SimpleResponseDto(true, "스펙 수정 성공");
+        return new SimpleResponseDto(true, SPEC_UPDATE_SUCCESS_MESSAGE);
     }
 
 }

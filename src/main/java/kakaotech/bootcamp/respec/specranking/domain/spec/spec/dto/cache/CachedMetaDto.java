@@ -1,6 +1,6 @@
 package kakaotech.bootcamp.respec.specranking.domain.spec.spec.dto.cache;
 
-public record CachedMetaResponse(
+public record CachedMetaDto(
         long computeTime,
         CachedMeta data
 ) {

@@ -75,10 +75,8 @@ public class Spec extends BaseTimeEntity {
     private SpecStatus status;
 
     public Spec(User user, JobField jobField
-            , Double educationScore
-            , Double workExperienceScore
-            , Double activityNetworkingScore
-            , Double certificationScore
+            , Double educationScore, Double workExperienceScore
+            , Double activityNetworkingScore, Double certificationScore
             , Double englishSkillScore, Double totalAnalysisScore, String assessment) {
         this.user = user;
         this.jobField = jobField;
@@ -96,8 +94,7 @@ public class Spec extends BaseTimeEntity {
 
     public static Spec createFromAiResponse(User user, JobField jobField, AiPostSpecResponse aiResponse) {
         return new Spec(
-                user,
-                jobField,
+                user, jobField,
                 aiResponse.getEducationScore(),
                 aiResponse.getWorkExperienceScore(),
                 aiResponse.getActivityNetworkingScore(),
