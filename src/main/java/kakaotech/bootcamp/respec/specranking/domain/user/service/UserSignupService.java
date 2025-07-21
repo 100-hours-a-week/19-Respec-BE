@@ -2,8 +2,8 @@ package kakaotech.bootcamp.respec.specranking.domain.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.cookie.CookieUtils;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequestDto;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponseDto;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenRequest;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthTokenResponse;
 import kakaotech.bootcamp.respec.specranking.domain.auth.entity.OAuth;
 import kakaotech.bootcamp.respec.specranking.domain.auth.repository.OAuthRepository;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.AuthService;
@@ -82,10 +82,10 @@ public class UserSignupService {
     private void issueTokenAndSetCookies(User user, HttpServletResponse httpServletResponse) {
         cookieUtils.deleteCookie(httpServletResponse, CookieConstants.TEMP_LOGIN_ID);
 
-        AuthTokenRequestDto tokenRequest = new AuthTokenRequestDto(user.getId(), user.getLoginId());
-        AuthTokenResponseDto tokenResponse = authService.issueToken(tokenRequest, false);
+        AuthTokenRequest tokenRequest = new AuthTokenRequest(user.getId(), user.getLoginId());
+        AuthTokenResponse tokenResponse = authService.issueToken(tokenRequest, false);
 
-        authService.convertTokenToResponse(tokenResponse, httpServletResponse);
+        authService.setTokensInResponse(tokenResponse, httpServletResponse);
 
         cookieUtils.addCookie(
                 httpServletResponse,

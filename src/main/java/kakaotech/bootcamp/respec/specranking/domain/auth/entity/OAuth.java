@@ -3,13 +3,13 @@ package kakaotech.bootcamp.respec.specranking.domain.auth.entity;
 import kakaotech.bootcamp.respec.specranking.global.common.type.OAuthProvider;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 public class OAuth {
 
     @Id
@@ -17,7 +17,6 @@ public class OAuth {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private User user;

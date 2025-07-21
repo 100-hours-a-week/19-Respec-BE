@@ -20,7 +20,7 @@ public class RefreshTokenScheduler {
     public void deleteExpiredTokens() {
         LocalDateTime now = LocalDateTime.now();
         log.info("Deleting expired tokens");
-        authService.deleteByExpirationBefore(now);
+        authService.deleteExpiredRefreshToken(now);
         log.info("Expired tokens deleted.");
     }
 }

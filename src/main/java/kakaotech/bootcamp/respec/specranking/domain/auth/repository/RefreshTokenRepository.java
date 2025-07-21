@@ -10,7 +10,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     Boolean existsByValue(String value);
 
-    void deleteAllByExpirationBefore(LocalDateTime expiration);
+    int deleteAllByExpirationBefore(LocalDateTime expiration);
 
     void deleteAllByUser(User user);
 }

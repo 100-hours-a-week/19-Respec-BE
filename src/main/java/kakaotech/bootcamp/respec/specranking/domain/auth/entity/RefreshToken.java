@@ -3,7 +3,6 @@ package kakaotech.bootcamp.respec.specranking.domain.auth.entity;
 import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
