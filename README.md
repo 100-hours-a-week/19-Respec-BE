@@ -89,44 +89,6 @@ Backend Server (Spring Boot)
        └─ AI Server (스펙 분석)
 ```
 
-## 🎯 핵심 구현 특징
-
-### OAuth2 + JWT 인증
-```java
-@Service
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-    // 카카오 OAuth2 로그인 처리
-    // JWT 토큰 생성 및 관리
-}
-```
-
-### WebSocket 실시간 채팅
-```java
-@Component
-public class ChatWebSocketHandler extends TextWebSocketHandler {
-    // 실시간 메시지 송수신
-    // 세션 관리 및 브로드캐스팅
-}
-```
-
-### QueryDSL 동적 쿼리
-```java
-@Repository
-public class SpecRepositoryImpl implements SpecRepositoryCustom {
-    // 복잡한 스펙 검색 쿼리
-    // 동적 필터링 및 정렬
-}
-```
-
-### AI 서비스 연동
-```java
-@Service
-public class AiService {
-    // 외부 AI 서버와 통신
-    // 스펙 분석 결과 제공
-}
-```
-
 ## 📄 도메인별 상세 기능
 
 ### 🔐 Auth Domain
