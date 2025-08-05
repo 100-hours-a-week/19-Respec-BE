@@ -53,7 +53,7 @@
 
 7. [테크 스펙 작성 - 문서로 하는 코딩](https://aole.tistory.com/174)
 
-## ✨ 주요 기능
+## ✨ 기능 요약
 
 ### 🔐 사용자 인증 시스템
 - **OAuth2 소셜 로그인**: 카카오 로그인 지원
@@ -144,6 +144,6 @@ Backend Server (Spring Boot)
 프로필별 설정으로 로컬 개발 환경에서도 S3 및 AI 서버와의 의존성을 해결할 수 있습니다.
 Mock 서버 빈을 주입 받아 의존성 없이 개발을 진행할 수 있습니다.
   
-## 📚 추가 자료
+## 📚 관련 레포
 
 - **ChatConsumer 서비스**: [19-Respec-BE-Chatconsumer](https://github.com/100-hours-a-week/19-Respec-BE-Chatconsumer) - 채팅 메시지 처리 마이크로서비스
