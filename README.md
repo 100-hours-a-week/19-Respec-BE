@@ -7,13 +7,19 @@
 
 ## 관련 블로그 글
 
-[기술 스택 선정 과정 - 확장성과 안정성 사이의 균형점 찾기](https://aole.tistory.com/111)
-[ERD 설계 과정에서 마주한 기술적 트레이드오프들](https://aole.tistory.com/116)
-[채팅방 삭제 기능 설계 - 미래를 대비한 ERD 설계](https://aole.tistory.com/118)
-[JPA 양방향 매핑과 CASCADE.ALL 도입 결정 과정](https://aole.tistory.com/132)
-[분산 환경에서 1:1 채팅 서버 구축하기 - 이벤트 기반 아키텍처 도입기](https://aole.tistory.com/146)
-[WebSocket + Kafka를 활용한 실시간 채팅 시스템 구현기](https://aole.tistory.com/171)
-[테크 스펙 작성 - 문서로 하는 코딩](https://aole.tistory.com/174)
+1. [기술 스택 선정 과정 - 확장성과 안정성 사이의 균형점 찾기](https://aole.tistory.com/111)
+
+2. [ERD 설계 과정에서 마주한 기술적 트레이드오프들](https://aole.tistory.com/116)
+
+3. [채팅방 삭제 기능 설계 - 미래를 대비한 ERD 설계](https://aole.tistory.com/118)
+
+4. [JPA 양방향 매핑과 CASCADE.ALL 도입 결정 과정](https://aole.tistory.com/132)
+
+5. [분산 환경에서 1:1 채팅 서버 구축하기 - 이벤트 기반 아키텍처 도입기](https://aole.tistory.com/146)
+
+6. [WebSocket + Kafka를 활용한 실시간 채팅 시스템 구현기](https://aole.tistory.com/171)
+
+7. [테크 스펙 작성 - 문서로 하는 코딩](https://aole.tistory.com/174)
 
 
 ## 📋 개요
