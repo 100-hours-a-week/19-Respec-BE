@@ -1,6 +1,21 @@
 # 19-Respec-BE
 카카오 테크 부트캠프 판교 2기 19조 백엔드 레포입니다
 
+## ERD
+
+[ERDCloud](https://www.erdcloud.com/d/4xxcrLbDnLu4ZyEoJ)
+
+## 관련 블로그 글
+
+[기술 스택 선정 과정 - 확장성과 안정성 사이의 균형점 찾기](https://aole.tistory.com/111)
+[ERD 설계 과정에서 마주한 기술적 트레이드오프들](https://aole.tistory.com/116)
+[채팅방 삭제 기능 설계 - 미래를 대비한 ERD 설계](https://aole.tistory.com/118)
+[JPA 양방향 매핑과 CASCADE.ALL 도입 결정 과정](https://aole.tistory.com/132)
+[분산 환경에서 1:1 채팅 서버 구축하기 - 이벤트 기반 아키텍처 도입기](https://aole.tistory.com/146)
+[WebSocket + Kafka를 활용한 실시간 채팅 시스템 구현기](https://aole.tistory.com/171)
+[테크 스펙 작성 - 문서로 하는 코딩](https://aole.tistory.com/174)
+
+
 ## 📋 개요
 
 개발자들이 자신의 스펙(경력, 학력, 자격증 등)을 등록하고 비교할 수 있는 플랫폼의 백엔드 시스템입니다. 사용자 인증, 스펙 관리, 실시간 채팅, 소셜 기능, AI 기반 분석 등 다양한 기능을 제공합니다.
