@@ -1,15 +1,10 @@
 package kakaotech.bootcamp.respec.specranking.global.dto;
 
-import lombok.Data;
-
-@Data
-public class SimpleResponseDto {
-    private boolean isSuccess;
-    private String message;
-
-    public SimpleResponseDto(boolean isSuccess, String message) {
-        this.isSuccess = isSuccess;
-        this.message = message;
+public record SimpleResponseDto(
+        Boolean isSuccess,
+        String message
+) {
+    public static SimpleResponseDto success(String message) {
+        return new SimpleResponseDto(true, message);
     }
 }
-

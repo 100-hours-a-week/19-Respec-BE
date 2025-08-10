@@ -9,20 +9,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import kakaotech.bootcamp.respec.specranking.domain.common.BaseTimeEntity;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.UserRole;
-import kakaotech.bootcamp.respec.specranking.domain.common.type.UserStatus;
+import kakaotech.bootcamp.respec.specranking.global.common.entity.BaseTimeEntity;
+import kakaotech.bootcamp.respec.specranking.global.common.type.UserRole;
+import kakaotech.bootcamp.respec.specranking.global.common.type.UserStatus;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(
         name = "users",
         indexes = {
@@ -66,5 +62,21 @@ public class User extends BaseTimeEntity {
         this.isOpenSpec = isOpenSpec;
         this.role = UserRole.ROLE_USER;
         this.status = UserStatus.ACTIVE;
+    }
+
+    public void updateNickname(String newNickname) {
+        if (newNickname != null && !newNickname.isEmpty()) {
+            this.nickname = newNickname;
+        }
+    }
+
+    public void updateProfileImageUrl(String newProfileImageUrl) {
+        if (newProfileImageUrl != null && !newProfileImageUrl.isEmpty()) {
+            this.userProfileUrl = newProfileImageUrl;
+        }
+    }
+
+    public void updateIsOpenSpec(Boolean isOpenSpec) {
+        this.isOpenSpec = isOpenSpec;
     }
 }

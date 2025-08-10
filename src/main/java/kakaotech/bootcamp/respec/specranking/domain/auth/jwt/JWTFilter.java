@@ -1,14 +1,16 @@
 package kakaotech.bootcamp.respec.specranking.domain.auth.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUserDto;
-import kakaotech.bootcamp.respec.specranking.domain.user.entity.User;
-import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
+import kakaotech.bootcamp.respec.specranking.domain.auth.constant.AuthMessages;
+import kakaotech.bootcamp.respec.specranking.domain.auth.dto.AuthenticatedUser;
+import kakaotech.bootcamp.respec.specranking.global.common.cookie.CookieConstants;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,70 +18,83 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String TOKEN_ERROR_HEADER = "Token-Error";
+    private static final String EXPIRED_TOKEN_ERROR = "Expired";
+    private static final String INVALID_TOKEN_ERROR = "Invalid";
+
     private final JWTUtil jwtUtil;
-    private final UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Optional<Cookie> authCookie = CookieUtils.getCookie(request, "Authorization");
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        if (authCookie.isEmpty()) {
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (!hasValidAuthorizationHeader(authorizationHeader)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authCookie.get().getValue();
+        String accessToken = authorizationHeader.substring(BEARER_PREFIX.length()).trim();
 
-        // 토큰 소멸시간 검증
         try {
-            if (jwtUtil.isExpired(token)) {
-                String loginId = jwtUtil.getLoginId(token);
+            if (!validateAccessToken(accessToken, response)) return;
 
-                if (loginId != null) {
-                    Optional<User> optUser = userRepository.findByLoginId(loginId);
+            authenticateUser(accessToken);
+            filterChain.doFilter(request, response);
 
-                    if (optUser.isPresent()) {
-                        User user = optUser.get();
-                        String newToken = jwtUtil.createJwts(user.getId(), user.getLoginId(), 1000L * 60 * 60 * 24);
-                        CookieUtils.addCookie(response, "Authorization", newToken, 60 * 60 * 24);
-                        setAuthenticationContext(user.getId(), user.getLoginId());
-                    }
-                }
-            } else {
-                Long userId = jwtUtil.getUserId(token);
-                String loginId = jwtUtil.getLoginId(token);
-
-                if (loginId != null) {
-                    setAuthenticationContext(userId, loginId);
-                }
-            }
+        } catch (ExpiredJwtException e) {
+            handleExpiredToken(response);
         } catch (Exception e) {
-            logger.error("JWT Token processing error", e);
+            handleInvalidToken(response);
         }
-
-        filterChain.doFilter(request, response);
     }
 
-    private void setAuthenticationContext(Long userId, String loginId) {
-        AuthenticatedUserDto userDto = new AuthenticatedUserDto();
-        userDto.setLoginId(loginId);
+    private boolean hasValidAuthorizationHeader(String header) {
+        return header != null && !header.isBlank() && header.startsWith(BEARER_PREFIX);
+    }
 
-        if (userId != null) {
-            userDto.setId(userId);
+    private boolean validateAccessToken(String accessToken, HttpServletResponse response) throws IOException {
+        if (jwtUtil.isExpired(accessToken)) {
+            handleExpiredToken(response);
+            return false;
         }
 
-        Authentication authToken = new UsernamePasswordAuthenticationToken(
-                userDto,
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
+        String tokenCategory = jwtUtil.getTokenCategory(accessToken);
+        if (!CookieConstants.ACCESS_TOKEN.equals(tokenCategory)) {
+            handleInvalidToken(response);
+            return false;
+        }
 
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        return true;
+    }
+
+    private void authenticateUser(String accessToken) {
+        Long userId = jwtUtil.getUserId(accessToken);
+        String loginId = jwtUtil.getLoginId(accessToken);
+
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.of(userId, loginId, null, null);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                authenticatedUser, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void handleExpiredToken(HttpServletResponse response) throws IOException {
+        response.addHeader(TOKEN_ERROR_HEADER, EXPIRED_TOKEN_ERROR);
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, AuthMessages.EXPIRED_ACCESS_TOKEN);
+    }
+
+    private void handleInvalidToken(HttpServletResponse response) throws IOException {
+        response.addHeader(TOKEN_ERROR_HEADER, INVALID_TOKEN_ERROR);
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, AuthMessages.INVALID_ACCESS_TOKEN);
     }
 }

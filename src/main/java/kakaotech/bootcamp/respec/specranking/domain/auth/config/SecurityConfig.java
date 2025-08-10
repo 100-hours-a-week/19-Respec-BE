@@ -6,8 +6,8 @@ import java.util.Collections;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.CustomSuccessHandler;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTFilter;
 import kakaotech.bootcamp.respec.specranking.domain.auth.jwt.JWTUtil;
+import kakaotech.bootcamp.respec.specranking.domain.auth.repository.CustomAuthorizationRequestRepository;
 import kakaotech.bootcamp.respec.specranking.domain.auth.service.CustomOAuth2UserService;
-import kakaotech.bootcamp.respec.specranking.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,10 +30,10 @@ public class SecurityConfig {
     @Value("${frontend.base-url}")
     private String frontendBaseUrl;
 
+    private final CustomAuthorizationRequestRepository authorizationRequestRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
-    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -72,11 +72,14 @@ public class SecurityConfig {
 
         // JWTFilter 추가
         http
-                .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         // oauth2
         http
                 .oauth2Login((oauth2) -> oauth2
+                        .authorizationEndpoint(authorizationEndpoint ->
+                                authorizationEndpoint
+                                        .authorizationRequestRepository(authorizationRequestRepository))
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                                 .userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler)
@@ -89,7 +92,7 @@ public class SecurityConfig {
                                 "/",
                                 "/api/auth/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**", "/api/**")
+                                "/login/oauth2/**", "/api/**", "/ws/chat/**")
                         .permitAll()
                         .anyRequest().authenticated());
 
@@ -101,3 +104,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

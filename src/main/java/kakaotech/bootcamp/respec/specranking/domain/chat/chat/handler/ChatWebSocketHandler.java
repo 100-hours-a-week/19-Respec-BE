@@ -1,0 +1,156 @@
+package kakaotech.bootcamp.respec.specranking.domain.chat.chat.handler;
+
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.INVAILD_TYPE_SESSION_ERROR_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.JSON_PARSING_ERROR_MESSAGE;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.SESSION_USER_ID_KEY;
+import static kakaotech.bootcamp.respec.specranking.domain.chat.chat.constant.ChatConstant.VALIDATION_FAILED_PREFIX;
+import static kakaotech.bootcamp.respec.specranking.global.common.type.ChatStatus.SENT;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.constant.KafkaConstant.CHAT_TOPIC_NAME;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.CHAT_ENTER_TTL_HOURS;
+import static kakaotech.bootcamp.respec.specranking.global.infrastructure.redis.constant.CacheManagerConstant.CHAT_ENTER_USER_PREFIX;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import java.time.Duration;
+import java.util.Set;
+import java.util.UUID;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chat.adapter.out.dto.ChatSessionRedisValue;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chat.dto.request.SocketChatSendRequest;
+import kakaotech.bootcamp.respec.specranking.domain.chat.chat.manager.WebSocketSessionManager;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.kafka.dto.ChatProduceDto;
+import kakaotech.bootcamp.respec.specranking.global.infrastructure.myserver.ip.service.IPService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class ChatWebSocketHandler extends TextWebSocketHandler {
+
+    private final WebSocketSessionManager webSocketSessionManager;
+    private final KafkaTemplate<String, ChatProduceDto> chatMessageKafkaTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
+    private final IPService ipService;
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        String privateAddress = ipService.loadEC2PrivateAddress();
+
+        Long userId = (Long) session.getAttributes().get(SESSION_USER_ID_KEY);
+
+        ChatSessionRedisValue chatSessionRedisValue = new ChatSessionRedisValue(privateAddress, userId);
+        redisTemplate.opsForValue()
+                .set(CHAT_ENTER_USER_PREFIX + userId, chatSessionRedisValue, Duration.ofHours(CHAT_ENTER_TTL_HOURS));
+        webSocketSessionManager.addSession(userId, session);
+        log.info("userId{}가 초기 세션 연결에 성공했습니다.", userId);
+    }
+
+    @Override
+    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        String payload = message.getPayload();
+
+        SocketChatSendRequest incomingMessage = parseJsonMessage(payload);
+        if (incomingMessage == null) {
+            session.sendMessage(new TextMessage(JSON_PARSING_ERROR_MESSAGE));
+            log.error("메시지의 json parsing이 실패했습니다.");
+            return;
+        }
+
+        String validationError = validateRequestData(incomingMessage);
+        if (validationError != null) {
+            session.sendMessage(new TextMessage("Error: " + validationError));
+            log.error("메시지의 검증에 실패했습니다.");
+            return;
+        }
+
+        Long senderId = validateExistsUser(session);
+        if (senderId == null) {
+            session.sendMessage(new TextMessage(INVAILD_TYPE_SESSION_ERROR_MESSAGE));
+            log.error("세션의 타입이 유효하지 않습니다.");
+            return;
+        }
+
+        processMessage(incomingMessage, senderId);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        Long userId = (Long) session.getAttributes().get(SESSION_USER_ID_KEY);
+        webSocketSessionManager.removeSession(userId);
+        redisTemplate.delete(CHAT_ENTER_USER_PREFIX + userId);
+        log.info("userId{}의 세션 연결이 종료되었습니다.", userId);
+    }
+
+    private String generateKeyForSequence(Long senderId, Long receiverId) {
+        if (senderId < receiverId) {
+            return senderId + "_" + receiverId;
+        } else {
+            return receiverId + "_" + senderId;
+        }
+    }
+
+    private SocketChatSendRequest parseJsonMessage(String payload) {
+        try {
+            return objectMapper.readValue(payload, SocketChatSendRequest.class);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    private String validateRequestData(SocketChatSendRequest request) {
+        Set<ConstraintViolation<SocketChatSendRequest>> violations = validator.validate(request);
+
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder(VALIDATION_FAILED_PREFIX);
+            for (ConstraintViolation<SocketChatSendRequest> violation : violations) {
+                sb.append(violation.getPropertyPath()).append(" ").append(violation.getMessage()).append("; ");
+            }
+            return sb.toString();
+        }
+
+        return null;
+    }
+
+    private Long validateExistsUser(WebSocketSession session) {
+        Object senderIdObj = session.getAttributes().get(SESSION_USER_ID_KEY);
+
+        if (!(senderIdObj instanceof Long)) {
+            log.warn("invalid type userId in WebSocket session");
+            return null;
+        }
+
+        return (Long) senderIdObj;
+    }
+
+    private void processMessage(SocketChatSendRequest incomingMessage, Long senderId) {
+        Long receiverId = incomingMessage.receiverId();
+        String content = incomingMessage.content();
+        String idempotentKey = UUID.randomUUID().toString();
+
+        ChatProduceDto chatProduceDto = new ChatProduceDto(idempotentKey, senderId, receiverId, content, SENT);
+        String key = generateKeyForSequence(senderId, receiverId);
+
+        chatMessageKafkaTemplate.send(CHAT_TOPIC_NAME, key, chatProduceDto).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Kafka SEND FAILED topic=chat key={} payload={} error={}",
+                        key, chatProduceDto, ex.getMessage(), ex);
+            } else {
+                log.debug("Kafka SEND OK topic={} partition={} offset={}",
+                        result.getRecordMetadata().topic(),
+                        result.getRecordMetadata().partition(),
+                        result.getRecordMetadata().offset());
+            }
+        });
+    }
+}
